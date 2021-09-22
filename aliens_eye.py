@@ -21,10 +21,10 @@ banner=f"""{y}
 
 os.system("clear")
 print(banner)
+print(f"{r}NOTE:The data may not be compleatly accurate!\n")
 u=input(f"{y}Enter the username{r}:{g}")
 social={
 "facebook":f"https://facebook.com/{u}",
-"twitter":f"https://twitter.com/{u}",
 "youtube":f"https://youtube.com/{u}",
 "vimeo":f"https://vimeo.com/{u}",
 "github":f"https://github.com/{u}",
@@ -36,10 +36,11 @@ social={
 "disqus":f"https://disqus.com/{u}",
 "bitbucket":f"https://bitbucket.org/{u}",
 "flipboard":f"https://flipboard.com/@{u}",
+"twitter":f"https://twitter.com/{u}",
 "medium":f"https://medium.com/@{u}",
 "hackerone":f"https://hackerone.com/{u}",
-"instagram":f"https://instagram.com/{u}",
 "keybase":f"https://keybase.io/{u}",
+"instagram":f"https://instagram.com/{u}",
 "buzzfeed":f"https://buzzfeed.com/{u}",
 "slideshare":f"https://slideshare.net/{u}",
 "mixcloud":f"https://mixcloud.com/{u}",
