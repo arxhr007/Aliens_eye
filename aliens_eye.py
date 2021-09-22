@@ -30,7 +30,6 @@ social={
 "github":f"https://github.com/{u}",
 "plus":f"https://plus.google.com/{u}",
 "pinterest":f"https://pinterest.com/{u}",
-"instagram":f"https://instagram.com/{u}",
 "flickr":f"https://flickr.com/people/{u}",
 "vk":f"https://vk.com/{u}",
 "about":f"https://about.me/{u}",
@@ -39,6 +38,7 @@ social={
 "flipboard":f"https://flipboard.com/@{u}",
 "medium":f"https://medium.com/@{u}",
 "hackerone":f"https://hackerone.com/{u}",
+"instagram":f"https://instagram.com/{u}",
 "keybase":f"https://keybase.io/{u}",
 "buzzfeed":f"https://buzzfeed.com/{u}",
 "slideshare":f"https://slideshare.net/{u}",
@@ -118,6 +118,6 @@ for i,j in social.items():
  url=f"{g}|{y} "+j+" "*(50-len(j))+f"{g}#"
  print(media+user+code+url)
 print("#"*105)
-print(f"{r}vist https://en.wikipedia.org/wiki/List_of_HTTP_status_codes to know more about status codes!")
+print(f"\n{r}vist https://en.wikipedia.org/wiki/List_of_HTTP_status_codes to know more about status codes!\n")
 print(f"{b}Thank you\n")
-print(f"{y}follow insta:{g}@arn_beatz")
+print(f"{y}follow insta:{g}@arn_beatz\n")
