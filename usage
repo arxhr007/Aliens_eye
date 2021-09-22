@@ -1,0 +1,9 @@
+open terminal and type:
+git clone https://github.com/BLINKING-IDIOT/Aliens_eye
+cd Aliens_eye
+bash requirements.sh
+python3 aliens_eye.py
+
+done!
+NOTE: I am not responsible for anything you do with this code!
+NOTE: for educational purpose only!
