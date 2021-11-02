@@ -27,6 +27,7 @@ u=input(f"{y}Enter the username{r}:{g}")
 social={
 "facebook":f"https://facebook.com/{u}",
 "youtube":f"https://youtube.com/{u}",
+"instagram":f"https://instagram.com/{u}",
 "vimeo":f"https://vimeo.com/{u}",
 "github":f"https://github.com/{u}",
 "plus":f"https://plus.google.com/{u}",
@@ -41,14 +42,13 @@ social={
 "medium":f"https://medium.com/@{u}",
 "hackerone":f"https://hackerone.com/{u}",
 "keybase":f"https://keybase.io/{u}",
-"instagram":f"https://instagram.com/{u}",
 "buzzfeed":f"https://buzzfeed.com/{u}",
 "slideshare":f"https://slideshare.net/{u}",
 "mixcloud":f"https://mixcloud.com/{u}",
 "soundcloud":f"https://soundcloud.com/{u}",
 "badoo":f"https://badoo.com/en/{u}",
 "imgur":f"https://imgur.com/user/{u}",
-"open":f"https://open.spotify.com/user/{u}",
+"spotify":f"https://open.spotify.com/user/{u}",
 "pastebin":f"https://pastebin.com/u/{u}",
 "wattpad":f"https://wattpad.com/user/{u}",
 "canva":f"https://canva.com/{u}",
@@ -105,7 +105,14 @@ for i,j in social.items():
  try:
   req = requests.get(j)
   code=req.status_code
- except:
+ except requests.exceptions.TooManyRedirects:
+  break
+  print("TooManyRedirects")
+ except requests.exceptions.ConnectionError:
+  break
+  print("ConnectionError")
+ except requests.exceptions.Timeout: 
+  continue
   continue
  print(f"{g}#"+f"{p}-"*103+f"{g}#")
  if code==200:
@@ -120,6 +127,6 @@ for i,j in social.items():
  url=f"{g}|{y} "+j+" "*(50-len(j))+f"{g}#"
  print(media+user+code+url)
 print("#"*105)
-print(f"\n{r}vist https://en.wikipedia.org/wiki/List_of_HTTP_status_codes to know more about status codes!\n")
+print(f"\n{r}vist {g}https://en.wikipedia.org/wiki/List_of_HTTP_status_codes{r} to know more about status codes!\n")
 print(f"{b}Thank you\n")
 print(f"{y}follow insta:{g}@arn_beatz\n")
