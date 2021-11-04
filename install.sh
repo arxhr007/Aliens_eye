@@ -39,4 +39,4 @@ echo
 echo
 echo "installed successfully!"
 echo
-echo "now run command \"aliens_eye\" in terminal!(with out "")"
+echo "now run command \"aliens_eye\" in terminal!(without "")"
