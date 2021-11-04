@@ -9,7 +9,7 @@ Open terminal and type:
 Now Aliens_eye is Succesfully installed in your system
 Enter the command "aliens_eye" to run the tool(without "")
 to uninstall:
-  cd Aliens_eye
+  run:
   bash uninstall.sh
 done!
 NOTE: I am not responsible for anything you do with this code!
