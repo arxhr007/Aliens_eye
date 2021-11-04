@@ -6,6 +6,7 @@ if [[ $(id -u) -ne 0 ]] ; then
 	echo "you need root assess to install necessary packages"
 	echo
 	echo "so please enter the password to login as root!"
+	echo
 	sudo bash install.sh
 	echo 
 	echo 
