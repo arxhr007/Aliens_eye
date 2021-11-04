@@ -1,7 +1,7 @@
 # Aliens_eye
 # FIND ALL SOCIAL MEDIA ACCOUNTS WITH A USERNAME!
 OSINT
-To install:\n
+To install:
 Open terminal and type:
   git clone https://github.com/BLINKING-IDIOT/Aliens_eye
   cd Aliens_eye
