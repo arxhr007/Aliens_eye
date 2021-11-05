@@ -5,7 +5,7 @@ if [[ $(id -u) -ne 0 ]] ; then
 	echo
 	echo "so please enter the password to login as root!"
 	echo
-	sudo bash uninstall.sh
+	sudo bash ${0}
 	exit
 fi
 FILE=/usr/share/aliens_eye.py
