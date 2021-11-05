@@ -7,7 +7,7 @@ if [[ $(id -u) -ne 0 ]] ; then
 	echo
 	echo "so please enter the password to login as root!"
 	echo
-	sudo bash install.sh
+	sudo bash ${0}
 	echo 
 	echo 
 	exit
@@ -29,7 +29,7 @@ FILE=/usr/share/aliens_eye.py
 if [ -f "$FILE" ]; then
 	rm /usr/share/aliens_eye.py
 fi
-cp aliens_eye.py /usr/share/aliens_eye.py
+cp ${0%/*}/aliens_eye.py /usr/share/aliens_eye.py
 FILE1=/usr/bin/aliens_eye
 if [ -f "$FILE1" ]; then
 	rm /usr/bin/aliens_eye
