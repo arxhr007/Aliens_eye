@@ -99,22 +99,22 @@ social={
 }
 os.system("clear")
 print(banner)
-print(f"{g}#"*105)
-print(f"{g}# {r}SOCIAL MEDIA  {g}|        {r}USER {g}        | {r}STATUS CODE{g} | {r}                   URL   {g}                         #")
+spece=" "*20
+print(f"{g}#"*126)
+print(f"{g}# {r}SOCIAL MEDIA   {g}|        {r}USER {g}        | {r}STATUS CODE{g} | {r}                   URL   {g}      {spece}                   #")
 for i,j in social.items():
  try:
   req = requests.get(j)
   code=req.status_code
  except requests.exceptions.TooManyRedirects:
-  break
   print("TooManyRedirects")
- except requests.exceptions.ConnectionError:
   break
-  print("ConnectionError")
+ except requests.exceptions.ConnectionError:
+  print("\n\nConnectionError!\n\ncheck your internet connection!\n\n")
+  break
  except requests.exceptions.Timeout: 
   continue
-  continue
- print(f"{g}#"+f"{p}-"*103+f"{g}#")
+ print(f"{g}#"+f"{p}-"*124+f"{g}#")
  if code==200:
   user=f"{g}|{y}        Found        "
  elif code==404:
@@ -122,11 +122,11 @@ for i,j in social.items():
  else:
   user=f"{g}|{b}undefined status code"
   j="none"
- media=f"{g}# {y}"+i+" "*(14-len(i))
+ media=f"{g}# {y}"+i+" "*(15-len(i))
  code=f"{g}|     {y}"+str(code)+" "*5
- url=f"{g}|{y} "+j+" "*(50-len(j))+f"{g}#"
+ url=f"{g}|{y} "+j+" "*(70-len(j))+f"{g}#"
  print(media+user+code+url)
-print("#"*105)
+print("#"*126)
 print(f"\n{r}vist {g}https://en.wikipedia.org/wiki/List_of_HTTP_status_codes{r} to know more about status codes!\n")
 print(f"{b}Thank you\n")
 print(f"{y}follow insta:{g}@arn_beatz\n")
