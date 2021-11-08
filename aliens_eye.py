@@ -1,3 +1,4 @@
+#! /usr/bin/python3
 import requests,os
 r = "\033[31m"
 g = "\033[32m"
