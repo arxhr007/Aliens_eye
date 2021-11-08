@@ -8,10 +8,6 @@ if [[ $(id -u) -ne 0 ]] ; then
 	sudo bash ${0}
 	exit
 fi
-FILE=/usr/share/aliens_eye.py
-if [ -f "$FILE" ]; then
-	rm /usr/share/aliens_eye.py
-fi
 FILE1=/usr/bin/aliens_eye
 if [ -f "$FILE1" ]; then
 	rm /usr/bin/aliens_eye
