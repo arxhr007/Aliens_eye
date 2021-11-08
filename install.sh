@@ -25,16 +25,17 @@ echo
 echo 
 apt install python3 pip
 pip3 install requests
-FILE=/usr/share/aliens_eye.py
-if [ -f "$FILE" ]; then
-	rm /usr/share/aliens_eye.py
-fi
-cp ${0%/*}/aliens_eye.py /usr/share/aliens_eye.py
 FILE1=/usr/bin/aliens_eye
 if [ -f "$FILE1" ]; then
 	rm /usr/bin/aliens_eye
 fi
-echo "python3 /usr/share/aliens_eye.py" > /usr/bin/aliens_eye
+VAR1="${0}"
+VAR2="${0##*/}"
+if [ "$VAR1" = "$VAR2" ]; then
+	cp aliens_eye.py /usr/bin/aliens_eye
+else
+	cp ${0%/*}/aliens_eye.py /usr/bin/aliens_eye
+fi
 chmod +x /usr/bin/aliens_eye
 echo 
 echo
