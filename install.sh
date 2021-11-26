@@ -23,6 +23,7 @@ do
 done
 echo 
 echo 
+apt update
 apt install python3 pip
 pip3 install requests
 FILE1=/usr/bin/aliens_eye
