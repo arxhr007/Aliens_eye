@@ -23,8 +23,8 @@ do
 done
 echo 
 echo 
-apt update
-apt install python3 pip
+apt update -y
+apt install python3 pip -y
 pip3 install requests
 FILE1=/usr/bin/aliens_eye
 if [ -f "$FILE1" ]; then
