@@ -22,7 +22,7 @@ banner=f"""{y}
 
 os.system("clear")
 print(banner)
-print(f"{r}NOTE:The data may not be compleatly accurate!\n")
+print(f"{r}NOTE:The data may not be completely accurate!\n")
 print(f"{r}NOTE: for educational purpose only!\n")
 u=input(f"{y}Enter the username{r}:{g}")
 social={
