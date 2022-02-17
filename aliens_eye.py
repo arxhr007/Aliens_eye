@@ -130,4 +130,4 @@ for i,j in social.items():
 print("#"*126)
 print(f"\n{r}vist {g}https://en.wikipedia.org/wiki/List_of_HTTP_status_codes{r} to know more about status codes!\n")
 print(f"{b}Thank you\n")
-print(f"{y}follow insta:{g}@arn_beatz\n")
+print(f"{y}follow insta:{g}@_arxhr007_\n")
