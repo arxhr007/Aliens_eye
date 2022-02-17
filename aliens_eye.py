@@ -17,7 +17,7 @@ banner=f"""{y}
 /___/   /_/___/                   
       
 {g}by {y}BLINKING-IDIOT
-{p}insta:{r}@arn_beatz
+{p}insta:{r}@_arxhr007_
 """
 
 os.system("clear")
