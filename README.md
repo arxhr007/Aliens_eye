@@ -1,6 +1,14 @@
-# Aliens_eye
-# FIND ALL SOCIAL MEDIA ACCOUNTS WITH A USERNAME!
+<h1 align="center">Aliens_eye</h1>
+<h1 align="center">FIND ALL SOCIAL MEDIA ACCOUNTS WITH A USERNAME!</h1>
 <hr>
+<em><h5 align="center">(Programming Language - Python 3)</h5></em>
+<p align="center">
+<a href="#"><img alt="MH-DDoS forks" src="https://img.shields.io/github/forks/BLINKING-IDIOT/Aliens_eye?style=for-the-badge"></a>
+<a href="#"><img alt="MH-DDoS last commit (main)" src="https://img.shields.io/github/last-commit/BLINKING-IDIOT/Aliens_eye/main?color=green&style=for-the-badge"></a>
+<a href="#"><img alt="MH-DDoS Repo stars" src="https://img.shields.io/github/stars/BLINKING-IDIOT/Aliens_eye?style=for-the-badge&color=yellow"></a>
+<a href="#"><img alt="MH-DDoS License" src="https://img.shields.io/github/license/BLINKING-IDIOT/Aliens_eye?color=orange&style=for-the-badge"></a>
+<a href="https://github.com/BLINKING-IDIOT/Aliens_eye/issues"><img alt="MatrixTM issues" src="https://img.shields.io/github/issues/BLINKING-IDIOT/Aliens_eye?color=purple&style=for-the-badge"></a>
+</p>
 
 ## Installation:
 **Open terminal and type:**
