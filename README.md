@@ -29,6 +29,14 @@ NOTE: I am not responsible for anything you do with this code!
 <br>
 NOTE: for educational purpose only!
 <br>
+Usage :
+<br>
+aliens_eye <username>
+<br>
+Example :
+<br>
+aliens_eye Aaron123
+<br>
 <p><img aling="center"src="https://raw.githubusercontent.com/BLINKING-IDIOT/Aliens_eye/main/photos/photo3.png"/></p>
 <br>
 <p><img aling="center"src="https://raw.githubusercontent.com/BLINKING-IDIOT/Aliens_eye/main/photos/photo2.png"/></p>
