@@ -1,17 +1,10 @@
 #!/bin/bash
 clear
 if [[ $(id -u) -ne 0 ]] ; then
-	echo "you need root assess to uninstall the tool"
-	echo
-	echo "so please enter the password to login as root!"
-	echo
+	printf "you need root assess to uninstall the tool\n\n\n"
+	echo "so please enter the password to login as root!\n\n"
 	sudo bash ${0}
 	exit
 fi
-FILE1=/usr/bin/aliens_eye
-if [ -f "$FILE1" ]; then
-	rm /usr/bin/aliens_eye
-fi
-echo
-echo "uninstalled successfully!"
-echo
+rm /usr/bin/aliens_eye &>/dev/null
+printf "\nuninstalled successfully!\n"
