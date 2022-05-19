@@ -1,42 +1,43 @@
 # Aliens_eye
 # FIND ALL SOCIAL MEDIA ACCOUNTS WITH A USERNAME!
 <hr>
-OSINT
-<br>
-To install:
-<br>
-Open terminal and type:
-<br>
+
+## Installation:
+**Open terminal and type:**
+```shell script
   git clone https://github.com/BLINKING-IDIOT/Aliens_eye
-  <br>
   cd Aliens_eye
-  <br>
   bash install.sh
-  <br>
-Now Aliens_eye is Succesfully installed in your system
-<br>
-Enter the command "aliens_eye" to run the tool(without "")
-<br>
-to uninstall:
-<br>
-  run:
-  <br>
+```
+* Now Aliens_eye is Succesfully installed in your system
+
+* Enter the command "aliens_eye" to run the tool(without "")
+
+## To uninstall:
+```shell script
+  cd Aliens_eye
   bash uninstall.sh
-  <br>
-done!
-<br>
-NOTE: I am not responsible for anything you do with this code!
-<br>
-NOTE: for educational purpose only!
-<br>
-Usage :
-<br>
+```
+* done!
+
+* NOTE: I am not responsible for anything you do with this code!
+
+* NOTE: for educational purpose only!
+# Usage :
+```shell script
 aliens_eye <username>
-<br>
-Example :
-<br>
+```
+### Example :
+```shell script
 aliens_eye Aaron123
-<br>
+```
+# Or:
+```shell script
+aliens_eye
+```
+### then enter the username
+
+## Enjoy!
 <p><img aling="center"src="https://raw.githubusercontent.com/BLINKING-IDIOT/Aliens_eye/main/photos/photo3.png"/></p>
 <br>
 <p><img aling="center"src="https://raw.githubusercontent.com/BLINKING-IDIOT/Aliens_eye/main/photos/photo2.png"/></p>
