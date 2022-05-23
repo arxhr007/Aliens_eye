@@ -3,7 +3,7 @@ clear
 echo 
 echo
 if [[ $(id -u) -ne 0 ]] ; then
-	printf "you need root assess to install necessary packages\n\n"
+	printf "you need root assess to install the program\n\n"
 
 	printf  "so please enter the password to login as root!\n\n"
 
@@ -11,17 +11,13 @@ if [[ $(id -u) -ne 0 ]] ; then
 	printf "\n\n"
 	exit
 fi
-printf "NOTE: you need internet connction to install necessary packages\n"
-printf "so please make sure computer is connected to internet\n\n"
+printf "NOTE: you also need install necessary packages in requirements.txt\n"
 for i in 3 2 1
 do
 	echo "staring installation process in ${i}" ; 
 	sleep 1
 done
 printf "\n\n" 
-apt update -y
-apt install python3 pip -y
-pip3 install requests
 rm /usr/bin/aliens_eye &>/dev/null
 cp aliens_eye.py /usr/bin/aliens_eye
 chmod +x /usr/bin/aliens_eye
