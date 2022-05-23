@@ -29,8 +29,6 @@
 ```
 * Now Aliens_eye is Succesfully installed in your system
 
-* Enter the command "aliens_eye" to run the tool(without "")
-
 ## To uninstall:
 ```shell script
   cd Aliens_eye
@@ -38,9 +36,6 @@
 ```
 * done!
 
-* NOTE: I am not responsible for anything you do with this code!
-
-* NOTE: for educational purpose only!
 # Usage :
 ```shell script
 aliens_eye <username>
