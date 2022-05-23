@@ -22,4 +22,3 @@ rm /usr/bin/aliens_eye &>/dev/null
 cp aliens_eye.py /usr/bin/aliens_eye
 chmod +x /usr/bin/aliens_eye
 printf "\n\ninstalled successfully!"
-printf "\nnow run command \"aliens_eye\" in terminal!(without \"\")"
