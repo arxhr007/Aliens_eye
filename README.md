@@ -10,7 +10,17 @@
 <a href="https://github.com/BLINKING-IDIOT/Aliens_eye/issues"><img alt="MatrixTM issues" src="https://img.shields.io/github/issues/BLINKING-IDIOT/Aliens_eye?color=purple&style=for-the-badge"></a>
 </p>
 
-## Installation:
+## Before installation:
+* You need python3 and requests module installed on your linux machine
+* most of the linux machines comes with pre-installed python3 and requests module 
+* if not:
+    - install python3 from [here](https://www.python.org/downloads/) 
+    - [click here](https://www.tecmint.com/install-pip-in-linux/) for installing pip 
+    - then install requests module by running:
+     ```shell script
+    pip3 install requests
+    ```
+# Installation:
 **Open terminal and type:**
 ```shell script
   git clone https://github.com/BLINKING-IDIOT/Aliens_eye
