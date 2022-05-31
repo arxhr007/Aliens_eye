@@ -10,6 +10,8 @@
 <a href="https://github.com/BLINKING-IDIOT/Aliens_eye/issues"><img alt="MatrixTM issues" src="https://img.shields.io/github/issues/BLINKING-IDIOT/Aliens_eye?color=purple&style=for-the-badge"></a>
 </p>
 
+# Can be installed in any linux system or in termux
+
 ## Before installation:
 * You need git,python3 and requests module installed on your linux/termux
 * most of the linux machines comes with pre-installed git,python3 and requests module 
@@ -23,6 +25,7 @@
     pip3 install requests
 ```
 * for termux:
+
 **Open termux and run**
 ```shell script
   apt update && apt full-upgrade
