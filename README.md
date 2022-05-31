@@ -11,31 +11,53 @@
 </p>
 
 ## Before installation:
-* You need python3 and requests module installed on your linux machine
-* most of the linux machines comes with pre-installed python3 and requests module 
-* if not:
+* You need git,python3 and requests module installed on your linux/termux
+* most of the linux machines comes with pre-installed git,python3 and requests module 
+## if they are not installed install it by:
+* for linux:
+    - install git from [here](https://linuxhint.com/install-use-git-linux/) 
     - install python3 from [here](https://www.python.org/downloads/) 
     - [click here](https://www.tecmint.com/install-pip-in-linux/) for installing pip 
     - then install requests module by running:
-     ```shell script
+```shell script
     pip3 install requests
-    ```
-# Installation:
-**Open terminal and type:**
+```
+* for termux:
+**Open termux and run**
+```shell script
+  apt update && apt full-upgrade
+  pkg install python
+  pkg install git
+  pip install requests
+```
+# Installation in Linux:
+**Open terminal and run:**
 ```shell script
   git clone https://github.com/BLINKING-IDIOT/Aliens_eye
   cd Aliens_eye
   bash install.sh
 ```
 * Now Aliens_eye is Succesfully installed in your system
-
-## To uninstall:
+# Installation in Termux:
+**Open termux and type:**
+```shell script
+  git clone https://github.com/BLINKING-IDIOT/Aliens_eye
+  cd Aliens_eye
+  bash termux-install.sh
+```
+* Now Aliens_eye is Succesfully installed in your termux
+## To uninstall in linux:
 ```shell script
   cd Aliens_eye
   bash uninstall.sh
 ```
 * done!
-
+## To uninstall in Termux:
+```shell script
+  cd Aliens_eye
+  bash termux-uninstall.sh
+```
+* done!
 # Usage :
 ```shell script
 aliens_eye <username>
