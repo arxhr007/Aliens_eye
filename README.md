@@ -15,7 +15,7 @@
 ## Before installation:
 * You need git,python3 and requests module installed on your linux/termux
 * most of the linux machines comes with pre-installed git,python3 and requests module 
-## if they are not installed install it by:
+## if they are not installed, install it by:
 * for linux:
     - install git from [here](https://linuxhint.com/install-use-git-linux/) 
     - install python3 from [here](https://www.python.org/downloads/) 
