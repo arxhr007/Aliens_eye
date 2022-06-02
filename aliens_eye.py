@@ -136,7 +136,7 @@ def scanner(u):
  with open(u+".json","w") as f:
   dump(save_json,f,indent=4)
  print(f"\n{r}vist {g}https://en.wikipedia.org/wiki/List_of_HTTP_status_codes{r} to know more about status codes!\n")
- print(f"{g}Data has been saved in {u}.json")
+ print(f"{y}Data has been saved in {u}.json")
  print(f"{b}Thank you\n")
 def main(username):
  system("clear")
