@@ -31,6 +31,7 @@
   apt update && apt full-upgrade
   pkg install python
   pkg install git
+  apt update && apt full-upgrade
   pip install requests
 ```
 # Installation in Linux:
