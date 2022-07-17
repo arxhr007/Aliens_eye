@@ -144,9 +144,7 @@ def main(username):
  print(f"{r}NOTE:The data may not be completely accurate!\n")
  print(f"{r}NOTE: for educational purpose only!\n")
  if username == None:
-  u=input(f"{y}Enter the username{r}:{g}")
-  scanner(u)
- else:
-  scanner(username)
+  username=input(f"{y}Enter the username{r}:{g}")
+ scanner(username)
 if __name__ == "__main__":
  main(args.username)
