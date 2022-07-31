@@ -29,16 +29,28 @@
 **Open termux and run**
 ```shell script
   apt update && apt full-upgrade
+```
+```shell script
   pkg install python
+```
+```shell script
   pkg install git
+```
+```shell script
   apt update && apt full-upgrade
+```
+```shell script
   pip install requests
 ```
 # Installation in Linux:
 **Open terminal and run:**
 ```shell script
   git clone https://github.com/BLINKING-IDIOT/Aliens_eye
+```
+```shell script
   cd Aliens_eye
+```
+```shell script
   bash install.sh
 ```
 * Now Aliens_eye is Succesfully installed in your system
@@ -46,19 +58,27 @@
 **Open termux and type:**
 ```shell script
   git clone https://github.com/BLINKING-IDIOT/Aliens_eye
+```
+```shell script
   cd Aliens_eye
+```
+```shell script
   bash termux-install.sh
 ```
 * Now Aliens_eye is Succesfully installed in your termux
 ## To uninstall in linux:
 ```shell script
   cd Aliens_eye
+```
+```shell script
   bash uninstall.sh
 ```
 * done!
 ## To uninstall in Termux:
 ```shell script
   cd Aliens_eye
+```
+```shell script
   bash termux-uninstall.sh
 ```
 * done!
