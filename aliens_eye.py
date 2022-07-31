@@ -4,7 +4,7 @@ from os import system
 from argparse import ArgumentParser
 from json import dump
 parser = ArgumentParser()
-parser.add_argument("username",type=str,nargs='?')
+parser.add_argument("username",nargs='*')
 args = parser.parse_args()
 r = "\033[31m"
 g = "\033[32m"
@@ -25,8 +25,8 @@ banner=f"""{y}
 {g}by {y}BLINKING-IDIOT
 {p}insta:{r}@_arxhr007_
 """
-save_json={}
 def scanner(u):
+ save_json={}
  social={
  "facebook":f"https://facebook.com/{u}",
  "youtube":f"https://youtube.com/{u}",
@@ -100,7 +100,7 @@ def scanner(u):
  "trip":f"https://www.trip.skyscanner.com/user/{u}",
  "zone-h":f"http://www.zone-h.org/archive/notifier={u}"
  }
- print(f"\n{p}starting:\n")
+ print(f"\n{r}Fetching details of {u}:\n")
  spece=" "*20
  print(f"{g}#"*126)
  print(f"{g}# {r}SOCIAL MEDIA   {g}|        {r}USER {g}        | {r}STATUS CODE{g} | {r}                   URL   {g}      {spece}                   #")
@@ -135,16 +135,17 @@ def scanner(u):
   with open(u+".json","w") as f:
    dump(save_json,f,indent=4)
  print("#"*126)
- print(f"\n{r}vist {g}https://en.wikipedia.org/wiki/List_of_HTTP_status_codes{r} to know more about status codes!\n")
- print(f"{y}Data has been saved in {u}.json")
- print(f"{b}Thank you\n")
-def main(username):
+ print(f"\n{y}Data has been saved in {u}.json")
+def main(usernames):
  system("clear")
  print(banner)
  print(f"{r}NOTE:The data may not be completely accurate!\n")
  print(f"{r}NOTE: for educational purpose only!\n")
- if username == None:
-  username=input(f"{y}Enter the username{r}:{g}")
- scanner(username)
+ if usernames == []:
+  usernames=input(f"{y}Enter the username{r}:{g}").split()
+ for username in usernames:
+    scanner(username)
+ print(f"\n{r}vist {g}https://en.wikipedia.org/wiki/List_of_HTTP_status_codes{r} to know more about status codes!\n")
+ print(f"{b}Thank you\n")
 if __name__ == "__main__":
  main(args.username)
