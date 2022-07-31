@@ -90,6 +90,11 @@ aliens_eye <username>
 ```shell script
 aliens_eye Aaron123
 ```
+## You can also search multiple accounts by enter the usernames separated by space
+### Example :
+```shell script
+aliens_eye Aaron123 Thomas54 lisa43
+```
 # Or:
 ```shell script
 aliens_eye
