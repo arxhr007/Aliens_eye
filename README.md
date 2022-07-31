@@ -1,4 +1,4 @@
-<p align="center" ><img src="https://raw.githubusercontent.com/BLINKING-IDIOT/test/main/logo.png" data-canonical-src="https://raw.githubusercontent.com/BLINKING-IDIOT/test/main/logo.png" width="400" height="400" /></p>
+<p align="center" ><img src="https://raw.githubusercontent.com/BLINKING-IDIOT/Aliens_eye/main/photos/logo.png" data-canonical-src="https://raw.githubusercontent.com/BLINKING-IDIOT/Aliens_eye/main/photos/logo.png" width="450" height="400" /></p>
 <h1 align="center">FIND ALL SOCIAL MEDIA ACCOUNTS WITH A USERNAME!</h1>
 <hr>
 <em><h5 align="center">(Programming Language - Python 3)</h5></em>
