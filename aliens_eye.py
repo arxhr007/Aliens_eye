@@ -132,9 +132,9 @@ def scanner(u):
   code=f"{g}|     {y}"+str(code)+" "*5
   url=f"{g}|{y} "+j+" "*(70-len(j))+f"{g}#"
   print(media+user+code+url)
+  with open(u+".json","w") as f:
+   dump(save_json,f,indent=4)
  print("#"*126)
- with open(u+".json","w") as f:
-  dump(save_json,f,indent=4)
  print(f"\n{r}vist {g}https://en.wikipedia.org/wiki/List_of_HTTP_status_codes{r} to know more about status codes!\n")
  print(f"{y}Data has been saved in {u}.json")
  print(f"{b}Thank you\n")
