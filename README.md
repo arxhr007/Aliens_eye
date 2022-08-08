@@ -45,7 +45,7 @@
 # Installation in Linux:
 **Open terminal and run:**
 ```shell script
-  git clone https://github.com/BLINKING-IDIOT/Aliens_eye
+  git clone https://github.com/arxhr007/Aliens_eye
 ```
 ```shell script
   cd Aliens_eye
@@ -57,7 +57,7 @@
 # Installation in Termux:
 **Open termux and type:**
 ```shell script
-  git clone https://github.com/BLINKING-IDIOT/Aliens_eye
+  git clone https://github.com/arxhr007/Aliens_eye
 ```
 ```shell script
   cd Aliens_eye
