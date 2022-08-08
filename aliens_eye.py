@@ -22,7 +22,7 @@ banner=f"""{y}
  / _/   \  / _/                   
 /___/   /_/___/                   
       
-{g}by {y}BLINKING-IDIOT
+{g}by {y}arxhr007
 {p}insta:{r}@_arxhr007_
 """
 def scanner(u):
