@@ -4,7 +4,7 @@ from os import system
 from argparse import ArgumentParser
 from json import dump
 parser = ArgumentParser()
-parser.add_argument("username",nargs='*')
+parser.add_argument("username",nargs='*',help='- pass the username , example:  $aliens_eye aaron123')
 args = parser.parse_args()
 r = "\033[31m"
 g = "\033[32m"
@@ -23,7 +23,7 @@ banner=f"""{y}
 /___/   /_/___/                   
       
 {g}by {y}arxhr007
-{p}insta:{r}@_arxhr007_
+{g}insta:{r}@_arxhr007_
 """
 def scanner(u):
  save_json={}
@@ -100,7 +100,7 @@ def scanner(u):
  "trip":f"https://www.trip.skyscanner.com/user/{u}",
  "zone-h":f"http://www.zone-h.org/archive/notifier={u}"
  }
- print(f"\n{r}Fetching details of {u}:\n")
+ print(f"\n{y}Fetching details of {u}:\n")
  spece=" "*20
  print(f"{g}#"*126)
  print(f"{g}# {r}SOCIAL MEDIA   {g}|        {r}USER {g}        | {r}STATUS CODE{g} | {r}                   URL   {g}      {spece}                   #")
