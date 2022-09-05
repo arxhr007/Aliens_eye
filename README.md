@@ -22,64 +22,64 @@
     - [click here](https://www.tecmint.com/install-pip-in-linux/) for installing pip 
     - then install requests module by running:
 ```shell script
-    pip3 install requests
+pip3 install requests
 ```
 * for termux:
 
 **Open termux and run**
 ```shell script
-  apt update && apt full-upgrade
+apt update && apt full-upgrade
 ```
 ```shell script
-  pkg install python
+pkg install python
 ```
 ```shell script
-  pkg install git
+pkg install git
 ```
 ```shell script
-  apt update && apt full-upgrade
+apt update && apt full-upgrade
 ```
 ```shell script
-  pip install requests
+pip install requests
 ```
 # Installation in Linux:
 **Open terminal and run:**
 ```shell script
-  git clone https://github.com/arxhr007/Aliens_eye
+git clone https://github.com/arxhr007/Aliens_eye
 ```
 ```shell script
-  cd Aliens_eye
+cd Aliens_eye
 ```
 ```shell script
-  bash install.sh
+bash install.sh
 ```
 * Now Aliens_eye is Succesfully installed in your system
 # Installation in Termux:
 **Open termux and type:**
 ```shell script
-  git clone https://github.com/arxhr007/Aliens_eye
+git clone https://github.com/arxhr007/Aliens_eye
 ```
 ```shell script
-  cd Aliens_eye
+cd Aliens_eye
 ```
 ```shell script
-  bash termux-install.sh
+bash termux-install.sh
 ```
 * Now Aliens_eye is Succesfully installed in your termux
 ## To uninstall in linux:
 ```shell script
-  cd Aliens_eye
+cd Aliens_eye
 ```
 ```shell script
-  bash uninstall.sh
+bash uninstall.sh
 ```
 * done!
 ## To uninstall in Termux:
 ```shell script
-  cd Aliens_eye
+cd Aliens_eye
 ```
 ```shell script
-  bash termux-uninstall.sh
+bash termux-uninstall.sh
 ```
 * done!
 # Usage :
