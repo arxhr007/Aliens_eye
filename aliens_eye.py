@@ -2,7 +2,9 @@
 from requests import get,exceptions
 from os import system
 from argparse import ArgumentParser
-from json import dump
+import threading
+import itertools
+from json import dump,load
 parser = ArgumentParser()
 parser.add_argument("username",nargs='*',help='- pass the username , example:  $aliens_eye aaron123')
 args = parser.parse_args()
@@ -25,96 +27,16 @@ banner=f"""{y}
 {g}by {y}arxhr007
 {g}insta:{r}@_arxhr007_
 """
-def scanner(u):
- save_json={}
- social={
- "facebook":f"https://facebook.com/{u}",
- "youtube":f"https://youtube.com/{u}",
- "instagram":f"https://instagram.com/{u}",
- "vimeo":f"https://vimeo.com/{u}",
- "github":f"https://github.com/{u}",
- "plus":f"https://plus.google.com/{u}",
- "pinterest":f"https://pinterest.com/{u}",
- "flickr":f"https://flickr.com/people/{u}",
- "vk":f"https://vk.com/{u}",
- "about":f"https://about.me/{u}",
- "disqus":f"https://disqus.com/{u}",
- "bitbucket":f"https://bitbucket.org/{u}",
- "flipboard":f"https://flipboard.com/@{u}",
- "twitter":f"https://twitter.com/{u}",
- "medium":f"https://medium.com/@{u}",
- "hackerone":f"https://hackerone.com/{u}",
- "keybase":f"https://keybase.io/{u}",
- "buzzfeed":f"https://buzzfeed.com/{u}",
- "slideshare":f"https://slideshare.net/{u}",
- "mixcloud":f"https://mixcloud.com/{u}",
- "soundcloud":f"https://soundcloud.com/{u}",
- "badoo":f"https://badoo.com/en/{u}",
- "imgur":f"https://imgur.com/user/{u}",
- "spotify":f"https://open.spotify.com/user/{u}",
- "pastebin":f"https://pastebin.com/u/{u}",
- "wattpad":f"https://wattpad.com/user/{u}",
- "canva":f"https://canva.com/{u}",
- "codecademy":f"https://codecademy.com/{u}",
- "last":f"https://last.fm/user/{u}",
- "blip":f"https://blip.fm/{u}",
- "dribbble":f"https://dribbble.com/{u}",
- "gravatar":f"https://en.gravatar.com/{u}",
- "foursquare":f"https://foursquare.com/{u}",
- "creativemarket":f"https://creativemarket.com/{u}",
- "ello":f"https://ello.co/{u}",
- "cash":f"https://cash.me/{u}",
- "angel":f"https://angel.co/{u}",
- "wikipedia":f"https://www.wikipedia.org/wiki/User:{u}",
- "500px":f"https://500px.com/{u}",
- "houzz":f"https://houzz.com/user/{u}",
- "tripadvisor":f"https://tripadvisor.com/members/{u}",
- "kongregate":f"https://kongregate.com/accounts/{u}",
- "blogspot":f"https://{u}.blogspot.com/",
- "tumblr":f"https://{u}.tumblr.com/",
- "wordpress":f"https://{u}.wordpress.com/",
- "devianart":f"https://{u}.devianart.com/",
- "designspiration":f"https://www.designspiration.net/{u}",
- "slack":f"https://{u}.slack.com/",
- "livejournal":f"https://{u}.livejournal.com/",
- "newgrounds":f"https://{u}.newgrounds.com/",
- "hubpages":f"https://{u}.hubpages.com",
- "contently":f"https://{u}.contently.com",
- "steamcommunity":f"https://steamcommunity.com/id/{u}",
- "freelancer":f"https://www.freelancer.com/u/{u}",
- "dailymotion":f"https://www.dailymotion.com/{u}",
- "instructables":f"https://www.instructables.com/member/{u}",
- "etsy":f"https://www.etsy.com/shop/{u}",
- "scribd":f"https://www.scribd.com/{u}",
- "colourlovers":f"https://www.colourlovers.com/love/{u}",
- "patreon":f"https://www.patreon.com/{u}",
- "behance":f"https://www.behance.net/{u}",
- "goodreads":f"https://www.goodreads.com/{u}",
- "gumroad":f"https://www.gumroad.com/{u}",
- "codementor":f"https://www.codementor.io/{u}",
- "reverbnation":f"https://www.reverbnation.com/{u}",
- "bandcamp":f"https://www.bandcamp.com/{u}",
- "ifttt":f"https://www.ifttt.com/p/{u}",
- "trakt":f"https://www.trakt.tv/users/{u}",
- "okcupid":f"https://www.okcupid.com/profile/{u}",
- "trip":f"https://www.trip.skyscanner.com/user/{u}",
- "zone-h":f"http://www.zone-h.org/archive/notifier={u}"
- }
- print(f"\n{y}Fetching details of {u}:\n")
- spece=" "*20
- print(f"{g}#"*126)
- print(f"{g}# {r}SOCIAL MEDIA   {g}|        {r}USER {g}        | {r}STATUS CODE{g} | {r}                   URL   {g}      {spece}                   #")
+with open("sites.json") as f:
+ social=load(f)
+spece=" "*20
+save_json={}
+def scanner(u,social):
  for i,j in social.items():
   try:
-   req = get(j)
+   req = get(j.format(u),timeout=10)
    code=req.status_code
-  except exceptions.TooManyRedirects:
-   print("TooManyRedirects")
-   break
-  except exceptions.ConnectionError:
-   print("\n\nConnectionError!\n\ncheck your internet connection!\n\n")
-   break
-  except exceptions.Timeout: 
+  except (exceptions.ConnectionError,exceptions.Timeout,exceptions.TooManyRedirects): 
    continue
   print(f"{g}#"+f"{p}-"*124+f"{g}#")
   if code==200:
@@ -126,16 +48,12 @@ def scanner(u):
   else:
    user1="undefined status code"
    user=f"{g}|{b}undefined status code"
-   j="none"
+  j=j.format(u)
   save_json[i]={"code:":code,"user:":user1,"url:":j}
   media=f"{g}# {y}"+i+" "*(15-len(i))
   code=f"{g}|     {y}"+str(code)+" "*5
   url=f"{g}|{y} "+j+" "*(70-len(j))+f"{g}#"
   print(media+user+code+url)
-  with open(u+".json","w") as f:
-   dump(save_json,f,indent=4)
- print("#"*126)
- print(f"\n{y}Data has been saved in {u}.json")
 def main(usernames):
  system("clear")
  print(banner)
@@ -143,8 +61,49 @@ def main(usernames):
  print(f"{r}NOTE: for educational purpose only!\n")
  if usernames == []:
   usernames=input(f"{y}Enter the username{r}:{g}").split()
+  try:
+   get("https://www.google.com/")
+  except exceptions.ConnectionError:
+   print(f"{r}!no internet, check connection")
+   exit()
  for username in usernames:
-    scanner(username)
+    print(f"\n{y}Fetching details of {username}:\n")
+    print(f"{g}#"*126)
+    print(f"{g}# {r}SOCIAL MEDIA   {g}|        {r}USER {g}        | {r}STATUS CODE{g} | {r}                   URL   {g}      {spece}                   #")
+    thread1 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 40))))
+    thread2 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 40,80))))
+    thread3 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 80,120))))
+    thread4 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 120,160))))
+    thread5 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 160,200))))
+    thread6 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(),200,240))))
+    thread7 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 240,280))))
+    thread8 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 280,320))))
+    thread9 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 320,360))))
+    thread10 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 360,433))))
+    thread1.start()
+    thread2.start()
+    thread3.start()
+    thread4.start()
+    thread5.start()
+    thread6.start()
+    thread7.start()
+    thread8.start()
+    thread9.start()
+    thread10.start()
+    thread1.join()
+    thread2.join()
+    thread3.join()
+    thread4.join()
+    thread5.join()
+    thread6.join()
+    thread7.join()
+    thread8.join()
+    thread9.join()
+    thread10.join()
+    print("#"*126)
+    with open(username+".json","w") as f:
+        dump(save_json,f,indent=4)
+    print(f"\n{y}Data has been saved in {username}.json")
  print(f"\n{r}vist {g}https://en.wikipedia.org/wiki/List_of_HTTP_status_codes{r} to know more about status codes!\n")
  print(f"{b}Thank you\n")
 if __name__ == "__main__":

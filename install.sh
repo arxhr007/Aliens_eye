@@ -19,6 +19,8 @@ do
 done
 printf "\n\n" 
 rm /usr/bin/aliens_eye &>/dev/null
+rm /usr/bin/sites.json &>/dev/null
 cp aliens_eye.py /usr/bin/aliens_eye
+cp sites.json /usr/bin/sites.json
 chmod +x /usr/bin/aliens_eye
 printf "\n\ninstalled successfully!"
