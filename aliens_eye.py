@@ -79,7 +79,7 @@ def main(usernames):
     thread7 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 240,280))))
     thread8 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 280,320))))
     thread9 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 320,360))))
-    thread10 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 360,433))))
+    thread10 = threading.Thread(target=scanner,args=(username,dict(itertools.islice(social.items(), 360,435))))
     thread1.start()
     thread2.start()
     thread3.start()
