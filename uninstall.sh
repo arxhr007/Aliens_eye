@@ -7,4 +7,6 @@ if [[ $(id -u) -ne 0 ]] ; then
 	exit
 fi
 rm /usr/bin/aliens_eye &>/dev/null
+rm /usr/bin/sites.json &>/dev/null
+
 printf "\nuninstalled successfully!\n"
