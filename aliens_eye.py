@@ -47,10 +47,10 @@ def scanner(u,social):
    user=f"{g}|{r}      Not Found      "
   else:
    user1="undefined status code"
-   user=f"{g}|{b}undefined status code"
+   user=f"{g}|{b}      undefined      "
   j=j.format(u)
   save_json[i]={"code:":code,"user:":user1,"url:":j}
-  media=f"{g}# {y}"+i+" "*(15-len(i))
+  media=f"{g}# {y}"+i[:15]+" "*(15-len(i[:15]))
   code=f"{g}|     {y}"+str(code)+" "*5
   url=f"{g}|{y} "+j+" "*(70-len(j))+f"{g}#"
   print(media+user+code+url)
