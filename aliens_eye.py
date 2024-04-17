@@ -27,8 +27,12 @@ banner=f"""{y}
 {g}by {y}arxhr007
 {g}insta:{r}@_arxhr007_
 """
-with open("/usr/bin/sites.json") as f:
- social=load(f)
+try:
+ with open("/usr/bin/sites.json") as f:
+  social=load(f)
+except:
+  with open("/data/data/com.termux/files/usr/bin/sites.json") as f:
+   social=load(f)
 spece=" "*20
 save_json={}
 def scanner(u,social):
