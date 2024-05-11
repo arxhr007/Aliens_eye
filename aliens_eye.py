@@ -1,14 +1,18 @@
 #!/usr/bin/python3
+
 import requests
 import os
 import threading
 import itertools
 import json
 from argparse import ArgumentParser
+
 r, g, y, b = "\033[31m", "\033[32m", "\033[33m", "\033[36m"
+
 parser = ArgumentParser()
 parser.add_argument("username", nargs='*', help='- pass the username, example: $aliens_eye aaron123')
 args = parser.parse_args()
+
 banner = f"""{y}
    ___   __   _________  ___  ____
   / _ | / /  /  _/ __/ |/ ( )/ __/
@@ -21,15 +25,17 @@ banner = f"""{y}
 /___/   /_/___/                   
       
 {g}by {y}arxhr007
-{g}insta:{r}@_arxhr007_
 """
+
 try:
     with open("/usr/bin/sites.json") as f:
         social = json.load(f)
 except FileNotFoundError:
     with open("/data/data/com.termux/files/usr/bin/sites.json") as f:
         social = json.load(f)
+
 save_json = {}
+
 def scanner(u, social):
     for i, j in social.items():
         try:
@@ -45,6 +51,7 @@ def scanner(u, social):
         code = f"{g}|     {y}{code}{' ' * (5 - len(str(code)))}"
         url = f"{g}|{y} {j.format(u)}{' ' * (70 - len(j.format(u)))}{g}#"
         print(media + user + code + url)
+
 def main(usernames):
     os.system("clear")
     print(banner)
@@ -74,5 +81,6 @@ def main(usernames):
         print(f"\n{y}Data has been saved in {username}.json")
     print(f"\n{r}Visit {g}https://en.wikipedia.org/wiki/List_of_HTTP_status_codes{r} to know more about status codes!\n")
     print(f"{b}Thank you\n")
+
 if __name__ == "__main__":
     main(args.username)
