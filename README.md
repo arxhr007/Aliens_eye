@@ -103,6 +103,4 @@ aliens_eye
 ### then enter the username
 ## The collected data will be saved in username.json
 ## Enjoy!
-<p><img aling="center"src="https://raw.githubusercontent.com/BLINKING-IDIOT/Aliens_eye/main/photos/photo3.png"/></p>
-<br>
-<p><img aling="center"src="https://raw.githubusercontent.com/BLINKING-IDIOT/Aliens_eye/main/photos/photo2.png"/></p>
+<p><img aling="center"src="https://raw.githubusercontent.com/BLINKING-IDIOT/Aliens_eye/main/photos/photo.png"/></p>
