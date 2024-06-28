@@ -7,26 +7,41 @@ import itertools
 import json
 from argparse import ArgumentParser
 
-r, g, y, b = "\033[31m", "\033[32m", "\033[33m", "\033[36m"
+r, g, y, b, p, w = "\033[31m", "\033[32m", "\033[33m", "\033[36m", "\033[35m", "\033[37m"
+
 
 parser = ArgumentParser()
 parser.add_argument("username", nargs='*', help='- pass the username, example: $aliens_eye aaron123')
 args = parser.parse_args()
 
 banner = f"""{y}
+"{b}New Multithreading        
+  feature speeds up 
+   the scan by 10x{y}"        "{b}Scans 400+ websites{y}"
+       {r}★   {w}\\{y}  _.-'~~~~'-._  {w} /{y}
+   {b}☾{y}      .-~ {g}\\__/{p}  \\__/{y} ~-.         .
+        .-~  {g} ({r}oo{g}) {p} ({r}oo{p})    {y}~-.
+       (_____{g}//~~\\\\{p}//~~\\\\{y}______)       {p}☆{y}
+  _.-~`                         `~-._
+ /{p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{y}\\     {w}✴
+{y} \\___________________________________/
+            \\x {w}x{y} x {w}x{y} x {w}x{y} x/    {b}✫{y}
+    .  {w}*{y}     \\{w}x{y}_{w}x{y}_{w}x{y}_{w}x{y}_{w}x{y}_{w}x{y}/
+                {r}INTERNET{g}
    ___   __   _________  ___  ____
   / _ | / /  /  _/ __/ |/ ( )/ __/
- / __ |/ /___/ // _//    /|/_\ \  
+ / __ |/ /___/ // _//    /|/_\\ \\  
 /_/ |_/____/___/___/_/|_/  /___/  
-{r}
-   ______  ______
-  / __/\ \/ / __/                 
- / _/   \  / _/                   
-/___/   /_/___/                   
+{b}
+   ______  ______  {r}_   __ {w} ___ 
+  {b}/ __/\\ \\/ / __/{r} | | / /{w} |_  |
+ {b}/ _/   \\  / _/  {r} | |/ / {w}/ __/ 
+{b}/___/   /_/___/   {r}|___(_){w}____/ 
+                               
       
 {g}by {y}arxhr007
+{b}insta {p}_arxhr007_
 """
-
 try:
     with open("/usr/bin/sites.json") as f:
         social = json.load(f)
@@ -37,20 +52,33 @@ except FileNotFoundError:
 save_json = {}
 
 def scanner(u, social):
+    keywords = [
+        "not found", "does not exist", "doesn't exist", "no such user", 
+        "user not found", "cannot find", "can't find", "not exist", "profile not found",
+        "cannot be found", "can't be found", "page not found",
+        "account does not exist", "account doesn't exist", "username not found", 
+        "username doesn't exist", "no user found", "user does not exist", 
+        "user doesn't exist", "no results found", "no such username"
+    ]
     for i, j in social.items():
         try:
             req = requests.get(j.format(u), timeout=10)
             code = req.status_code
+            content = req.text.lower()  
         except requests.exceptions.RequestException:
             continue
         print(f"{g}#" + f"{b}-" * 124 + f"{g}#")
-        user1 = "Found" if code == 200 else "Not Found" if code == 404 else "Undefined Status Code"
-        user = f"{g}|{y}{' ' * 20}{user1}{' ' * (20 - len(user1))}"
-        save_json[i] = {"code": code, "user": user1, "url": j.format(u)}
+        if code == 200 and any(keyword in content for keyword in keywords):
+            user1 = f"{r}Not Found"
+        else:
+            user1 = f"{g}Found    " if code == 200 else f"{r}Not Found"
+        user2 = "Not Found" if "Not" in user1 else "Found"
+        save_json[i] = {"code": code, "user": user2, "url": j.format(u)}
         media = f"{g}# {y}{i[:15]}{' ' * (15 - len(i[:15]))}"
         code = f"{g}|     {y}{code}{' ' * (5 - len(str(code)))}"
-        url = f"{g}|{y} {j.format(u)}{' ' * (70 - len(j.format(u)))}{g}#"
-        print(media + user + code + url)
+        url = f"{g}|{y} {j.format(u)}{' ' * (70 - len(j.format(u)))}"
+        user1 ="|        "+user1+"    "
+        print(media + user1 + code + url)
 
 def main(usernames):
     os.system("clear")
@@ -67,7 +95,7 @@ def main(usernames):
     for username in usernames:
         print(f"\n{y}Fetching details of {username}:\n")
         print(f"{g}#" * 126)
-        print(f"{g}# {r}SOCIAL MEDIA   {g}|        {r}USER {g}        | {r}STATUS CODE{g} | {r}                   URL   {g}      {' ' * 20}#")
+        print(f"{g}# {r}SOCIAL MEDIA   {g}|        {r}USER {g}        | {r}STATUS CODE{g} | {r}                   URL   {g}      {' ' * 20}")
         threads = []
         for start, end in [(i, i + 40) for i in range(0, len(social), 40)]:
             thread = threading.Thread(target=scanner, args=(username, dict(itertools.islice(social.items(), start, end))))
