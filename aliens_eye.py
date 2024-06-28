@@ -46,8 +46,12 @@ try:
     with open("/usr/bin/sites.json") as f:
         social = json.load(f)
 except FileNotFoundError:
-    with open("/data/data/com.termux/files/usr/bin/sites.json") as f:
-        social = json.load(f)
+    try:
+        with open("/data/data/com.termux/files/usr/bin/sites.json") as f:
+            social = json.load(f)
+    except FileNotFoundError:
+        with open("sites.json") as f:
+            social = json.load(f)
 
 save_json = {}
 
