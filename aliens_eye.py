@@ -17,7 +17,7 @@ args = parser.parse_args()
 banner = f"""{y}
 "{b}New Multithreading        
   feature speeds up 
-   the scan by 10x{y}"        "{b}Scans 400+ websites{y}"
+   the scan by 10x{y}"        "{b}Scans 550+ websites{y}"
        {r}★   {w}\\{y}  _.-'~~~~'-._  {w} /{y}
    {b}☾{y}      .-~ {g}\\__/{p}  \\__/{y} ~-.         .
         .-~  {g} ({r}oo{g}) {p} ({r}oo{p})    {y}~-.
@@ -57,7 +57,7 @@ save_json = {}
 
 def scanner(u, social):
     keywords = [
-        "not found", "does not exist", "doesn't exist", "no such user", 
+        "not found","doesn’t exist","didn't find", "does not exist","something went wrong", "no such user", 
         "user not found", "cannot find", "can't find", "not exist", "profile not found",
         "cannot be found", "can't be found", "page not found",
         "account does not exist", "account doesn't exist", "username not found", 
