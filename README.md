@@ -48,7 +48,8 @@ pip install requests
 ```shell script
 curl https://pastebin.com/raw/m3gcQWrx | bash
 ```
-**Normal way to install**
+**Other way to install**
+<br>
 **Open terminal and run:**
 ```shell script
 git clone https://github.com/arxhr007/Aliens_eye
