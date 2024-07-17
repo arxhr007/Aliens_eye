@@ -46,7 +46,7 @@ pip install requests
 # Installation in Linux:
 **One line installation:**
 ```shell script
-curl https://pastebin.com/raw/m3gcQWrx | bash
+curl -s https://pastebin.com/raw/m3gcQWrx | bash
 ```
 **Other way to install**
 <br>
