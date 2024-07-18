@@ -48,6 +48,10 @@ pip install requests
 ```shell script
 curl -s https://pastebin.com/raw/m3gcQWrx | bash
 ```
+**OR**
+```shell script
+wget -qO- https://pastebin.com/raw/m3gcQWrx | bash
+```
 **Other way to install**
 <br>
 **Open terminal and run:**
