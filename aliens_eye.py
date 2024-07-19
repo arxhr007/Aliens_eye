@@ -6,15 +6,11 @@ import threading
 import itertools
 import json
 from argparse import ArgumentParser
-
 r, g, y, b, p, w = "\033[31m", "\033[32m", "\033[33m", "\033[36m", "\033[35m", "\033[37m"
-
 parser = ArgumentParser()
 parser.add_argument("username", nargs='*', help='- pass the username, example: $aliens_eye aaron123')
 parser.add_argument("-r", "--read", help="- pass the JSON file path to read", type=str)
-
 args = parser.parse_args()
-
 banner = f"""{y}
 "{b}New Multithreading        
   feature speeds up 
@@ -41,7 +37,6 @@ banner = f"""{y}
                                
       
 {g}by {y}arxhr007
-{b}insta {p}_arxhr007_
 """
 try:
     with open("/usr/bin/sites.json") as f:
@@ -53,9 +48,7 @@ except FileNotFoundError:
     except FileNotFoundError:
         with open("sites.json") as f:
             social = json.load(f)
-
 save_json = {}
-
 def scanner(u, social):
     keywords = [
         "not found","doesn’t exist","didn't find", "does not exist","something went wrong", "no such user", 
@@ -63,7 +56,7 @@ def scanner(u, social):
         "cannot be found", "can't be found", "page not found",
         "account does not exist", "account doesn't exist", "username not found", 
         "username doesn't exist", "no user found", "user does not exist", 
-        "user doesn't exist", "no results found", "no such username"
+        "user doesn't exist", "no results found", "no such username","isn't available"
     ]
     for i, j in social.items():
         try:
@@ -72,7 +65,7 @@ def scanner(u, social):
             content = req.text.lower()  
         except requests.exceptions.RequestException:
             code=500
-        print(f"{g}#" + f"{b}-" * 124 + f"{g}#")
+        print(f"{g}#" + f"{b}-" * 98 + f"{g}#")
         if code == 200 and any(keyword in content for keyword in keywords):
             user1 = f"{r}Not Found"
         else:
@@ -80,10 +73,9 @@ def scanner(u, social):
         user2 = "Not Found" if "Not" in user1 else "Found"
         save_json[i] = {"code": code, "user": user2, "url": j.format(u)}
         media = f"{g}# {y}{i[:15]}{' ' * (15 - len(i[:15]))}"
-        code = f"{g}|     {y}{code}{' ' * (8 - len(str(code)))}"
         url = f"{g}|{y} {j.format(u)}{' ' * (70 - len(j.format(u)))}"
         user1 ="|  "+user1+" "
-        print(media + user1 + code + url)
+        print(media + user1  + url)
 def reader(filej):
     if os.path.isfile(filej):
         with open(filej, 'r') as file:
@@ -91,7 +83,6 @@ def reader(filej):
         print(f"{g}#" * 126)
 
         print(f"{g}# {r}SOCIAL MEDIA   {g}|     {r}USER {g}     | {r}STATUS CODE{g} | {r}                   URL   {g}      {' ' * 20}")
-
         for i,j in data.items():
             print(f"{g}#" + f"{b}-" * 124 + f"{g}#")
             user = j["user"]
@@ -116,7 +107,6 @@ def main(usernames):
         reader(args.read)
         print(f"{b}Thank you\n")
         return
-        
     if not usernames:
         usernames = input(f"{y}Enter the username{r}:{g}").split()
         try:
@@ -126,8 +116,8 @@ def main(usernames):
             return
     for username in usernames:
         print(f"\n{y}Fetching details of {username}:\n")
-        print(f"{g}#" * 126)
-        print(f"{g}# {r}SOCIAL MEDIA   {g}|    {r}USER {g}   | {r}STATUS CODE{g} | {r}                   URL   {g}      {' ' * 20}")
+        print(f"{g}#" * 100)
+        print(f"{g}# {r}SOCIAL MEDIA   {g}|    {r}USER {g}   | {r}                   URL   {g}      {' ' * 20}")
         threads = []
         for start, end in [(i, i + 57) for i in range(0, len(social), 57)]:
             thread = threading.Thread(target=scanner, args=(username, dict(itertools.islice(social.items(), start, end))))
@@ -135,7 +125,7 @@ def main(usernames):
             thread.start()
         for thread in threads:
             thread.join()
-        print("#" * 126)
+        print(f"{g}#" * 100)
         with open(username + ".json", "w") as f:
             json.dump(save_json, f, indent=4)
         print(f"\n{y}Data has been saved in {username}.json")
