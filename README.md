@@ -94,12 +94,21 @@ bash termux-uninstall.sh
 ```
 * done!
 # Usage :
+**To scan a username**
 ```shell script
 aliens_eye <username>
 ```
 ### Example :
 ```shell script
 aliens_eye Aaron123
+```
+**To read a output json file**
+```shell script
+aliens_eye -r <filename>
+```
+### Example :
+```shell script
+aliens_eye -r Aaron123.json
 ```
 ## You can also search multiple accounts by enter the usernames separated by space
 ### Example :
