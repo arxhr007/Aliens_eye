@@ -2,6 +2,7 @@
 <h1 align="center">FIND ALL SOCIAL MEDIA ACCOUNTS WITH A USERNAME!</h1>
 <h1 align="center">SEARCH FROM 570 WEBSITES!</h1>
 <hr>
+<em><h5 align="center">(Author - arxhr007)</h5></em>
 <em><h5 align="center">(Programming Language - Python 3)</h5></em>
 <p align="center">
 <a href="#"><img alt="MH-DDoS forks" src="https://img.shields.io/github/forks/BLINKING-IDIOT/Aliens_eye?style=for-the-badge"></a>
