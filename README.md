@@ -123,3 +123,7 @@ aliens_eye
 ## The collected data will be saved in username.json
 ## Enjoy!
 <p><img aling="center"src="https://raw.githubusercontent.com/arxhr007/Aliens_eye/main/photos/photo1.png"/></p>
+
+# Also checkout:
+
+<a href="https://github.com/arxhr007/wifistrike" target="blank"><img align="center" src="https://github-readme-stats.vercel.app/api/pin/?username=arxhr007&repo=wifistrike&show_icons=true&theme=chartreuse-dark"></a>
