@@ -20,7 +20,7 @@ banner = f"""{y}
         .-~  {g} ({r}oo{g}) {p} ({r}oo{p})    {y}~-.
        (_____{g}//~~\\\\{p}//~~\\\\{y}______)       {p}☆{y}
   _.-~`                         `~-._
- /{p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{y}\\     {w}✴
+ /{p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{y}\\     {w}✴
 {y} \\___________________________________/
             \\x {w}x{y} x {w}x{y} x {w}x{y} x/    {b}✫{y}
     .  {w}*{y}     \\{w}x{y}_{w}x{y}_{w}x{y}_{w}x{y}_{w}x{y}_{w}x{y}/
