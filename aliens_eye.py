@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 import requests
 import os
 import threading
@@ -109,12 +108,14 @@ def main(usernames):
         return
     if not usernames:
         usernames = input(f"{y}Enter the username{r}:{g}").split()
-        try:
-            requests.get("https://www.google.com/")
-        except requests.exceptions.RequestException:
-            print(f"{r}! No internet, check connection")
-            return
+    try:
+        requests.get("https://www.google.com/")
+    except requests.exceptions.RequestException:
+        print(f"{r}! No internet, check connection")
+        return
     for username in usernames:
+        global save_json
+        save_json = {}
         print(f"\n{y}Fetching details of {username}:\n")
         print(f"{g}#" * 100)
         print(f"{g}# {r}SOCIAL MEDIA   {g}|    {r}USER {g}   | {r}                   URL   {g}      {' ' * 20}")
