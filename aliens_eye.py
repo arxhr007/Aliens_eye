@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 import requests
 import os
-from bs4 import BeautifulSoup
-
 import threading
 import itertools
 import json
