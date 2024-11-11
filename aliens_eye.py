@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 import requests
 import os
+from bs4 import BeautifulSoup
+
 import threading
 import itertools
 import json
@@ -48,6 +50,16 @@ except FileNotFoundError:
         with open("sites.json") as f:
             social = json.load(f)
 save_json = {}
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Connection": "keep-alive",
+    "DNT": "1",  
+    "Upgrade-Insecure-Requests": "1",
+}
+
 def scanner(u, social):
     keywords = [
         "not found","doesn’t exist","didn't find", "does not exist","something went wrong", "no such user", 
@@ -55,22 +67,27 @@ def scanner(u, social):
         "cannot be found", "can't be found", "page not found",
         "account does not exist", "account doesn't exist", "username not found", 
         "username doesn't exist", "no user found", "user does not exist", 
-        "user doesn't exist", "no results found", "no such username","isn't available"
+        "user doesn't exist", "no results found", "no such username","isn't available","page not found","that content is unavailable"
     ]
+    safewords=["follow","subscribe","like","share","following","followers"]
     for i, j in social.items():
         try:
-            req = requests.get(j.format(u), timeout=10)
+            req = requests.get(j.format(u),headers=headers, timeout=10)
             code = req.status_code
             content = req.text.lower()  
         except requests.exceptions.RequestException:
             code=500
         print(f"{g}#" + f"{b}-" * 98 + f"{g}#")
-        if code == 200 and any(keyword in content for keyword in keywords):
-            user1 = f"{r}Not Found"
+        if code == 200:
+            if any(safeword in content for safeword in safewords):
+                user1=f"{g}Found    "
+            elif  any(keyword in content for keyword in keywords):
+                user1 = f"{r}Not Found"
+            else:
+                user1=f"{g}Found    "
         else:
-            user1 = f"{g}Found    " if code == 200 else f"{r}Not Found"
-        user2 = "Not Found" if "Not" in user1 else "Found"
-        save_json[i] = {"code": code, "user": user2, "url": j.format(u)}
+            user1 = f"{r}Not Found"
+        save_json[i] = {"code": code, "user": (user1[5:]).strip(), "url": j.format(u)}
         media = f"{g}# {y}{i[:15]}{' ' * (15 - len(i[:15]))}"
         url = f"{g}|{y} {j.format(u)}{' ' * (70 - len(j.format(u)))}"
         user1 ="|  "+user1+" "
