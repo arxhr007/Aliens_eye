@@ -47,11 +47,11 @@ pip install requests
 # Installation in Linux:
 **One line installation:**
 ```shell script
-curl -s https://pastebin.com/raw/fpe6MquW | bash
+curl -s https://pastebin.com/raw/nJqjsbNu | bash
 ```
 **OR**
 ```shell script
-wget -qO- https://pastebin.com/raw/fpe6MquW | bash
+wget -qO- https://pastebin.com/raw/nJqjsbNu | bash
 ```
 **Other way to install**
 <br>
