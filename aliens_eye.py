@@ -1,23 +1,25 @@
-#!/usr/bin/python3
-import requests
+#!/usr/bin/env python3
+import aiohttp
+import asyncio
 import os
-import threading
-import itertools
 import json
 from argparse import ArgumentParser
+
 r, g, y, b, p, w = "\033[31m", "\033[32m", "\033[33m", "\033[36m", "\033[35m", "\033[37m"
+
 parser = ArgumentParser()
-parser.add_argument("username", nargs='*', help='- pass the username, example: $aliens_eye aaron123')
-parser.add_argument("-r", "--read", help="- pass the JSON file path to read", type=str)
+parser.add_argument("username", nargs='*', help='Usernames to scan (e.g., $ python3 script.py user1 user2)')
+parser.add_argument("-r", "--read", help='Path to JSON file to read and display', type=str)
 args = parser.parse_args()
+
 banner = f"""{y}
-"{b}New Multithreading        
+"{b}New asyncio        
   feature speeds up 
-   the scan by 10x{y}"        "{b}Scans 550+ websites{y}"
+   the scan by 10x{y}"        "{b}Scans 570 websites{y}"
        {r}★   {w}\\{y}  _.-'~~~~'-._  {w} /{y}
    {b}☾{y}      .-~ {g}\\__/{p}  \\__/{y} ~-.         .
         .-~  {g} ({r}oo{g}) {p} ({r}oo{p})    {y}~-.
-       (_____{g}//~~\\\\{p}//~~\\\\{y}______)       {p}☆{y}
+       (_____{g}
   _.-~`                         `~-._
  /{p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{y}\\     {w}✴
 {y} \\___________________________________/
@@ -26,17 +28,18 @@ banner = f"""{y}
                 {r}INTERNET{g}
    ___   __   _________  ___  ____
   / _ | / /  /  _/ __/ |/ ( )/ __/
- / __ |/ /___/ // _//    /|/_\\ \\  
+ / __ |/ /___/ 
 /_/ |_/____/___/___/_/|_/  /___/  
 {b}
-   ______  ______  {r}_   __ {w} ___ 
-  {b}/ __/\\ \\/ / __/{r} | | / /{w} |_  |
- {b}/ _/   \\  / _/  {r} | |/ / {w}/ __/ 
-{b}/___/   /_/___/   {r}|___(_){w}____/ 
-                               
-      
+    ________  ________        {w}______
+   {b}/ ____/\\ \\/ / ____/ {r} _   _{w}|__   /
+  {b}/ __/    \\  / __/    {r}| | / /{w}/_ _< 
+ {b}/ /___    / / /___    {r}| |/ /{w}__/  / 
+{b}/_____/   /_/_____/    {r}|___/{w}/____/  
+
 {g}by {y}arxhr007
 """
+
 try:
     with open("/usr/bin/sites.json") as f:
         social = json.load(f)
@@ -47,105 +50,114 @@ except FileNotFoundError:
     except FileNotFoundError:
         with open("sites.json") as f:
             social = json.load(f)
+
 save_json = {}
+
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Encoding": "gzip, deflate, br",
     "Accept-Language": "en-US,en;q=0.5",
     "Connection": "keep-alive",
-    "DNT": "1",  
+    "DNT": "1",
     "Upgrade-Insecure-Requests": "1",
 }
 
-def scanner(u, social):
-    keywords = [
-        "not found","doesn’t exist","didn't find", "does not exist","something went wrong", "no such user", 
-        "user not found", "cannot find", "can't find", "not exist", "profile not found",
-        "cannot be found", "can't be found", "page not found",
-        "account does not exist", "account doesn't exist", "username not found", 
-        "username doesn't exist", "no user found", "user does not exist", 
-        "user doesn't exist", "no results found", "no such username","isn't available","page not found","that content is unavailable"
-    ]
-    safewords=["follow","subscribe","like","share","following","followers"]
-    for i, j in social.items():
-        try:
-            req = requests.get(j.format(u),headers=headers, timeout=10)
-            code = req.status_code
-            content = req.text.lower()  
-        except requests.exceptions.RequestException:
-            code=500
-        print(f"{g}#" + f"{b}-" * 98 + f"{g}#")
-        if code == 200:
-            if any(safeword in content for safeword in safewords):
-                user1=f"{g}Found    "
-            elif  any(keyword in content for keyword in keywords):
-                user1 = f"{r}Not Found"
-            else:
-                user1=f"{g}Found    "
-        else:
-            user1 = f"{r}Not Found"
-        save_json[i] = {"code": code, "user": (user1[5:]).strip(), "url": j.format(u)}
-        media = f"{g}# {y}{i[:15]}{' ' * (15 - len(i[:15]))}"
-        url = f"{g}|{y} {j.format(u)}{' ' * (70 - len(j.format(u)))}"
-        user1 ="|  "+user1+" "
-        print(media + user1  + url)
+keywords = [
+    "not found","doesn’t exist","didn't find","does not exist","something went wrong","no such user",
+    "user not found","cannot find","can't find","not exist","profile not found","account does not exist",
+    "username not found","no user found","no results found","no such username","isn't available","that content is unavailable"
+]
+
+safewords = ["follow","subscribe","like","share","following","followers"]
+
 def reader(filej):
     if os.path.isfile(filej):
-        with open(filej, 'r') as file:
-            data = json.load(file)
-        print(f"{g}#" * 126)
+        with open(filej, 'r') as f:
+            data = json.load(f)
+        print(f"{g}#" * 80)
+        print(f"{b}# {y}{'SITE':20}{b}| {y}{'STATUS':9}{b}| {y}{'HTTP CODE':9}{b}| {y}URL{w}")
+        print(f"{g}#" * 80)
+        for site, info in data.items():
+            code = info.get("code")
+            user = info.get("user")
+            url = info.get("url")
 
-        print(f"{g}# {r}SOCIAL MEDIA   {g}|     {r}USER {g}     | {r}STATUS CODE{g} | {r}                   URL   {g}      {' ' * 20}")
-        for i,j in data.items():
-            print(f"{g}#" + f"{b}-" * 124 + f"{g}#")
-            user = j["user"]
-            code=j["code"]
-            url=j["url"]
-            media = f"{g}# {y}{i[:15]}{' ' * (15 - len(i[:15]))}"
-            code = f"{g}|     {y}{code}{' ' * (8 - len(str(code)))}"
-            url = f"{g}|{y} {url}{' ' * (70 - len(url))}"
-            user1 ="|   "+user+" "*(12-len(user))
-            print(media + user1 + code + url)
-        print(f"{g}#" * 126)
-        
+            color_code = g + str(code) if code == 200 else r + str(code)
+
+            color_status = g + user if user.lower() == 'found' else r + user
+
+            color_url = g + url if user.lower() == 'found' else r + url
+            print(f"{g}# {y}{site:20}{w}| {color_status:14}{w}| {color_code:^14}{w}| {color_url}{w}")
+        print(f"{g}#" * 80)
     else:
-        print(f"{r}The file {filej} does not exist.{w}")
-        return
-def main(usernames):
+        print(f"{r}File not found: {filej}{w}")
+
+async def async_scanner(site_name, url_template, username, session):
+    url = url_template.format(username)
+    try:
+        async with session.get(url, timeout=10) as resp:
+            content = await resp.text()
+            code = resp.status
+    except Exception:
+        content = ""
+        code = 500
+
+    content_lower = content.lower()
+
+    if code == 200 and not any(k in content_lower for k in keywords):
+        status_text = 'Found'
+    else:
+        status_text = 'Not Found'
+    color_status = g + status_text if status_text == 'Found' else r + status_text
+
+    color_code = g + str(code) if code == 200 else r + str(code)
+
+    color_url = g + url if status_text == 'Found' else r + url
+
+    save_json[site_name] = {"code": code, "user": status_text, "url": url}
+    print(f"{g}# {y}{site_name:20}{w}| {color_status:14}{w}| {color_code:^14}{w}| {color_url}{w}")
+
+async def check_internet():
+    try:
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.get("https://www.google.com/", timeout=5):
+                return True
+    except:
+        return False
+
+async def run_username(username):
+    async with aiohttp.ClientSession(headers=headers) as session:
+        tasks = [async_scanner(site, tmpl, username, session) for site, tmpl in social.items()]
+        await asyncio.gather(*tasks)
+
+def main():
     os.system("clear")
     print(banner)
-    print(f"{r}NOTE: The data may not be completely accurate!\n")
-    print(f"{r}NOTE: For educational purpose only!\n")
+    print(f"{r}NOTE: For educational purposes only!{w}\n")
+
     if args.read:
         reader(args.read)
-        print(f"{b}Thank you\n")
         return
-    if not usernames:
-        usernames = input(f"{y}Enter the username{r}:{g}").split()
-    try:
-        requests.get("https://www.google.com/")
-    except requests.exceptions.RequestException:
-        print(f"{r}! No internet, check connection")
+
+    usernames = args.username or input(f"{y}Enter username(s): {w}").split()
+
+    if not asyncio.run(check_internet()):
+        print(f"{r}! No internet connection{w}")
         return
+
     for username in usernames:
         global save_json
         save_json = {}
-        print(f"\n{y}Fetching details of {username}:\n")
-        print(f"{g}#" * 100)
-        print(f"{g}# {r}SOCIAL MEDIA   {g}|    {r}USER {g}   | {r}                   URL   {g}      {' ' * 20}")
-        threads = []
-        for start, end in [(i, i + 57) for i in range(0, len(social), 57)]:
-            thread = threading.Thread(target=scanner, args=(username, dict(itertools.islice(social.items(), start, end))))
-            threads.append(thread)
-            thread.start()
-        for thread in threads:
-            thread.join()
-        print(f"{g}#" * 100)
-        with open(username + ".json", "w") as f:
+        print(f"\n{p}Scanning '{y}{username}{p}' across {len(social)} sites...{w}\n")
+        print(f"{b}# {y}{'SITE':20}{b}| {y}{'STATUS':9}{b}| {y}{'HTTP CODE':9}{b}| {y}URL{w}")
+        print(f"{g}#" * 80)
+
+        asyncio.run(run_username(username))
+
+        with open(f"{username}.json", 'w') as f:
             json.dump(save_json, f, indent=4)
-        print(f"\n{y}Data has been saved in {username}.json")
-    print(f"\n{r}Visit {g}https://en.wikipedia.org/wiki/List_of_HTTP_status_codes{r} to know more about status codes!\n")
-    print(f"{b}Thank you\n")
+        print(f"\n{g}Results saved to {y}{username}.json{w}\n")
+
 if __name__ == "__main__":
-    main(args.username)
+    main()
