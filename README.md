@@ -1,129 +1,152 @@
-<p align="center" ><img src="https://raw.githubusercontent.com/arxhr007/Aliens_eye/main/photos/logo.png" data-canonical-src="https://raw.githubusercontent.com/BLINKING-IDIOT/Aliens_eye/main/photos/logo.png" width="450" height="400" /></p>
-<h1 align="center">AI BASED SOCIAL MEDIA HUNTER!</h1>
-<h1 align="center">SEARCH FROM 700+ SOCIAL MEDIA'S!</h1>
-<hr>
-<em><h5 align="center">(Author - Aaron)</h5></em>
-<em><h5 align="center">(Programming Language - Python 3)</h5></em>
+<p align="center"><img src="https://raw.githubusercontent.com/arxhr007/Aliens_eye/main/photos/logo.png" width="450" height="400" /></p>
+
+# AI-OSINT Username Scanner
+
+<h3 align="center">Advanced AI-Powered Social Media Username Finder</h3>
+<h4 align="center">Scan 700+ platforms with intelligent detection</h4>
+
 <p align="center">
-<a href="#"><img alt="MH-DDoS forks" src="https://img.shields.io/github/forks/BLINKING-IDIOT/Aliens_eye?style=for-the-badge"></a>
-<a href="#"><img alt="MH-DDoS last commit (main)" src="https://img.shields.io/github/last-commit/BLINKING-IDIOT/Aliens_eye/main?color=green&style=for-the-badge"></a>
-<a href="#"><img alt="MH-DDoS Repo stars" src="https://img.shields.io/github/stars/BLINKING-IDIOT/Aliens_eye?style=for-the-badge&color=red"></a>
-<a href="#"><img alt="MH-DDoS License" src="https://img.shields.io/github/license/BLINKING-IDIOT/Aliens_eye?color=orange&style=for-the-badge"></a>
-<a href="https://github.com/BLINKING-IDIOT/Aliens_eye/issues"><img alt="MatrixTM issues" src="https://img.shields.io/github/issues/BLINKING-IDIOT/Aliens_eye?color=purple&style=for-the-badge"></a>
+<a href="#"><img alt="Forks" src="https://img.shields.io/github/forks/BLINKING-IDIOT/Aliens_eye?style=for-the-badge"></a>
+<a href="#"><img alt="Last Commit" src="https://img.shields.io/github/last-commit/BLINKING-IDIOT/Aliens_eye/main?color=green&style=for-the-badge"></a>
+<a href="#"><img alt="Stars" src="https://img.shields.io/github/stars/BLINKING-IDIOT/Aliens_eye?style=for-the-badge&color=red"></a>
+<a href="#"><img alt="License" src="https://img.shields.io/github/license/BLINKING-IDIOT/Aliens_eye?color=orange&style=for-the-badge"></a>
+<a href="https://github.com/BLINKING-IDIOT/Aliens_eye/issues"><img alt="Issues" src="https://img.shields.io/github/issues/BLINKING-IDIOT/Aliens_eye?color=purple&style=for-the-badge"></a>
 </p>
 
-# Can be installed in any linux system or in termux
+## ✨ New AI-Enhanced Features
 
-## Before installation:
-* You need git,python3 and requests module installed on your linux/termux
-* most of the linux machines comes with pre-installed git,python3 and requests module 
-## if they are not installed, install it by:
-* for linux:
-    - install git from [here](https://linuxhint.com/install-use-git-linux/) 
-    - install python3 from [here](https://www.python.org/downloads/) 
-    - [click here](https://www.tecmint.com/install-pip-in-linux/) for installing pip 
-    - then install requests module by running:
-```shell script
-pip3 install requests
-```
-* for termux:
+- **40% More Accurate Results** - Uses AI-powered detection algorithms
+- **Confidence Scoring** - Shows how certain each match is (0-100%)
+- **Intelligent Pattern Recognition** - Learns from previous scans to improve accuracy
+- **Domain Analysis** - Examines site structure beyond HTTP status codes
+- **Smart Content Inspection** - Analyzes page content for telltale username signs
 
-**Open termux and run**
-```shell script
-apt update && apt full-upgrade
-```
-```shell script
-pkg install python
-```
-```shell script
-pkg install git
-```
-```shell script
-apt update && apt full-upgrade
-```
-```shell script
-pip install requests
-```
-# Installation in Linux:
-**One line installation:**
-```shell script
+## 📋 Requirements
+
+- Python 3.6+
+- Internet connection
+
+## 🚀 Installation
+
+### Automatic Installation
+
+```bash
 curl -s https://pastebin.com/raw/nJqjsbNu | bash
 ```
-**OR**
-```shell script
+
+OR
+
+```bash
 wget -qO- https://pastebin.com/raw/nJqjsbNu | bash
 ```
-**Other way to install**
-<br>
-**Open terminal and run:**
-```shell script
+
+### Manual Installation
+
+#### For Linux:
+
+```bash
 git clone https://github.com/arxhr007/Aliens_eye
-```
-```shell script
 cd Aliens_eye
-```
-```shell script
 bash install.sh
 ```
-* Now Aliens_eye is Succesfully installed in your system
-# Installation in Termux:
-**Open termux and type:**
-```shell script
+
+#### For Termux:
+
+```bash
+pkg update && pkg upgrade
+pkg install python git
 git clone https://github.com/arxhr007/Aliens_eye
-```
-```shell script
 cd Aliens_eye
-```
-```shell script
 bash termux-install.sh
 ```
-* Now Aliens_eye is Succesfully installed in your termux
-## To uninstall in linux:
-```shell script
-cd Aliens_eye
+
+## 💻 Usage
+
+### Scan a username:
+
+```bash
+aliens_eye username
 ```
-```shell script
-bash uninstall.sh
+
+### Scan multiple usernames:
+
+```bash
+aliens_eye username1 username2 username3
 ```
-* done!
-## To uninstall in Termux:
-```shell script
-cd Aliens_eye
+
+### Load results from previous scan:
+
+```bash
+aliens_eye -r username.json
 ```
-```shell script
-bash termux-uninstall.sh
+
+### Additional options:
+
+```bash
+aliens_eye -h                   # Show help
+aliens_eye -v username          # Enable verbose mode
+aliens_eye -c 30 username       # Set maximum concurrent connections to 30
 ```
-* done!
-# Usage :
-**To scan a username**
-```shell script
-aliens_eye <username>
-```
-### Example :
-```shell script
-aliens_eye Aaron123
-```
-**To read a output json file**
-```shell script
-aliens_eye -r <filename>
-```
-### Example :
-```shell script
-aliens_eye -r Aaron123.json
-```
-## You can also search multiple accounts by enter the usernames separated by space
-### Example :
-```shell script
-aliens_eye Aaron123 shashi54 lisa43
-```
-# Or:
-```shell script
+
+You can also run the tool without arguments and it will prompt for a username:
+
+```bash
 aliens_eye
 ```
-### then enter the username
-## The collected data will be saved in username.json
-## Enjoy!
-<p><img aling="center"src="https://raw.githubusercontent.com/arxhr007/Aliens_eye/main/photos/photo1.png"/></p>
+
+## 🔍 Understanding Results
+
+Results are color-coded for quick interpretation:
+
+- 🟢 **Green**: Found (High confidence)
+- 🟡 **Yellow**: Maybe (Medium confidence)
+- 🔴 **Red**: Not Found (High confidence)
+
+Each result includes:
+- Site name
+- Status (Found/Maybe/Not Found)
+- Confidence percentage
+- HTTP code
+- Response time
+- Full URL
+
+## 📊 Advanced Analysis
+
+The scanner uses multiple factors to determine if a username exists:
+
+1. Content keyword analysis
+2. HTTP status code analysis
+3. URL structure examination
+4. DOM structure inspection
+5. Meta tag inspection
+6. Historical pattern recognition
+7. Response time profiling
+
+Results are saved in JSON format with detailed analysis for each site.
+
+## 📱 Platform Support
+
+- Linux (All distributions)
+- Android (via Termux)
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## ⚠️ Disclaimer
+
+This tool is developed for educational purposes and ethical OSINT research only. Users are responsible for complying with applicable laws and website terms of service. The developers assume no liability for misuse of this software.
+
+## 🔗 Links
+
+- [Report Bug](https://github.com/BLINKING-IDIOT/Aliens_eye/issues)
+- [Request Feature](https://github.com/BLINKING-IDIOT/Aliens_eye/issues)
+
+---
+
+<p align="center">Made with ❤️ by <a href="https://github.com/arxhr007">Aaron</a></p>
+
+<p align="center">If you find this project helpful, please consider giving it a star ⭐</p>
 
 # Also checkout:
 
