@@ -22,11 +22,7 @@ COLORS = {
     "reset": "\033[0m"
 }
 
-logging.basicConfig(
-    level=logging.INFO,
-    format=f"{COLORS['purple']}[%(asctime)s] %(levelname)s: %(message)s{COLORS['reset']}",
-    datefmt="%H:%M:%S"
-)
+
 logger = logging.getLogger("username_scanner")
 
 class AIUsernameScanner:
@@ -100,9 +96,9 @@ class AIUsernameScanner:
        {r}★   {w}\\{y}  _.-'~~~~'-._  {w} /{y}
    {b}☾{y}      .-~ {g}\\__/{p}  \\__/{y} ~-.         .
         .-~  {g} ({r}oo{g}) {p} ({r}oo{p})    {y}~-.
-       (_____{g}
+       (_____{g}//~~\\\\{p}//~~\\\\{y}______)       {p}☆{y}
   _.-~`                         `~-._
- /{p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{y}\\     {w}✴
+ /{p}O{b}={g}O{r}={y}O{w}={p}O{b}={g}O{r}={y}O{w}={g}O{r}={y}={g}O{r}={y}O{w}O{w}={p}O{b}={g}O{r}={g}O{r}={y}O{w}={y}O{w}={p}O{b}={g}O{r}={y}O{y}\\     {w}✴
 {y} \\___________________________________/
             \\x {w}x{y} x {w}x{y} x {w}x{y} x/    {b}✫{y}
     .  {w}*{y}     \\{w}x{y}_{w}x{y}_{w}x{y}_{w}x{y}_{w}x{y}_{w}x{y}/
