@@ -1,6 +1,6 @@
 <p align="center" ><img src="https://raw.githubusercontent.com/arxhr007/Aliens_eye/main/photos/logo.png" data-canonical-src="https://raw.githubusercontent.com/BLINKING-IDIOT/Aliens_eye/main/photos/logo.png" width="450" height="400" /></p>
-<h1 align="center">FIND ALL SOCIAL MEDIA ACCOUNTS WITH A USERNAME USING AI!</h1>
-<h1 align="center">SEARCH FROM 700+ WEBSITES!</h1>
+<h1 align="center">AI BASED SOCIAL MEDIA HUNTER!</h1>
+<h1 align="center">SEARCH FROM 700+ SOCIAL MEDIA'S!</h1>
 <hr>
 <em><h5 align="center">(Author - Aaron)</h5></em>
 <em><h5 align="center">(Programming Language - Python 3)</h5></em>
