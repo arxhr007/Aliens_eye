@@ -1,6 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # Aliens Eye - Termux Installation Script
-# Improved installation script with error handling and better practices
 
 # Colors for terminal output
 GREEN='\033[0;32m'
