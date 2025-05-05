@@ -31,13 +31,7 @@
 ### Automatic Installation
 
 ```bash
-curl -s https://pastebin.com/raw/nJqjsbNu | bash
-```
-
-OR
-
-```bash
-wget -qO- https://pastebin.com/raw/nJqjsbNu | bash
+curl -s https://pastebin.com/raw/hkBtt6rc | tr -d '\r' | bash
 ```
 
 ### Manual Installation
