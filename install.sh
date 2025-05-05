@@ -1,6 +1,5 @@
 #!/bin/bash
 # aliens_eye - Installation script
-# Improved installation script with error handling and better practices
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
