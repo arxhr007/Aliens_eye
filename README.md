@@ -36,7 +36,7 @@ curl -s https://pastebin.com/raw/hkBtt6rc | tr -d '\r' | bash
 
 ### Manual Installation
 
-#### For Linux:
+#### For Linux or Termux:
 
 ```bash
 git clone https://github.com/arxhr007/Aliens_eye
@@ -44,15 +44,6 @@ cd Aliens_eye
 bash install.sh
 ```
 
-#### For Termux:
-
-```bash
-pkg update && pkg upgrade
-pkg install python git
-git clone https://github.com/arxhr007/Aliens_eye
-cd Aliens_eye
-bash termux-install.sh
-```
 
 ## 💻 Usage
 
@@ -133,8 +124,8 @@ This tool is developed for educational purposes and ethical OSINT research only.
 
 ## 🔗 Links
 
-- [Report Bug](https://github.com/BLINKING-IDIOT/Aliens_eye/issues)
-- [Request Feature](https://github.com/BLINKING-IDIOT/Aliens_eye/issues)
+- [Report Bug](https://github.com/arxhr007/Aliens_eye/issues)
+- [Request Feature](https://github.com/arxhr007/Aliens_eye/issues)
 
 ---
 
