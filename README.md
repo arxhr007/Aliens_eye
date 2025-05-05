@@ -136,4 +136,4 @@ This tool is developed for educational purposes and ethical OSINT research only.
 # Also checkout:
 
 <a href="https://github.com/arxhr007/wifistrike" target="blank"><img align="center" src="https://github-readme-stats.vercel.app/api/pin/?username=arxhr007&repo=wifistrike&show_icons=true&theme=chartreuse-dark"></a>
-<a href="https://github.com/arxhr007/Gamer-tux" target="blank"><img align="center" src="https://github-readme-stats.vercel.app/api/pin/?username=arxhr007&repo=Gamer-tux&show_icons=true&theme=chartreuse-dark"></a>
+<a href="https://github.com/arxhr007/Malware-Sandbox-Evasion" target="blank"><img align="center" src="https://github-readme-stats.vercel.app/api/pin/?username=arxhr007&repo=Malware-Sandbox-Evasion&show_icons=true&theme=chartreuse-dark"></a>
