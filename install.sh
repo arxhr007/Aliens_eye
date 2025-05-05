@@ -18,7 +18,7 @@ do
 	sleep 1
 done
 printf "\n\n" 
-pip install -r requirements.txt
+pip install -r requirements.txt --break-system-packages  &>/dev/null
 rm /usr/bin/aliens_eye &>/dev/null
 rm /usr/bin/sites.json &>/dev/null
 cp aliens_eye.py /usr/bin/aliens_eye
