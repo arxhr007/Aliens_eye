@@ -70,7 +70,7 @@ class AIUsernameScanner:
     def _load_sites_data(self) -> Dict[str, str]:
         """Load sites data from JSON file with fallback paths."""
         possible_paths = [
-            Path("/usr/bin/sites.json"),
+            Path("/usr/local/bin/sites.json"),
             Path("/data/data/com.termux/files/usr/bin/sites.json"),
             Path("sites.json")
         ]
