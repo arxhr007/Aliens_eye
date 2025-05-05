@@ -11,13 +11,14 @@ if [[ $(id -u) -ne 0 ]] ; then
 	printf "\n\n"
 	exit
 fi
-printf "NOTE: you also need install necessary packages in requirements.txt\n"
+printf "NOTE: keep internet connection on to install necessary packages in requirements.txt\n"
 for i in 3 2 1
 do
 	echo "staring installation process in ${i}" ; 
 	sleep 1
 done
 printf "\n\n" 
+pip install -r requirements.txt
 rm /usr/bin/aliens_eye &>/dev/null
 rm /usr/bin/sites.json &>/dev/null
 cp aliens_eye.py /usr/bin/aliens_eye
