@@ -133,6 +133,9 @@ This tool is developed for educational purposes and ethical OSINT research only.
 
 <p align="center">If you find this project helpful, please consider giving it a star ⭐</p>
 
+<p align="center">Follow me for more tools like this</p>
+
+
 # Also checkout:
 
 <a href="https://github.com/arxhr007/wifistrike" target="blank"><img align="center" src="https://github-readme-stats.vercel.app/api/pin/?username=arxhr007&repo=wifistrike&show_icons=true&theme=chartreuse-dark"></a>
