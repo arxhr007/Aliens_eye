@@ -3,7 +3,7 @@
 # AI-OSINT Username Scanner
 
 <h3 align="center">Advanced AI-Powered Social Media Username Finder</h3>
-<h4 align="center">Scan 700+ platforms with intelligent detection</h4>
+<h4 align="center">Scan 840+ platforms with intelligent detection</h4>
 
 <p align="center">
 <a href="#"><img alt="Forks" src="https://img.shields.io/github/forks/BLINKING-IDIOT/Aliens_eye?style=for-the-badge"></a>
