@@ -36,8 +36,9 @@ class AIUsernameScanner:
             "not found", "doesn't exist", "didn't find", "does not exist", "something went wrong", "no such user",
             "user not found", "cannot find", "can't find", "not exist", "profile not found", "account does not exist",
             "username not found", "no user found", "no results found", "no such username", "isn't available", 
-            "that content is unavailable", "page not found", "404", "error", "sorry", "oops", "unavailable",
-            "account suspended", "invalid username", "account not found", "account terminated", "account disabled"
+            "that content is unavailable", "page not found", "404", "404 error", "404 not found", "error", "sorry", "oops", "unavailable",
+            "account suspended", "invalid username", "account not found", "account terminated", "account disabled",
+            "user doesn't have an account", "this account doesn't exist", "page was not found"
         ]
         self.positive_keywords = [
             "follow", "subscribe", "like", "share", "following", "followers", "profile", "user", "posts", 
@@ -250,18 +251,27 @@ class AIUsernameScanner:
                     score += weight
         if response_time < 0.5 and http_code == 404:
             score -= 2
-        abs_score = abs(score)
-        if abs_score > 15:
+        
+        # Calculate confidence based on score magnitude (positive = found, negative = not found)
+        if score > 10:
             confidence = 95
-        elif abs_score > 10:
+        elif score > 6:
             confidence = 85
-        elif abs_score > 5:
+        elif score > 2:
+            confidence = 70
+        elif score < -10:
+            confidence = 95  # High confidence in "Not Found"
+        elif score < -6:
+            confidence = 85
+        elif score < -2:
             confidence = 70
         else:
-            confidence = 50
-        if score > 3:
+            confidence = 55
+        
+        # Stricter thresholds for status determination
+        if score > 8:
             status = "Found"
-        elif score < -3:
+        elif score < -8:
             status = "Not Found"
         else:
             status = "Maybe"
