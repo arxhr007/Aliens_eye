@@ -170,7 +170,7 @@ Results are saved to the output directory with timestamped filenames:
 
 ## Architecture
 
-Core modules live under core/ (scanner, detector, analyzer, http, exporter). Utilities are in utils/. For internals and flowcharts, see WORKING.md.
+Core modules live under core/ (scanner, detector, analyzer, http, exporter). Utilities are in utils/. For internals and flowcharts, see [WORKING.md](WORKING.md).
 
 ## Disclaimer
 
