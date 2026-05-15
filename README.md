@@ -70,48 +70,23 @@ py -m pip install -r requirements.txt
 # Install Playwright browser binaries
 py -m playwright install
 ```
+### Run
 
-## Run by platform
+After installation, run the scanner from the project directory.
 
-### Windows (PowerShell)
-
-```powershell
-git clone https://github.com/arxhr007/Aliens_eye.git
-cd Aliens_eye
-py -m pip install -r requirements.txt
-py .\aliens_eye.py username
-```
-
-If `py` is unavailable, use:
-
-```powershell
-python .\aliens_eye.py username
-```
-
-### Linux
-
-Run from source:
+Linux / iSH:
 
 ```bash
-git clone https://github.com/arxhr007/Aliens_eye.git
 cd Aliens_eye
-python3 -m pip install -r requirements.txt
 python3 aliens_eye.py username
 ```
 
-### iOS (iSH shell)
+Windows (PowerShell):
 
-In iSH, install Python and run from source:
-
-```sh
-apk add python3 py3-pip git
-git clone https://github.com/arxhr007/Aliens_eye.git
+```powershell
 cd Aliens_eye
-python3 -m pip install -r requirements.txt
-python3 aliens_eye.py username
+py .\aliens_eye.py username
 ```
-
-Note: some websites may block requests from iOS shell environments more aggressively than desktop Linux.
 
 ## Configuration
 
