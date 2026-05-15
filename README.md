@@ -1,4 +1,4 @@
-![Aliens Eye Logo](https://raw.githubusercontent.com/arxhr007/Aliens_eye/main/photos/logo.png)
+<img src="https://raw.githubusercontent.com/arxhr007/Aliens_eye/main/photos/logo.png" alt="Aliens Eye Logo" width="250" height="200">
 
 # AI-OSINT Username Scanner
 
@@ -28,16 +28,6 @@
 - Internet connection
 
 ## Install
-
-### Quick install (Linux/Termux) — One-liner
-
-Copy-paste this into your terminal:
-
-```bash
-curl -s https://pastebin.com/raw/HChbzbeD | bash
-```
-
-### Manual install
 
 ```bash
 # Clone the repository
@@ -77,13 +67,6 @@ git clone https://github.com/arxhr007/Aliens_eye.git
 cd Aliens_eye
 python3 -m pip install -r requirements.txt
 python3 aliens_eye.py username
-```
-
-Or install system-wide with the installer script:
-
-```bash
-bash install.sh
-aliens_eye username
 ```
 
 ### iOS (iSH shell)
