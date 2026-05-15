@@ -22,6 +22,7 @@ if [ -d "/data/data/com.termux" ]; then
     PREFIX="/data/data/com.termux/files/usr"
     BIN_DIR="${PREFIX}/bin"
     CONFIG_DIR="${PREFIX}/etc/aliens_eye"
+    LIB_DIR="${BIN_DIR}/aliens_eye_lib"
     REQUIRES_ROOT=false
 else
     echo -e "${YELLOW}Linux environment detected${NC}"
@@ -30,6 +31,7 @@ else
     BIN_DIR="${PREFIX}/bin"
     ALT_BIN_DIR="/usr/bin"
     CONFIG_DIR="/etc/aliens_eye"
+    LIB_DIR="${BIN_DIR}/aliens_eye_lib"
     REQUIRES_ROOT=true
     
     # Check for root permissions on Linux
@@ -106,6 +108,10 @@ fi
 # Remove configuration directory
 echo -e "\n${GREEN}Removing configuration files...${NC}"
 remove_dir "${CONFIG_DIR}"
+
+# Remove installed library directory
+echo -e "\n${GREEN}Removing library files...${NC}"
+remove_dir "${LIB_DIR}"
 
 # Additional cleanup - remove any leftover files
 echo -e "\n${GREEN}Checking for leftover files...${NC}"
