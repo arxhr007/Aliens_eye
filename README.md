@@ -38,16 +38,37 @@
 
 ## Install
 
+### Linux
+
 ```bash
 # Clone the repository
 git clone https://github.com/arxhr007/Aliens_eye.git
 cd Aliens_eye
 
+# Upgrade pip
+python3 -m pip install --upgrade pip
+
 # Install dependencies
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 
 # Install Playwright browser binaries
-playwright install
+python3 -m playwright install --with-deps
+```
+
+### Windows (PowerShell)
+
+```powershell
+git clone https://github.com/arxhr007/Aliens_eye.git
+cd Aliens_eye
+
+# Upgrade pip
+py -m pip install --upgrade pip
+
+# Install dependencies
+py -m pip install -r requirements.txt
+
+# Install Playwright browser binaries
+py -m playwright install
 ```
 
 ## Run by platform
