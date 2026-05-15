@@ -1,0 +1,162 @@
+from dataclasses import dataclass
+from typing import Any, Dict, List
+from urllib.parse import urlparse
+
+from selectolax.parser import HTMLParser
+
+from .config import (
+    AUTH_PATTERNS,
+    ERROR_CLASS_HINTS,
+    ERROR_KEYWORDS,
+    META_KEYWORDS,
+    POSITIVE_KEYWORDS,
+    PROFILE_CLASS_HINTS,
+)
+
+
+@dataclass
+class FeatureBundle:
+    features: Dict[str, float]
+    signals: Dict[str, Any]
+    fingerprint: Dict[str, Any]
+
+
+class FeatureExtractor:
+    """Extract structured signals from HTML content."""
+
+    def __init__(
+        self,
+        error_keywords: List[str] | None = None,
+        positive_keywords: List[str] | None = None,
+        meta_keywords: List[str] | None = None,
+        auth_patterns: List[str] | None = None,
+    ) -> None:
+        self.error_keywords = error_keywords or ERROR_KEYWORDS
+        self.positive_keywords = positive_keywords or POSITIVE_KEYWORDS
+        self.meta_keywords = meta_keywords or META_KEYWORDS
+        self.auth_patterns = auth_patterns or AUTH_PATTERNS
+
+    def extract(
+        self,
+        content: str,
+        url: str,
+        username: str,
+        site_name: str,
+        http_code: int,
+        response_time: float,
+        headers: Dict[str, str] | None,
+        redirect_count: int,
+    ) -> FeatureBundle:
+        content = content or ""
+        content_lower = content.lower()
+
+        error_keyword_count = sum(
+            1 for keyword in self.error_keywords if keyword in content_lower
+        )
+        positive_keyword_count = sum(
+            1 for keyword in self.positive_keywords if keyword in content_lower
+        )
+
+        parsed_url = urlparse(url)
+        path = parsed_url.path or ""
+        has_username_in_path = username.lower() in path.lower()
+        has_auth_pattern = any(auth in path.lower() for auth in self.auth_patterns)
+        is_homepage = path in ("", "/")
+
+        tree = HTMLParser(content)
+        title_node = tree.css_first("title")
+        title_text = title_node.text().strip() if title_node else ""
+
+        meta_contents: List[str] = []
+        for node in tree.css("meta"):
+            content_value = node.attributes.get("content")
+            if content_value:
+                meta_contents.append(content_value)
+
+        meta_text = " ".join(meta_contents).lower()
+        meta_error_keyword_count = sum(
+            1 for keyword in self.error_keywords if keyword in meta_text
+        )
+        meta_positive_keyword_count = sum(
+            1 for keyword in (self.positive_keywords + self.meta_keywords)
+            if keyword in meta_text
+        )
+
+        class_nodes = tree.css("[class]")
+        profile_section_count = 0
+        error_section_count = 0
+        for node in class_nodes:
+            class_attr = node.attributes.get("class", "")
+            class_value = str(class_attr).lower() if class_attr is not None else ""
+            if not class_value:
+                continue
+            if any(hint in class_value for hint in PROFILE_CLASS_HINTS):
+                profile_section_count += 1
+            if any(hint in class_value for hint in ERROR_CLASS_HINTS):
+                error_section_count += 1
+
+        img_count = len(tree.css("img"))
+        input_count = len(tree.css("input"))
+        form_count = len(tree.css("form"))
+
+        features = {
+            "http_200": 1.0 if http_code == 200 else 0.0,
+            "http_3xx": 1.0 if 300 <= http_code < 400 else 0.0,
+            "http_404": 1.0 if http_code == 404 else 0.0,
+            "http_4xx": 1.0 if 400 <= http_code < 500 else 0.0,
+            "http_5xx": 1.0 if http_code >= 500 else 0.0,
+            "has_username_in_path": 1.0 if has_username_in_path else 0.0,
+            "is_homepage": 1.0 if is_homepage else 0.0,
+            "has_auth_pattern": 1.0 if has_auth_pattern else 0.0,
+            "error_keyword_count": float(error_keyword_count),
+            "positive_keyword_count": float(positive_keyword_count),
+            "meta_error_keyword_count": float(meta_error_keyword_count),
+            "meta_positive_keyword_count": float(meta_positive_keyword_count),
+            "profile_section_count": float(profile_section_count),
+            "error_section_count": float(error_section_count),
+            "img_count": float(img_count),
+            "input_count": float(input_count),
+            "form_count": float(form_count),
+            "title_has_username": 1.0
+            if username.lower() in title_text.lower()
+            else 0.0,
+            "meta_has_username": 1.0
+            if username.lower() in meta_text
+            else 0.0,
+            "response_time": float(response_time),
+            "content_length": float(len(content)),
+            "redirect_count": float(redirect_count),
+        }
+
+        signals = {
+            "site": site_name,
+            "title": title_text,
+            "meta_samples": meta_contents[:5],
+            "url_analysis": {
+                "domain": parsed_url.netloc,
+                "path": path,
+                "has_username_in_path": has_username_in_path,
+                "has_auth_pattern": has_auth_pattern,
+                "is_homepage": is_homepage,
+            },
+            "dom": {
+                "img_count": img_count,
+                "input_count": input_count,
+                "form_count": form_count,
+                "profile_section_count": profile_section_count,
+                "error_section_count": error_section_count,
+            },
+            "headers": {
+                "server": (headers or {}).get("Server", ""),
+                "content_type": (headers or {}).get("Content-Type", ""),
+            },
+        }
+
+        fingerprint = {
+            "title": title_text,
+            "meta_text": meta_text,
+            "dom_signature": f"img:{img_count}|form:{form_count}|profile:{profile_section_count}|error:{error_section_count}",
+            "server": (headers or {}).get("Server", ""),
+        }
+
+        return FeatureBundle(features=features, signals=signals, fingerprint=fingerprint)

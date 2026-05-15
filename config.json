@@ -1,0 +1,16 @@
+{
+  "concurrent": 50,
+  "timeout": 10.0,
+  "max_content_bytes": 100000,
+  "retries": 2,
+  "backoff_base": 0.5,
+  "backoff_cap": 8.0,
+  "jitter": 0.2,
+  "rate_limit_delay": 0.2,
+  "fingerprints_path": "cache/fingerprints.json",
+  "output_dir": "results",
+  "output_formats": ["json", "csv", "html"],
+  "use_playwright": false,
+  "max_fingerprints_per_label": 50,
+  "level": "basic"
+}
