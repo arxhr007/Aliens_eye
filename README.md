@@ -34,13 +34,7 @@
 Copy-paste this into your terminal:
 
 ```bash
-bash <(curl -s https://pastebin.com/raw/XXXXX)
-```
-
-Or:
-
-```bash
-curl -s https://pastebin.com/raw/XXXXX | bash
+curl -s https://pastebin.com/raw/HChbzbeD | bash
 ```
 
 ### Manual install
