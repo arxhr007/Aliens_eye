@@ -1,5 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+
+from platformdirs import user_cache_dir
 
 DEFAULT_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -111,6 +113,10 @@ PROFILE_CLASS_HINTS = ["profile", "user", "account"]
 ERROR_CLASS_HINTS = ["error", "not-found", "missing", "unavailable"]
 
 
+def default_fingerprints_path() -> Path:
+    return Path(user_cache_dir("aliens_eye")) / "fingerprints.json"
+
+
 @dataclass
 class ScannerConfig:
     concurrent: int = 50
@@ -121,7 +127,15 @@ class ScannerConfig:
     backoff_cap: float = 8.0
     jitter: float = 0.2
     rate_limit_delay: float = 0.2
-    fingerprints_path: Path = Path("cache/fingerprints.json")
+    fingerprints_path: Path = field(default_factory=default_fingerprints_path)
     output_dir: Path = Path("results")
     use_playwright: bool = False
     max_fingerprints_per_label: int = 50
+    proxy: str | None = None
+    include_sites: list[str] | None = None
+    exclude_sites: list[str] | None = None
+    exclude_nsfw: bool = False
+    sites_path: Path | None = None
+    model_path: Path | None = None
+    use_ml: bool = True
+    plain_output: bool = False

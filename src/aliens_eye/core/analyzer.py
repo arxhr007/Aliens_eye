@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 from urllib.parse import urlparse
 
 from selectolax.parser import HTMLParser
@@ -16,9 +16,9 @@ from .config import (
 
 @dataclass
 class FeatureBundle:
-    features: Dict[str, float]
-    signals: Dict[str, Any]
-    fingerprint: Dict[str, Any]
+    features: dict[str, float]
+    signals: dict[str, Any]
+    fingerprint: dict[str, Any]
 
 
 class FeatureExtractor:
@@ -26,10 +26,10 @@ class FeatureExtractor:
 
     def __init__(
         self,
-        error_keywords: List[str] | None = None,
-        positive_keywords: List[str] | None = None,
-        meta_keywords: List[str] | None = None,
-        auth_patterns: List[str] | None = None,
+        error_keywords: list[str] | None = None,
+        positive_keywords: list[str] | None = None,
+        meta_keywords: list[str] | None = None,
+        auth_patterns: list[str] | None = None,
     ) -> None:
         self.error_keywords = error_keywords or ERROR_KEYWORDS
         self.positive_keywords = positive_keywords or POSITIVE_KEYWORDS
@@ -44,7 +44,7 @@ class FeatureExtractor:
         site_name: str,
         http_code: int,
         response_time: float,
-        headers: Dict[str, str] | None,
+        headers: dict[str, str] | None,
         redirect_count: int,
     ) -> FeatureBundle:
         content = content or ""
@@ -67,7 +67,7 @@ class FeatureExtractor:
         title_node = tree.css_first("title")
         title_text = title_node.text().strip() if title_node else ""
 
-        meta_contents: List[str] = []
+        meta_contents: list[str] = []
         for node in tree.css("meta"):
             content_value = node.attributes.get("content")
             if content_value:

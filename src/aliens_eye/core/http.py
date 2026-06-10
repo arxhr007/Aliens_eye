@@ -2,13 +2,12 @@ import asyncio
 import random
 import time
 from dataclasses import dataclass
-from typing import Dict, Optional
 from urllib.parse import urlparse
 
 import aiohttp
 
-from .rate_limit import DomainRateLimiter
 from .config import ScannerConfig
+from .rate_limit import DomainRateLimiter
 
 
 @dataclass
@@ -18,8 +17,8 @@ class FetchResult:
     status: int
     content: str
     response_time: float
-    headers: Dict[str, str]
-    error: Optional[str]
+    headers: dict[str, str]
+    error: str | None
     redirect_count: int
 
 
@@ -27,7 +26,7 @@ def _should_retry(status: int) -> bool:
     return status in {408, 429, 500, 502, 503, 504}
 
 
-def _parse_retry_after(headers: Dict[str, str]) -> Optional[float]:
+def _parse_retry_after(headers: dict[str, str]) -> float | None:
     value = headers.get("Retry-After")
     if not value:
         return None
@@ -46,7 +45,7 @@ async def fetch_url(
 ) -> FetchResult:
     error_message = None
     last_status = 0
-    last_headers: Dict[str, str] = {}
+    last_headers: dict[str, str] = {}
     final_url = url
     redirect_count = 0
 
@@ -58,8 +57,16 @@ async def fetch_url(
                 parsed.netloc, config.rate_limit_delay, retry_after
             )
 
+            # SOCKS proxies are handled by the session connector; only plain
+            # HTTP(S) proxies go through aiohttp's per-request proxy support.
+            http_proxy = None
+            if config.proxy and config.proxy.lower().startswith(("http://", "https://")):
+                http_proxy = config.proxy
+
             start_time = time.monotonic()
-            async with session.get(url, timeout=config.timeout, allow_redirects=True) as response:
+            async with session.get(
+                url, timeout=config.timeout, allow_redirects=True, proxy=http_proxy
+            ) as response:
                 raw = await response.content.read(config.max_content_bytes)
                 encoding = response.charset or "utf-8"
                 content = raw.decode(encoding, errors="ignore")

@@ -2,7 +2,7 @@ import hashlib
 import json
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
 def _normalize(text: str) -> str:
@@ -16,7 +16,7 @@ def _hash_text(text: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
-def build_fingerprint(raw: Dict[str, Any]) -> Dict[str, str]:
+def build_fingerprint(raw: dict[str, Any]) -> dict[str, str]:
     """Convert raw fingerprint inputs into hashed signatures."""
     title_hash = _hash_text(str(raw.get("title", "")))
     meta_hash = _hash_text(str(raw.get("meta_text", "")))
@@ -36,7 +36,7 @@ class FingerprintStore:
     def __init__(self, path: Path, max_entries_per_label: int = 50) -> None:
         self.path = path
         self.max_entries_per_label = max_entries_per_label
-        self.data: Dict[str, Any] = {"sites": {}}
+        self.data: dict[str, Any] = {"sites": {}}
 
     def load(self, logger=None) -> None:
         if not self.path.exists():
@@ -56,11 +56,11 @@ class FingerprintStore:
         with self.path.open("w", encoding="utf-8") as handle:
             json.dump(self.data, handle, indent=2, ensure_ascii=True)
 
-    def _ensure_site(self, site: str) -> Dict[str, List[Dict[str, str]]]:
+    def _ensure_site(self, site: str) -> dict[str, list[dict[str, str]]]:
         sites = self.data.setdefault("sites", {})
         return sites.setdefault(site, {"found": [], "not_found": []})
 
-    def add(self, site: str, label: str, fingerprint: Dict[str, str]) -> None:
+    def add(self, site: str, label: str, fingerprint: dict[str, str]) -> None:
         if label not in {"found", "not_found"}:
             return
         site_entry = self._ensure_site(site)
@@ -72,7 +72,7 @@ class FingerprintStore:
         if len(entries) > self.max_entries_per_label:
             site_entry[label] = entries[-self.max_entries_per_label :]
 
-    def score(self, site: str, fingerprint: Dict[str, str]) -> Dict[str, int]:
+    def score(self, site: str, fingerprint: dict[str, str]) -> dict[str, int]:
         site_entry = self.data.get("sites", {}).get(site, {})
         found_entries = site_entry.get("found", [])
         missing_entries = site_entry.get("not_found", [])
@@ -87,7 +87,7 @@ class FingerprintStore:
         }
 
     def _count_matches(
-        self, entries: List[Dict[str, str]], fingerprint: Dict[str, str]
+        self, entries: list[dict[str, str]], fingerprint: dict[str, str]
     ) -> int:
         score = 0
         for entry in entries:
@@ -102,7 +102,7 @@ class FingerprintStore:
         return score
 
     @staticmethod
-    def _fingerprint_key(fingerprint: Dict[str, str]) -> str:
+    def _fingerprint_key(fingerprint: dict[str, str]) -> str:
         return "|".join(
             [
                 fingerprint.get("title_hash", ""),

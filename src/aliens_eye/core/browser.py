@@ -1,5 +1,4 @@
 import asyncio
-from typing import Optional, Tuple
 
 
 class BrowserFallback:
@@ -31,7 +30,7 @@ class BrowserFallback:
         if self._playwright:
             await self._playwright.stop()
 
-    async def fetch(self, url: str) -> Tuple[str, str]:
+    async def fetch(self, url: str) -> tuple[str, str]:
         if not self._context:
             await self.start()
 

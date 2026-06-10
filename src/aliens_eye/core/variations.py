@@ -1,7 +1,6 @@
-from typing import List
 
 
-def generate_username_variations(username: str, level: str) -> List[str]:
+def generate_username_variations(username: str, level: str) -> list[str]:
     """Generate username variations based on scan level."""
     variations = [username]
     if level == "basic":
