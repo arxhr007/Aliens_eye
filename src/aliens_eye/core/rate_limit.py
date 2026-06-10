@@ -1,14 +1,13 @@
 import asyncio
 import time
-from typing import Dict
 
 
 class DomainRateLimiter:
     """Simple per-domain rate limiting with retry-after support."""
 
     def __init__(self) -> None:
-        self._locks: Dict[str, asyncio.Lock] = {}
-        self._next_allowed: Dict[str, float] = {}
+        self._locks: dict[str, asyncio.Lock] = {}
+        self._next_allowed: dict[str, float] = {}
         self._global_lock = asyncio.Lock()
 
     async def wait_for_slot(self, domain: str, min_delay: float, retry_after: float | None) -> None:
