@@ -1,3 +1,5 @@
-aiohttp>=3.8.0
-selectolax>=0.3.21
-playwright>=1.42.0
+# Deprecated: install via pyproject instead.
+#   pip install aliens-eye            (from PyPI)
+#   pip install -e .                  (from source)
+#   pip install -e ".[browser]"       (with Playwright fallback)
+-e .
