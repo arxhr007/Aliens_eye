@@ -30,25 +30,37 @@ from aliens_eye.utils.logger import setup_logger
 
 TOR_PROXY = "socks5://127.0.0.1:9050"
 
-BANNER = r"""[green]  ___   __   _________  ___  ____
-  / _ | / /  /  _/ __/ |/ ( )/ __/
- / __ |/ /___/ // _//    /|/_\ \
-/_/ |_/____/___/___/_/|_/  /___/[/green]
-[blue]    ________  ________
-   / ____/\ \/ / ____/[/blue][red]  _    __[/red][white]__ __[/white]
-[blue]  / __/    \  / __/[/blue][red]   | |  / /[/red][white] // /[/white]
-[blue] / /___    / / /___ [/blue][red]  | | / /[/red][white] // /[/white]
-[blue]/_____/   /_/_____/ [/blue][red]  | |/ /[/red][white]__  __/[/white]
-[red]                       |___/[/red][white]  /_/[/white]
-"""
-
-
 def display_banner(site_count: int) -> None:
     console = get_console()
-    console.print(BANNER)
-    console.print(f"[green]by[/green] [yellow]arxhr007[/yellow]  [dim]v{__version__}[/dim]")
+    banner = rf"""[yellow]
+"[blue]New AI detection
+  feature improves
+   accuracy by 40%[/blue][yellow]"        "[blue]Scans {site_count} websites[/blue][yellow]"
+       [red]★   [white]\\[yellow]  _.-'~~~~'-._  [white] /[yellow]
+   [blue]☾[yellow]      .-~ [green]\__/[magenta]  \__/[yellow] ~-.         .
+        .-~  [green] ([red]oo[green]) [magenta] ([red]oo[magenta])    [yellow]~-.
+       (_____[green]//~~\\[magenta]//~~\\[yellow]______)       [magenta]☆[yellow]
+  _.-~`                         `~-._
+ /[magenta]O[blue]=[green]O[red]=[yellow]O[white]=[magenta]O[blue]=[green]O[red]=[yellow]O[white]=[green]O[red]=[yellow]=[green]O[red]=[yellow]O[white]O[white]=[magenta]O[blue]=[green]O[red]=[green]O[red]=[yellow]O[white]=[yellow]O[white]=[magenta]O[blue]=[green]O[red]=[yellow]O[yellow]\     [white]✴
+[yellow] \___________________________________/
+            \x [white]x[yellow] x [white]x[yellow] x [white]x[yellow] x/    [blue]✫[yellow]
+    .  [white]*[yellow]     \\[white]x[yellow]_[white]x[yellow]_[white]x[yellow]_[white]x[yellow]_[white]x[yellow]_[white]x[yellow]/
+              [red]AI-POWERED[green]
+   ___   __   _________  ___  ____
+  / _ | / /  /  _/ __/ |/ ( )/ __/
+ / __ |/ /___/ // _//    /|/_\ \
+/_/ |_/____/___/___/_/|_/  /___/
+[blue]
+    ________  ________
+   [blue]/ ____/\ \/ / ____/ [red] _    __[white]  ___
+  [blue]/ __/    \  / __/   [red] | |  / /[white] |__ \
+ [blue]/ /___    / / /___    [red]| | / /[white]  _/ /
+[blue]/_____/   /_/_____/  [red]  | |/ /[white] / __/
+                      [red] |___/ [white] /____/
+
+[green]by [yellow]arxhr007  [dim]v{__version__}[/dim]"""
+    console.print(banner)
     console.print("[yellow]AI-OSINT USERNAME SCANNER[/yellow]")
-    console.print(f"[magenta]Scanning {site_count} websites[/magenta]")
     console.print("[red]NOTE: For educational purposes only!\n[/red]")
 
 
