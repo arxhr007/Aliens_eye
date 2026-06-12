@@ -3,7 +3,6 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/arxhr007/Aliens_eye/main/photos/logo.png"
        alt="Aliens Eye Logo"
-       width="400"
        height="300">
 </div>
 
@@ -110,6 +109,12 @@ aliens_eye -r results/username_advanced_20260611_120000.json
 # Validate detection accuracy against known accounts
 aliens_eye selfcheck
 ```
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/arxhr007/Aliens_eye/main/photos/photo.png"
+       alt="Aliens Eye Logo"
+       >
+</div>
 
 ## How detection works
 
