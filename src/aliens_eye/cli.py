@@ -39,7 +39,7 @@ def display_banner(site_count: int) -> None:
        [red]★   [white]\\[yellow]  _.-'~~~~'-._  [white] /[yellow]
    [blue]☾[yellow]      .-~ [green]\__/[magenta]  \__/[yellow] ~-.         .
         .-~  [green] ([red]oo[green]) [magenta] ([red]oo[magenta])    [yellow]~-.
-       (_____[green]//~~\\[magenta]//~~\\[yellow]______)       [magenta]☆[yellow]
+       (_____[green]//~~\\[magenta]_//~~\\[yellow]______)       [magenta]☆[yellow]
   _.-~`                         `~-._
  /[magenta]O[blue]=[green]O[red]=[yellow]O[white]=[magenta]O[blue]=[green]O[red]=[yellow]O[white]=[green]O[red]=[yellow]=[green]O[red]=[yellow]O[white]O[white]=[magenta]O[blue]=[green]O[red]=[green]O[red]=[yellow]O[white]=[yellow]O[white]=[magenta]O[blue]=[green]O[red]=[yellow]O[yellow]\     [white]✴
 [yellow] \___________________________________/
@@ -56,7 +56,7 @@ def display_banner(site_count: int) -> None:
   [blue]/ __/    \  / __/   [red] | |  / /[white] |__ \
  [blue]/ /___    / / /___    [red]| | / /[white]  _/ /
 [blue]/_____/   /_/_____/  [red]  | |/ /[white] / __/
-                      [red] |___/ [white] /____/
+                      [red] |___/ [white]/____/
 
 [green]by [yellow]arxhr007  [dim]v{__version__}[/dim]"""
     console.print(banner)
