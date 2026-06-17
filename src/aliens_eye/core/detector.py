@@ -52,13 +52,16 @@ class Detector:
 
         if self.model is not None:
             ml_prob = self.model.predict_proba(features)
-            probability = ML_WEIGHT * ml_prob + HEURISTIC_WEIGHT * heuristic_prob
+            ml_w = getattr(self.model, "ml_weight", ML_WEIGHT)
+            probability = ml_w * ml_prob + (1.0 - ml_w) * heuristic_prob
             method = "ml+heuristic"
         else:
             probability = heuristic_prob
             method = "heuristic"
 
-        status, confidence = self._status_from_probability(probability)
+        found_thr = getattr(self.model, "found_threshold", FOUND_THRESHOLD) if self.model else FOUND_THRESHOLD
+        not_found_thr = getattr(self.model, "not_found_threshold", NOT_FOUND_THRESHOLD) if self.model else NOT_FOUND_THRESHOLD
+        status, confidence = self._status_from_probability(probability, found_thr, not_found_thr)
         return DetectionResult(
             status=status,
             confidence=confidence,
@@ -105,20 +108,29 @@ class Detector:
         score += features.get("fingerprint_match_found", 0.0) * 2
         score -= features.get("fingerprint_match_not_found", 0.0) * 2
 
+        # Structured-data signals
+        score += features.get("og_type_profile", 0.0) * 6
+        score += features.get("has_json_ld_person", 0.0) * 5
+        score += features.get("username_in_canonical", 0.0) * 4
+
         return score
 
     @staticmethod
-    def _status_from_probability(probability: float) -> tuple[str, int]:
-        if probability > FOUND_THRESHOLD:
+    def _status_from_probability(
+        probability: float,
+        found_threshold: float = FOUND_THRESHOLD,
+        not_found_threshold: float = NOT_FOUND_THRESHOLD,
+    ) -> tuple[str, int]:
+        if probability > found_threshold:
             status = "Found"
-            distance = (probability - FOUND_THRESHOLD) / (1.0 - FOUND_THRESHOLD)
-        elif probability < NOT_FOUND_THRESHOLD:
+            distance = (probability - found_threshold) / (1.0 - found_threshold)
+        elif probability < not_found_threshold:
             status = "Not Found"
-            distance = (NOT_FOUND_THRESHOLD - probability) / NOT_FOUND_THRESHOLD
+            distance = (not_found_threshold - probability) / not_found_threshold
         else:
             status = "Maybe"
-            center = (FOUND_THRESHOLD + NOT_FOUND_THRESHOLD) / 2
-            half_band = (FOUND_THRESHOLD - NOT_FOUND_THRESHOLD) / 2
+            center = (found_threshold + not_found_threshold) / 2
+            half_band = (found_threshold - not_found_threshold) / 2
             distance = 1.0 - abs(probability - center) / half_band
             return status, int(50 + 20 * max(0.0, min(1.0, distance)))
 

@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlparse
@@ -12,6 +13,8 @@ from .config import (
     POSITIVE_KEYWORDS,
     PROFILE_CLASS_HINTS,
 )
+
+_JSON_LD_PERSON_RE = re.compile(r'"@type"\s*:\s*"Person"', re.IGNORECASE)
 
 
 @dataclass
@@ -98,6 +101,33 @@ class FeatureExtractor:
         img_count = len(tree.css("img"))
         input_count = len(tree.css("input"))
         form_count = len(tree.css("form"))
+        link_count = len(tree.css("a[href]"))
+
+        # og:type = "profile" is a strong indicator of a real profile page
+        og_type_profile = 0.0
+        for node in tree.css('meta[property="og:type"]'):
+            if (node.attributes.get("content") or "").lower() == "profile":
+                og_type_profile = 1.0
+                break
+
+        # JSON-LD Person schema appears on profile pages
+        has_json_ld_person = 0.0
+        for node in tree.css('script[type="application/ld+json"]'):
+            script_text = node.text()
+            if script_text and _JSON_LD_PERSON_RE.search(script_text):
+                has_json_ld_person = 1.0
+                break
+
+        # Canonical URL containing the username is a reliable profile signal
+        username_in_canonical = 0.0
+        canonical_node = tree.css_first('link[rel="canonical"]')
+        if canonical_node:
+            canonical_href = (canonical_node.attributes.get("href") or "").lower()
+            if username.lower() in canonical_href:
+                username_in_canonical = 1.0
+
+        body_node = tree.css_first("body")
+        text_length = float(len(body_node.text(deep=True))) if body_node else 0.0
 
         features = {
             "http_200": 1.0 if http_code == 200 else 0.0,
@@ -126,6 +156,11 @@ class FeatureExtractor:
             "response_time": float(response_time),
             "content_length": float(len(content)),
             "redirect_count": float(redirect_count),
+            "og_type_profile": og_type_profile,
+            "has_json_ld_person": has_json_ld_person,
+            "username_in_canonical": username_in_canonical,
+            "link_count": float(link_count),
+            "text_length": text_length,
         }
 
         signals = {
