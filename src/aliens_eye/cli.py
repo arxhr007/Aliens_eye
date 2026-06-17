@@ -551,6 +551,9 @@ async def run_train_command(args) -> None:
 
 
 def main() -> None:
+    if sys.platform == "win32":
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
     argv = sys.argv[1:]
     console = get_console()
     try:
