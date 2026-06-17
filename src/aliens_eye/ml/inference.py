@@ -30,10 +30,14 @@ class MLModel:
     coef: list[float]
     intercept: float
     version: str = "unknown"
+    found_threshold: float = 0.6
+    not_found_threshold: float = 0.35
+    ml_weight: float = 0.4
 
     @classmethod
     def from_dict(cls, data: dict) -> MLModel:
         try:
+            thresholds = data.get("thresholds", {})
             model = cls(
                 feature_schema=list(data["feature_schema"]),
                 mean=[float(x) for x in data["mean"]],
@@ -41,6 +45,9 @@ class MLModel:
                 coef=[float(x) for x in data["coef"]],
                 intercept=float(data["intercept"]),
                 version=str(data.get("version", "unknown")),
+                found_threshold=float(thresholds.get("found", 0.6)),
+                not_found_threshold=float(thresholds.get("not_found", 0.35)),
+                ml_weight=float(data.get("ml_weight", 0.4)),
             )
         except (KeyError, TypeError, ValueError) as exc:
             raise ModelError(f"Malformed model file: {exc}") from exc
