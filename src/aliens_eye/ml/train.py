@@ -36,7 +36,7 @@ def load_dataset(path: Path) -> tuple[list[list[float]], list[int]]:
 
 
 def _optimize_thresholds(
-    y: "np.ndarray", probas: "np.ndarray"
+    y: list[int], probas: list[float]
 ) -> tuple[float, float]:
     """Find Found/NotFound thresholds that maximise F1 on the training set."""
     from sklearn.metrics import precision_recall_curve
@@ -104,7 +104,10 @@ def train_model(dataset_path: Path, output_path: Path, logger=None) -> dict:
     # Blend weight optimisation via OOF (out-of-fold) predictions.
     # heuristic_score is stored as a feature; derive heuristic_prob from it.
     h_idx = FEATURE_SCHEMA.index("heuristic_score")
-    _sig = lambda z: 1.0 / (1.0 + math.exp(-max(-50.0, min(50.0, z / 6.0))))
+
+    def _sig(z: float) -> float:
+        return 1.0 / (1.0 + math.exp(-max(-50.0, min(50.0, z / 6.0))))
+
     oof_h = np.array([_sig(float(row[h_idx])) for row in X_list])
     oof_ml = np.zeros(len(y))
     if min_class >= 2:

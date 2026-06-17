@@ -1,12 +1,9 @@
-import json
 import re
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlparse
 
 from selectolax.parser import HTMLParser
-
-_JSON_LD_PERSON_RE = re.compile(r'"@type"\s*:\s*"Person"', re.IGNORECASE)
 
 from .config import (
     AUTH_PATTERNS,
@@ -16,6 +13,8 @@ from .config import (
     POSITIVE_KEYWORDS,
     PROFILE_CLASS_HINTS,
 )
+
+_JSON_LD_PERSON_RE = re.compile(r'"@type"\s*:\s*"Person"', re.IGNORECASE)
 
 
 @dataclass
