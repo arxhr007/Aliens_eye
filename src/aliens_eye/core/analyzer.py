@@ -1,5 +1,6 @@
+import re
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 from urllib.parse import urlparse
 
 from selectolax.parser import HTMLParser
@@ -13,12 +14,14 @@ from .config import (
     PROFILE_CLASS_HINTS,
 )
 
+_JSON_LD_PERSON_RE = re.compile(r'"@type"\s*:\s*"Person"', re.IGNORECASE)
+
 
 @dataclass
 class FeatureBundle:
-    features: Dict[str, float]
-    signals: Dict[str, Any]
-    fingerprint: Dict[str, Any]
+    features: dict[str, float]
+    signals: dict[str, Any]
+    fingerprint: dict[str, Any]
 
 
 class FeatureExtractor:
@@ -26,10 +29,10 @@ class FeatureExtractor:
 
     def __init__(
         self,
-        error_keywords: List[str] | None = None,
-        positive_keywords: List[str] | None = None,
-        meta_keywords: List[str] | None = None,
-        auth_patterns: List[str] | None = None,
+        error_keywords: list[str] | None = None,
+        positive_keywords: list[str] | None = None,
+        meta_keywords: list[str] | None = None,
+        auth_patterns: list[str] | None = None,
     ) -> None:
         self.error_keywords = error_keywords or ERROR_KEYWORDS
         self.positive_keywords = positive_keywords or POSITIVE_KEYWORDS
@@ -44,7 +47,7 @@ class FeatureExtractor:
         site_name: str,
         http_code: int,
         response_time: float,
-        headers: Dict[str, str] | None,
+        headers: dict[str, str] | None,
         redirect_count: int,
     ) -> FeatureBundle:
         content = content or ""
@@ -67,7 +70,7 @@ class FeatureExtractor:
         title_node = tree.css_first("title")
         title_text = title_node.text().strip() if title_node else ""
 
-        meta_contents: List[str] = []
+        meta_contents: list[str] = []
         for node in tree.css("meta"):
             content_value = node.attributes.get("content")
             if content_value:
@@ -98,6 +101,33 @@ class FeatureExtractor:
         img_count = len(tree.css("img"))
         input_count = len(tree.css("input"))
         form_count = len(tree.css("form"))
+        link_count = len(tree.css("a[href]"))
+
+        # og:type = "profile" is a strong indicator of a real profile page
+        og_type_profile = 0.0
+        for node in tree.css('meta[property="og:type"]'):
+            if (node.attributes.get("content") or "").lower() == "profile":
+                og_type_profile = 1.0
+                break
+
+        # JSON-LD Person schema appears on profile pages
+        has_json_ld_person = 0.0
+        for node in tree.css('script[type="application/ld+json"]'):
+            script_text = node.text()
+            if script_text and _JSON_LD_PERSON_RE.search(script_text):
+                has_json_ld_person = 1.0
+                break
+
+        # Canonical URL containing the username is a reliable profile signal
+        username_in_canonical = 0.0
+        canonical_node = tree.css_first('link[rel="canonical"]')
+        if canonical_node:
+            canonical_href = (canonical_node.attributes.get("href") or "").lower()
+            if username.lower() in canonical_href:
+                username_in_canonical = 1.0
+
+        body_node = tree.css_first("body")
+        text_length = float(len(body_node.text(deep=True))) if body_node else 0.0
 
         features = {
             "http_200": 1.0 if http_code == 200 else 0.0,
@@ -126,6 +156,11 @@ class FeatureExtractor:
             "response_time": float(response_time),
             "content_length": float(len(content)),
             "redirect_count": float(redirect_count),
+            "og_type_profile": og_type_profile,
+            "has_json_ld_person": has_json_ld_person,
+            "username_in_canonical": username_in_canonical,
+            "link_count": float(link_count),
+            "text_length": text_length,
         }
 
         signals = {

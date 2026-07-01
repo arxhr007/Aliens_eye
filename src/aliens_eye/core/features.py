@@ -1,4 +1,3 @@
-from typing import Dict, List
 
 FEATURE_SCHEMA = [
     "http_200",
@@ -25,9 +24,16 @@ FEATURE_SCHEMA = [
     "redirect_count",
     "fingerprint_match_found",
     "fingerprint_match_not_found",
+    # Structured-data signals (strong profile indicators)
+    "og_type_profile",
+    "has_json_ld_person",
+    "username_in_canonical",
+    "link_count",
+    "text_length",
+    "heuristic_score",
 ]
 
 
-def vectorize_features(features: Dict[str, float]) -> List[float]:
+def vectorize_features(features: dict[str, float]) -> list[float]:
     """Return features as an ordered list aligned with FEATURE_SCHEMA."""
     return [float(features.get(name, 0.0)) for name in FEATURE_SCHEMA]
