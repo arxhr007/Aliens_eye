@@ -3,7 +3,6 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/arxhr007/Aliens_eye/main/photos/logo.png"
        alt="Aliens Eye Logo"
-       width="400"
        height="300">
 </div>
 
