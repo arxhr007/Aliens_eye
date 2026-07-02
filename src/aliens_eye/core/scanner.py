@@ -41,6 +41,31 @@ def load_sites_data(path: Path | None = None) -> dict[str, str]:
     return json.loads(text)
 
 
+def load_site_plugins(extra_dirs: list[Path] | None = None) -> dict[str, str]:
+    """Merge every ``*.json`` site map found in the plugin directories.
+
+    Looks in ``./sites.d/`` and the user config dir's ``sites.d/`` by default,
+    plus any ``extra_dirs``. Each file must be a ``{site_name: url_template}``
+    map; later files override earlier ones on name conflicts.
+    """
+    from platformdirs import user_config_dir
+
+    dirs = [Path("sites.d"), Path(user_config_dir("aliens_eye")) / "sites.d"]
+    dirs.extend(extra_dirs or [])
+    merged: dict[str, str] = {}
+    for directory in dirs:
+        if not directory.is_dir():
+            continue
+        for path in sorted(directory.glob("*.json")):
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if isinstance(data, dict):
+                merged.update({str(k): str(v) for k, v in data.items()})
+    return merged
+
+
 def load_nsfw_sites() -> list[str]:
     """Names of sites flagged as NSFW, shipped as package data."""
     try:
@@ -95,6 +120,7 @@ class UsernameScanner:
         fingerprints: FingerprintStore,
         logger,
         browser_fallback: BrowserFallback | None = None,
+        checkpoint=None,
     ) -> None:
         self.sites_data = sites_data
         self.config = config
@@ -103,6 +129,7 @@ class UsernameScanner:
         self.fingerprints = fingerprints
         self.logger = logger
         self.browser_fallback = browser_fallback
+        self.checkpoint = checkpoint
         self.console = get_console()
 
         self.results_dir = config.output_dir
@@ -134,14 +161,27 @@ class UsernameScanner:
         if not self.sites_data:
             return results
 
-        conn_limit = max(1, min(self.config.concurrent, len(self.sites_data)))
+        done: dict[str, dict[str, Any]] = (
+            self.checkpoint.results_for(username) if self.checkpoint else {}
+        )
+        pending = {site: tmpl for site, tmpl in self.sites_data.items() if site not in done}
+        results.extend(done.values())
+        if done:
+            self.console.print(
+                f"[dim]Resuming {username}: {len(done)} site(s) from checkpoint, "
+                f"{len(pending)} remaining.[/dim]"
+            )
+        if not pending:
+            return results
+
+        conn_limit = max(1, min(self.config.concurrent, len(pending)))
         rate_limiter = DomainRateLimiter()
         queue: asyncio.Queue[tuple[str, str]] = asyncio.Queue()
-        for site, tmpl in self.sites_data.items():
+        for site, tmpl in pending.items():
             queue.put_nowait((site, tmpl))
 
         view = ScanView(self.console)
-        view.start(username, len(self.sites_data))
+        view.start(username, len(pending))
 
         connector = build_connector(self.config, conn_limit)
         start_time = time.monotonic()
@@ -189,22 +229,25 @@ class UsernameScanner:
             except Exception as exc:
                 url = self._format_url(site, tmpl, username)
                 self.logger.debug("Worker failed for %s: %s", site, exc)
-                results.append(
-                    {
-                        "site": site,
-                        "url": url,
-                        "final_url": url,
-                        "status": "Error",
-                        "code": 0,
-                        "response_time": 0.0,
-                        "confidence": 0,
-                        "ai_analysis": {"error": str(exc)},
-                    }
-                )
-            finally:
-                found = sum(1 for r in results if r["status"] == "Found")
-                view.advance(found)
-                queue.task_done()
+                result = {
+                    "site": site,
+                    "url": url,
+                    "final_url": url,
+                    "status": "Error",
+                    "code": 0,
+                    "response_time": 0.0,
+                    "confidence": 0,
+                    "ai_analysis": {"error": str(exc)},
+                }
+                results.append(result)
+            if self.checkpoint is not None:
+                try:
+                    await self.checkpoint.record(username, site, result)
+                except Exception as exc:  # noqa: BLE001 - checkpoint is best-effort
+                    self.logger.debug("Checkpoint write failed for %s: %s", site, exc)
+            found = sum(1 for r in results if r["status"] == "Found")
+            view.advance(found)
+            queue.task_done()
 
     async def _scan_site(
         self,

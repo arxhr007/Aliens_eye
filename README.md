@@ -25,13 +25,20 @@
 ## Highlights
 
 - **840+ platforms** scanned asynchronously in seconds
-- **ML + heuristic detection** — a trained model blended with 25 structural signals (HTTP status, DOM shape, keywords, fingerprints) instead of naive status-code checks
-- **Modern terminal UI** — live progress, sorted result tables, summary panels (powered by [rich](https://github.com/Textualize/rich))
+- **ML + heuristic detection** — a trained model blended with 30 structural signals (HTTP status, DOM shape, keywords, fingerprints) instead of naive status-code checks
+- **Profile extraction** — display name, bio, and avatar pulled from each hit (OpenGraph / JSON-LD / per-site CSS)
+- **Cross-site correlation** — cluster profiles that look like the same person by avatar hash, bio, shared links, and name (`--correlate`)
+- **Recursive expansion** — follow linked usernames out of bios and re-scan them (`--recurse-depth N`)
+- **Domain check** — is `<username>.{com,io,net,…}` registered and live? (`--domains`)
+- **Watch mode** — re-scan on an interval and alert on changes, optionally to a webhook (`--watch 6h --notify <url>`)
+- **Resumable scans** — checkpoint progress and continue after an interruption (`--resume file.jsonl`)
+- **Modern terminal UI** — live progress, sorted result tables, summary panels (powered by [rich](https://github.com/Textualize/rich)); plus an interactive browser (`aliens_eye tui`, optional extra)
+- **MCP server** — expose scanning to LLM agents (`aliens_eye serve`, optional extra)
 - **Proxy & Tor support** — `--proxy socks5://...` or just `--tor`
-- **Site filtering** — `--site github,reddit`, `--exclude-site`, `--no-nsfw`
-- **Self-check** — `aliens_eye selfcheck` validates detection accuracy against accounts known to exist
-- **Retrainable** — collect your own labeled dataset and retrain the model with `aliens_eye train`
-- **Reports** in JSON, CSV, HTML, and Markdown
+- **Site filtering** — `--site github,reddit`, `--exclude-site`, `--no-nsfw`, plus drop-in `sites.d/` plugin site maps
+- **Calibrated self-check** — `aliens_eye selfcheck` reports precision / recall / F1 / FPR per site
+- **Retrainable + active learning** — retrain with `aliens_eye train`, or hand-label uncertain hits with `aliens_eye label`
+- **Reports** in JSON, CSV, HTML, Markdown, PDF, and graph formats (GEXF, Mermaid, Maltego CSV)
 - **Playwright fallback** for JavaScript-heavy pages (optional extra)
 
 ## Install
@@ -47,6 +54,10 @@ pip install "aliens-eye[browser]"   # Playwright fallback for hard pages
 python -m playwright install chromium
 
 pip install "aliens-eye[train]"     # scikit-learn, for retraining the ML model
+pip install "aliens-eye[correlate]" # Pillow, for avatar-image matching in --correlate
+pip install "aliens-eye[pdf]"       # reportlab, for --format pdf
+pip install "aliens-eye[tui]"       # textual, for the interactive `tui` browser
+pip install "aliens-eye[serve]"     # mcp, for the `serve` MCP server
 ```
 
 Or with Docker:
@@ -106,13 +117,47 @@ aliens_eye username --plain
 # View results from a previous scan
 aliens_eye -r results/username_advanced_20260611_120000.json
 
-# Validate detection accuracy against known accounts
-aliens_eye selfcheck
+# Correlate hits into "likely same person" clusters + check domains
+aliens_eye username --correlate --domains
+
+# Follow linked usernames out of found bios and re-scan them
+aliens_eye username --recurse-depth 1
+
+# Export a graph of the results (import into Gephi / Maltego / Mermaid)
+aliens_eye username --correlate --format gexf,mermaid,maltego
+
+# Investigator PDF with embedded avatars
+aliens_eye username --format pdf
+
+# Watch for changes every 6 hours and POST them to a webhook
+aliens_eye username --watch 6h --notify https://hooks.example/aliens
+
+# Resume an interrupted scan
+aliens_eye username --resume scan.jsonl
+
+# Compare two saved reports
+aliens_eye diff results/old.json results/new.json
+
+# Validate detection accuracy (precision / recall / F1 per site)
+aliens_eye selfcheck --negatives 2 --report json
+
+# Interactively label uncertain hits into a training set
+aliens_eye label results/username_basic_20260611_120000.json --out labeled.csv
+
+# Interactive terminal browser (needs [tui])
+aliens_eye tui username
+
+# Run the MCP server for LLM agents (needs [serve])
+aliens_eye serve
 ```
+
+Custom platforms: drop a `{ "site_name": "https://site/{}" }` JSON file into
+`./sites.d/` (or the user config dir's `sites.d/`) and it is merged automatically;
+`--sites-dir DIR` adds another location.
 
 ## How detection works
 
-Every response is converted into a 25-dimensional feature vector: HTTP status buckets, username placement (path/title/meta), error and profile keywords, DOM structure (images, forms, profile/error CSS classes), response timing, redirect counts, and per-site fingerprint matches learned from previous scans.
+Every response is converted into a 30-dimensional feature vector: HTTP status buckets, username placement (path/title/meta/canonical), error and profile keywords, DOM structure (images, forms, profile/error CSS classes), structured-data signals (og:type, JSON-LD Person), response timing, redirect counts, and per-site fingerprint matches learned from previous scans.
 
 Two judges then vote:
 

@@ -1,7 +1,9 @@
+import json
 import re
 from dataclasses import dataclass
+from importlib import resources
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 from selectolax.parser import HTMLParser
 
@@ -15,6 +17,29 @@ from .config import (
 )
 
 _JSON_LD_PERSON_RE = re.compile(r'"@type"\s*:\s*"Person"', re.IGNORECASE)
+_JSON_LD_STR_FIELD_RE = {
+    "name": re.compile(r'"name"\s*:\s*"([^"]+)"'),
+    "image": re.compile(r'"image"\s*:\s*"([^"]+)"'),
+}
+
+_site_profiles_cache: dict[str, Any] | None = None
+
+
+def _load_site_profiles() -> dict[str, Any]:
+    """Optional per-site CSS-selector overrides for profile fields.
+
+    Maps a site name to ``{"name": sel, "bio": sel, "avatar": sel}``. Missing or
+    invalid file yields an empty map (generic extraction is used instead).
+    """
+    global _site_profiles_cache
+    if _site_profiles_cache is None:
+        try:
+            text = (resources.files("aliens_eye.data") / "site_profiles.json").read_text("utf-8")
+            data = json.loads(text)
+            _site_profiles_cache = data if isinstance(data, dict) else {}
+        except (FileNotFoundError, json.JSONDecodeError, OSError):
+            _site_profiles_cache = {}
+    return _site_profiles_cache
 
 
 @dataclass
@@ -129,6 +154,8 @@ class FeatureExtractor:
         body_node = tree.css_first("body")
         text_length = float(len(body_node.text(deep=True))) if body_node else 0.0
 
+        profile = self._extract_profile(tree, url, site_name, title_text)
+
         features = {
             "http_200": 1.0 if http_code == 200 else 0.0,
             "http_3xx": 1.0 if 300 <= http_code < 400 else 0.0,
@@ -166,6 +193,7 @@ class FeatureExtractor:
         signals = {
             "site": site_name,
             "title": title_text,
+            "profile": profile,
             "meta_samples": meta_contents[:5],
             "url_analysis": {
                 "domain": parsed_url.netloc,
@@ -195,3 +223,86 @@ class FeatureExtractor:
         }
 
         return FeatureBundle(features=features, signals=signals, fingerprint=fingerprint)
+
+    def _extract_profile(
+        self, tree: HTMLParser, url: str, site_name: str, title_text: str
+    ) -> dict[str, str]:
+        """Best-effort display name / bio / avatar for a profile page.
+
+        Generic and provider-agnostic: OpenGraph tags, then JSON-LD Person,
+        then plain <title>/<meta>. Per-site CSS overrides in
+        data/site_profiles.json take precedence when present.
+        """
+        name = self._meta_content(tree, 'meta[property="og:title"]')
+        bio = self._meta_content(tree, 'meta[property="og:description"]')
+        avatar = self._meta_content(tree, 'meta[property="og:image"]')
+
+        if not (name and avatar):
+            ld_name, ld_image = self._json_ld_person_fields(tree)
+            name = name or ld_name
+            avatar = avatar or ld_image
+
+        if not bio:
+            bio = self._meta_content(tree, 'meta[name="description"]')
+        if not name:
+            name = title_text
+        if not avatar:
+            icon = tree.css_first('link[rel="apple-touch-icon"]')
+            if icon:
+                avatar = icon.attributes.get("href") or ""
+
+        overrides = _load_site_profiles().get(site_name)
+        if isinstance(overrides, dict):
+            name = self._select_text(tree, overrides.get("name")) or name
+            bio = self._select_text(tree, overrides.get("bio")) or bio
+            avatar = self._select_attr(tree, overrides.get("avatar")) or avatar
+
+        if avatar:
+            avatar = urljoin(url, avatar)
+
+        return {
+            "name": (name or "").strip()[:200],
+            "bio": (bio or "").strip()[:500],
+            "avatar": (avatar or "").strip(),
+        }
+
+    @staticmethod
+    def _meta_content(tree: HTMLParser, selector: str) -> str:
+        node = tree.css_first(selector)
+        if node:
+            return (node.attributes.get("content") or "").strip()
+        return ""
+
+    @staticmethod
+    def _json_ld_person_fields(tree: HTMLParser) -> tuple[str, str]:
+        for node in tree.css('script[type="application/ld+json"]'):
+            script_text = node.text() or ""
+            if not _JSON_LD_PERSON_RE.search(script_text):
+                continue
+            name_match = _JSON_LD_STR_FIELD_RE["name"].search(script_text)
+            image_match = _JSON_LD_STR_FIELD_RE["image"].search(script_text)
+            return (
+                name_match.group(1) if name_match else "",
+                image_match.group(1) if image_match else "",
+            )
+        return "", ""
+
+    @staticmethod
+    def _select_text(tree: HTMLParser, selector: str | None) -> str:
+        if not selector:
+            return ""
+        node = tree.css_first(selector)
+        return node.text().strip() if node else ""
+
+    @staticmethod
+    def _select_attr(tree: HTMLParser, selector: str | None) -> str:
+        if not selector:
+            return ""
+        node = tree.css_first(selector)
+        if not node:
+            return ""
+        for attr in ("src", "href", "content", "data-src"):
+            value = node.attributes.get(attr)
+            if value:
+                return value
+        return ""

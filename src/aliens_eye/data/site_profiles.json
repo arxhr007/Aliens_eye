@@ -1,0 +1,63 @@
+{
+  "_comment": "site_name -> {name: <css>, bio: <css>, avatar: <css>}. CSS overrides the generic OpenGraph/JSON-LD extraction; an override that matches nothing is ignored (the generic value is kept). Only add selectors for server-rendered profile pages.",
+  "github": {
+    "name": "span.p-name",
+    "bio": "div.user-profile-bio",
+    "avatar": "img.avatar-user"
+  },
+  "gitlab": {
+    "name": "div.user-profile .cover-title",
+    "bio": "div.user-profile .cover-desc",
+    "avatar": "div.avatar-holder img.avatar"
+  },
+  "dev.to": {
+    "name": "h1.crayons-title",
+    "bio": "div.profile-header__details .crayons-subtitle-3",
+    "avatar": "img.profile-header__avatar"
+  },
+  "keybase": {
+    "name": "span.full-name",
+    "bio": "p.bio",
+    "avatar": "img.avatar"
+  },
+  "gravatar": {
+    "name": "h1.profile-name",
+    "bio": "p.profile-description",
+    "avatar": "img.avatar"
+  },
+  "about.me": {
+    "name": "h1",
+    "bio": "div.bio",
+    "avatar": "img.avatar"
+  },
+  "codepen": {
+    "name": "h1.profile-name",
+    "bio": "div.profile-bio",
+    "avatar": "img.profile-avatar"
+  },
+  "steam": {
+    "name": "span.actual_persona_name",
+    "bio": "div.profile_summary",
+    "avatar": "div.playerAvatarAutoSizeInner img"
+  },
+  "wordpress": {
+    "name": "h2.author-name",
+    "bio": "p.author-description",
+    "avatar": "img.avatar"
+  },
+  "telegram": {
+    "name": "div.tgme_page_title span",
+    "bio": "div.tgme_page_description",
+    "avatar": "img.tgme_page_photo_image"
+  },
+  "lobsters": {
+    "name": "span.user_tag",
+    "bio": "div.about",
+    "avatar": "img.avatar"
+  },
+  "replit": {
+    "name": "h1",
+    "bio": "div.bio",
+    "avatar": "img.profile-image"
+  }
+}

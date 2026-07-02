@@ -1,4 +1,6 @@
+import json
 from dataclasses import dataclass, field
+from importlib import resources
 from pathlib import Path
 
 from platformdirs import user_cache_dir
@@ -18,7 +20,7 @@ DEFAULT_HEADERS = {
     "Upgrade-Insecure-Requests": "1",
 }
 
-ERROR_KEYWORDS = [
+_EN_ERROR_KEYWORDS = [
     "not found",
     "doesn't exist",
     "didn't find",
@@ -55,7 +57,7 @@ ERROR_KEYWORDS = [
     "page was not found",
 ]
 
-POSITIVE_KEYWORDS = [
+_EN_POSITIVE_KEYWORDS = [
     "follow",
     "subscribe",
     "like",
@@ -83,7 +85,7 @@ POSITIVE_KEYWORDS = [
     "timeline",
 ]
 
-META_KEYWORDS = [
+_EN_META_KEYWORDS = [
     "profile picture",
     "profile image",
     "avatar",
@@ -94,6 +96,38 @@ META_KEYWORDS = [
     "account information",
     "user information",
 ]
+
+def _merge_keywords(group: str, base: list[str]) -> list[str]:
+    """Union the packaged multilingual keywords with the English base list.
+
+    Falls back to the base list if data/keywords.json is missing or invalid.
+    Matching is substring-on-lowercased-content, so keywords are lowercased and
+    deduplicated while preserving order (English first).
+    """
+    merged: list[str] = []
+    seen: set[str] = set()
+
+    def _add(words) -> None:
+        for word in words:
+            key = str(word).strip().lower()
+            if key and key not in seen:
+                seen.add(key)
+                merged.append(key)
+
+    _add(base)
+    try:
+        text = (resources.files("aliens_eye.data") / "keywords.json").read_text("utf-8")
+        data = json.loads(text)
+        for lang_words in (data.get(group) or {}).values():
+            _add(lang_words)
+    except (FileNotFoundError, json.JSONDecodeError, OSError, AttributeError):
+        pass
+    return merged
+
+
+ERROR_KEYWORDS = _merge_keywords("error", _EN_ERROR_KEYWORDS)
+POSITIVE_KEYWORDS = _merge_keywords("positive", _EN_POSITIVE_KEYWORDS)
+META_KEYWORDS = _merge_keywords("meta", _EN_META_KEYWORDS)
 
 AUTH_PATTERNS = [
     "/login",
@@ -139,3 +173,5 @@ class ScannerConfig:
     model_path: Path | None = None
     use_ml: bool = True
     plain_output: bool = False
+    only_found: bool = False
+    json_stdout: bool = False

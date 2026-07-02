@@ -39,10 +39,11 @@ def get_console(plain: bool = False) -> Console:
     return _console
 
 
-def set_plain(plain: bool) -> None:
+def set_plain(plain: bool, stderr: bool = False) -> None:
     global _console
     no_color = plain or not sys.stdout.isatty()
-    _console = Console(no_color=no_color, highlight=False)
+    # Route rich output to stderr so stdout can carry machine-readable JSON.
+    _console = Console(no_color=no_color, highlight=False, stderr=stderr)
 
 
 def status_text(status: str, confidence: int = 0) -> Text:
@@ -121,14 +122,22 @@ def build_results_table(results: list[dict[str, Any]], title: str | None = None)
     table.add_column("Site", style="yellow", no_wrap=True)
     table.add_column("Status")
     table.add_column("HTTP", justify="center")
+    table.add_column("Name", overflow="ellipsis", max_width=24)
     table.add_column("URL", overflow="fold")
     table.add_column("Time", justify="right")
     for r in results:
         code = r.get("code", 0)
+        name = (
+            r.get("ai_analysis", {})
+            .get("signals", {})
+            .get("profile", {})
+            .get("name", "")
+        )
         table.add_row(
             str(r.get("site", ""))[:30],
             status_text(r.get("status", "Unknown"), r.get("confidence", 0)),
             Text(str(code), style="green" if code == 200 else "red"),
+            str(name)[:24],
             r.get("url", ""),
             f"{r.get('response_time', 0):.2f}s",
         )

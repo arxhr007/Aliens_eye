@@ -1,0 +1,232 @@
+{
+  "error": {
+    "en": [
+      "not found",
+      "doesn't exist",
+      "didn't find",
+      "does not exist",
+      "something went wrong",
+      "no such user",
+      "user not found",
+      "cannot find",
+      "can't find",
+      "not exist",
+      "profile not found",
+      "account does not exist",
+      "username not found",
+      "no user found",
+      "no results found",
+      "no such username",
+      "isn't available",
+      "that content is unavailable",
+      "page not found",
+      "404",
+      "404 error",
+      "404 not found",
+      "error",
+      "sorry",
+      "oops",
+      "unavailable",
+      "account suspended",
+      "invalid username",
+      "account not found",
+      "account terminated",
+      "account disabled",
+      "user doesn't have an account",
+      "this account doesn't exist",
+      "page was not found"
+    ],
+    "es": [
+      "no encontrado",
+      "no encontrada",
+      "no existe",
+      "no se encontró",
+      "usuario no encontrado",
+      "página no encontrada",
+      "no disponible",
+      "cuenta suspendida",
+      "nombre de usuario no válido"
+    ],
+    "fr": [
+      "introuvable",
+      "n'existe pas",
+      "page introuvable",
+      "utilisateur introuvable",
+      "non trouvé",
+      "compte suspendu",
+      "indisponible"
+    ],
+    "de": [
+      "nicht gefunden",
+      "existiert nicht",
+      "seite nicht gefunden",
+      "benutzer nicht gefunden",
+      "nicht verfügbar",
+      "konto gesperrt"
+    ],
+    "pt": [
+      "não encontrado",
+      "não encontrada",
+      "não existe",
+      "página não encontrada",
+      "usuário não encontrado",
+      "indisponível",
+      "conta suspensa"
+    ],
+    "ru": [
+      "не найдено",
+      "не найден",
+      "не существует",
+      "страница не найдена",
+      "пользователь не найден",
+      "недоступно"
+    ],
+    "ja": [
+      "見つかりません",
+      "存在しません",
+      "ページが見つかりません",
+      "ユーザーが見つかりません"
+    ],
+    "zh": [
+      "未找到",
+      "不存在",
+      "页面不存在",
+      "用户不存在",
+      "找不到"
+    ],
+    "ar": [
+      "غير موجود",
+      "لم يتم العثور",
+      "الصفحة غير موجودة",
+      "المستخدم غير موجود"
+    ],
+    "hi": [
+      "नहीं मिला",
+      "मौजूद नहीं",
+      "पेज नहीं मिला",
+      "उपयोगकर्ता नहीं मिला"
+    ]
+  },
+  "positive": {
+    "en": [
+      "follow",
+      "subscribe",
+      "like",
+      "share",
+      "following",
+      "followers",
+      "profile",
+      "user",
+      "posts",
+      "photos",
+      "bio",
+      "status",
+      "tweets",
+      "joined",
+      "member since",
+      "online",
+      "verified",
+      "active",
+      "comments",
+      "uploads",
+      "reviews",
+      "friends",
+      "connections",
+      "activity",
+      "timeline"
+    ],
+    "es": [
+      "seguidores",
+      "siguiendo",
+      "perfil",
+      "publicaciones",
+      "miembro desde",
+      "verificado"
+    ],
+    "fr": [
+      "abonnés",
+      "abonnements",
+      "profil",
+      "publications",
+      "membre depuis",
+      "vérifié"
+    ],
+    "de": [
+      "abonnenten",
+      "profil",
+      "beiträge",
+      "mitglied seit",
+      "verifiziert"
+    ],
+    "pt": [
+      "seguidores",
+      "seguindo",
+      "perfil",
+      "publicações",
+      "membro desde",
+      "verificado"
+    ],
+    "ru": [
+      "подписчики",
+      "подписки",
+      "профиль",
+      "публикации",
+      "участник с"
+    ],
+    "ja": [
+      "フォロワー",
+      "フォロー",
+      "プロフィール",
+      "投稿"
+    ],
+    "zh": [
+      "粉丝",
+      "关注",
+      "个人资料",
+      "帖子",
+      "已认证"
+    ],
+    "ar": [
+      "متابعون",
+      "الملف الشخصي",
+      "منشورات"
+    ],
+    "hi": [
+      "फ़ॉलोअर्स",
+      "प्रोफ़ाइल",
+      "पोस्ट"
+    ]
+  },
+  "meta": {
+    "en": [
+      "profile picture",
+      "profile image",
+      "avatar",
+      "user page",
+      "username",
+      "user profile",
+      "account info",
+      "account information",
+      "user information"
+    ],
+    "es": [
+      "foto de perfil",
+      "imagen de perfil",
+      "página de usuario"
+    ],
+    "fr": [
+      "photo de profil",
+      "image de profil",
+      "page utilisateur"
+    ],
+    "de": [
+      "profilbild",
+      "benutzerseite"
+    ],
+    "pt": [
+      "foto de perfil",
+      "imagem de perfil",
+      "página do usuário"
+    ]
+  }
+}

@@ -36,6 +36,19 @@ def load_selfcheck_data() -> dict[str, list[str]]:
     }
 
 
+def write_rows(output_path: Path, rows: list[list[float]], append: bool = False) -> None:
+    """Write labeled rows to a CSV. Writes the header only for a new/overwritten file."""
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    write_header = not (append and output_path.exists())
+    mode = "a" if append else "w"
+    with output_path.open(mode, encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        if write_header:
+            writer.writerow(FEATURE_SCHEMA + ["label"])
+        writer.writerows(rows)
+
+
 def random_username(rng: random.Random) -> str:
     length = rng.randint(14, 20)
     return "".join(rng.choices(string.ascii_lowercase + string.digits, k=length))
@@ -121,12 +134,6 @@ async def collect_dataset(
 
         await asyncio.gather(*(run_job(job) for job in jobs))
 
-    output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(FEATURE_SCHEMA + ["label"])
-        writer.writerows(rows)
-
+    write_rows(output_path, rows, append=False)
     logger.info("Wrote %d labeled samples to %s", len(rows), output_path)
     return len(rows)

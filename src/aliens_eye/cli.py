@@ -23,6 +23,7 @@ from aliens_eye.core.scanner import (
     UsernameScanner,
     filter_sites,
     load_nsfw_sites,
+    load_site_plugins,
     load_sites_data,
 )
 from aliens_eye.utils.console import get_console, set_plain
@@ -123,6 +124,39 @@ def build_parser() -> ArgumentParser:
         choices=["quick", "full", "aggressive"],
         help="Scan profile preset (skips interactive prompt)",
     )
+    parser.add_argument(
+        "--watch",
+        type=str,
+        help="Re-scan on an interval and alert on changes (e.g. 30m, 6h, 1d)",
+    )
+    parser.add_argument("--notify", type=str, help="Webhook URL to POST watch-mode changes to")
+    parser.add_argument(
+        "--correlate",
+        action="store_true",
+        help="Cluster Found/Maybe profiles that look like the same person (avatar/bio/links)",
+    )
+    parser.add_argument(
+        "--domains",
+        action="store_true",
+        help="Check whether <username>.{com,io,net,...} domains are registered/live",
+    )
+    parser.add_argument(
+        "--recurse-depth",
+        type=int,
+        default=0,
+        help="Extract linked usernames from found profiles and re-scan, up to N hops",
+    )
+    parser.add_argument("--sites-dir", type=str, help="Directory of extra *.json site maps to merge")
+    parser.add_argument("--resume", type=str, help="Checkpoint file to resume an interrupted scan from")
+    parser.add_argument("--from-email", type=str, help="Seed usernames from an email address")
+    parser.add_argument("--from-name", type=str, help="Seed usernames from a real name")
+    parser.add_argument("--from-phone", type=str, help="Seed usernames from a phone number")
+    parser.add_argument(
+        "--only-found", action="store_true", help="Report only Found/Maybe results"
+    )
+    parser.add_argument(
+        "--json-stdout", action="store_true", help="Print results JSON to stdout (implies --plain)"
+    )
     return parser
 
 
@@ -136,6 +170,13 @@ def build_selfcheck_parser() -> ArgumentParser:
     parser.add_argument("--model", type=str, help="Path to a custom ML model JSON")
     parser.add_argument("--sites", type=str, help="Path to a custom sites JSON")
     parser.add_argument("--plain", action="store_true", help="Plain output")
+    parser.add_argument(
+        "--negatives", type=int, default=1, help="Random non-existent usernames to test per site"
+    )
+    parser.add_argument(
+        "--report", choices=["table", "json"], default="table",
+        help="Output format: rich table (default) or machine-readable JSON",
+    )
     return parser
 
 
@@ -157,6 +198,58 @@ def build_train_parser() -> ArgumentParser:
     fit.add_argument("--data", type=str, required=True, help="Labeled dataset CSV")
     fit.add_argument("--out", type=str, default="model.json", help="Output model JSON path")
     fit.add_argument("-v", "--verbose", action="store_true")
+    return parser
+
+
+def build_diff_parser() -> ArgumentParser:
+    parser = ArgumentParser(
+        prog="aliens_eye diff",
+        description="Compare two saved scan reports and show what changed",
+    )
+    parser.add_argument("old", help="Path to the older report JSON")
+    parser.add_argument("new", help="Path to the newer report JSON")
+    parser.add_argument("--plain", action="store_true", help="Plain output")
+    parser.add_argument(
+        "--json-stdout", action="store_true", help="Print the diff as JSON to stdout"
+    )
+    return parser
+
+
+def build_serve_parser() -> ArgumentParser:
+    parser = ArgumentParser(
+        prog="aliens_eye serve",
+        description="Run an MCP server exposing scan tools over stdio",
+    )
+    parser.add_argument("--sites", type=str, help="Path to a custom sites JSON")
+    parser.add_argument("--no-ml", action="store_true", help="Disable ML detection")
+    parser.add_argument("-v", "--verbose", action="store_true")
+    return parser
+
+
+def build_tui_parser() -> ArgumentParser:
+    parser = ArgumentParser(
+        prog="aliens_eye tui",
+        description="Interactive terminal UI for scanning",
+    )
+    parser.add_argument("username", nargs="?", help="Username to scan")
+    parser.add_argument("-l", "--level", choices=["basic", "intermediate", "advanced"], default="basic")
+    parser.add_argument("--sites", type=str, help="Path to a custom sites JSON")
+    parser.add_argument("--no-ml", action="store_true", help="Disable ML detection")
+    return parser
+
+
+def build_label_parser() -> ArgumentParser:
+    parser = ArgumentParser(
+        prog="aliens_eye label",
+        description="Interactively label low-confidence results and append them to a dataset",
+    )
+    parser.add_argument("report", help="Path to a saved report JSON to label")
+    parser.add_argument("--out", type=str, default="labeled.csv", help="Dataset CSV to append to")
+    parser.add_argument(
+        "--band", type=str, default="Maybe",
+        help="Which statuses to review: 'Maybe' (default) or 'all'",
+    )
+    parser.add_argument("-v", "--verbose", action="store_true")
     return parser
 
 
@@ -182,6 +275,22 @@ def parse_site_list(value: str | None) -> list[str] | None:
         return None
     items = [item.strip() for item in value.split(",") if item.strip()]
     return items or None
+
+
+def seed_usernames_from_lookups(args) -> list[str]:
+    """Expand --from-email/--from-name/--from-phone into candidate usernames."""
+    from aliens_eye.core.variations import usernames_from_email, usernames_from_name
+
+    seeds: list[str] = []
+    if getattr(args, "from_email", None):
+        seeds.extend(usernames_from_email(args.from_email))
+    if getattr(args, "from_name", None):
+        seeds.extend(usernames_from_name(args.from_name))
+    if getattr(args, "from_phone", None):
+        digits = "".join(ch for ch in args.from_phone if ch.isdigit())
+        if len(digits) >= 4:
+            seeds.append(digits)
+    return seeds
 
 
 def prompt_scan_profile() -> str:
@@ -345,15 +454,26 @@ def apply_cli_overrides(config: ScannerConfig, args) -> None:
         config.exclude_nsfw = True
     config.include_sites = parse_site_list(args.site)
     config.exclude_sites = parse_site_list(args.exclude_site)
+    if args.only_found:
+        config.only_found = True
+    if args.json_stdout:
+        config.json_stdout = True
+        config.plain_output = True
     if args.plain:
         config.plain_output = True
 
 
-def prepare_sites(config: ScannerConfig, logger) -> dict:
+def prepare_sites(config: ScannerConfig, logger, sites_dir: str | None = None) -> dict:
     sites_data = load_sites_data(config.sites_path)
     if not sites_data:
         logger.error("Could not load sites.json.")
         return {}
+
+    extra_dirs = [Path(sites_dir)] if sites_dir else None
+    plugins = load_site_plugins(extra_dirs)
+    if plugins:
+        logger.info("Merged %d plugin site(s) from sites.d directories", len(plugins))
+        sites_data = {**sites_data, **plugins}
 
     exclude = list(config.exclude_sites or [])
     if config.exclude_nsfw:
@@ -417,7 +537,9 @@ async def run_scan(args) -> None:
     config = ScannerConfig()
     defaults = apply_config(config, config_data)
     apply_cli_overrides(config, args)
-    if config.plain_output:
+    if config.json_stdout:
+        set_plain(True, stderr=True)
+    elif config.plain_output:
         set_plain(True)
     console = get_console()
 
@@ -426,15 +548,20 @@ async def run_scan(args) -> None:
         ResultsExporter(exporter_dir).display_results_from_file(args.read)
         return
 
-    sites_data = prepare_sites(config, logger)
+    sites_data = prepare_sites(config, logger, sites_dir=args.sites_dir)
     if not sites_data:
         return
 
-    display_banner(len(sites_data))
+    if not config.json_stdout:
+        display_banner(len(sites_data))
 
-    if args.username:
-        usernames = args.username
-    else:
+    usernames = list(args.username)
+    usernames.extend(seed_usernames_from_lookups(args))
+    usernames = list(dict.fromkeys(usernames))
+    if not usernames:
+        if config.json_stdout:
+            logger.error("No username provided.")
+            return
         username = Prompt.ask("[green]Enter username to scan[/green]", console=console)
         usernames = [username]
 
@@ -447,7 +574,7 @@ async def run_scan(args) -> None:
     fingerprints = FingerprintStore(config.fingerprints_path, config.max_fingerprints_per_label)
     fingerprints.load(logger)
 
-    interactive = sys.stdin.isatty() and not args.read
+    interactive = sys.stdin.isatty() and not args.read and not config.json_stdout
 
     scan_level = args.level or defaults.get("level")
     if scan_level not in {"basic", "intermediate", "advanced"}:
@@ -473,6 +600,12 @@ async def run_scan(args) -> None:
     if config.use_playwright:
         browser_fallback = BrowserFallback(config.timeout, DEFAULT_USER_AGENT)
 
+    checkpoint = None
+    if args.resume:
+        from aliens_eye.core.checkpoint import Checkpoint
+
+        checkpoint = Checkpoint(args.resume)
+
     exporter = ResultsExporter(config.output_dir)
     scanner = UsernameScanner(
         sites_data=sites_data,
@@ -482,7 +615,35 @@ async def run_scan(args) -> None:
         fingerprints=fingerprints,
         logger=logger,
         browser_fallback=browser_fallback,
+        checkpoint=checkpoint,
     )
+
+    if args.watch:
+        from aliens_eye.core import watch as watch_mod
+
+        try:
+            interval = watch_mod.parse_duration(args.watch)
+        except ValueError as exc:
+            logger.error("Invalid --watch interval: %s", exc)
+            return
+        try:
+            await watch_mod.run_watch(
+                scanner=scanner,
+                exporter=exporter,
+                usernames=usernames,
+                scan_level=scan_level,
+                formats=formats,
+                interval=interval,
+                logger=logger,
+                console=console,
+                output_dir=config.output_dir,
+                notify_url=args.notify,
+            )
+        finally:
+            fingerprints.save()
+            if browser_fallback:
+                await browser_fallback.close()
+        return
 
     try:
         for username in usernames:
@@ -491,7 +652,31 @@ async def run_scan(args) -> None:
                 continue
 
             all_results = await scanner.scan_with_variations(username, scan_level)
-            written = exporter.save_results(username, scan_level, all_results, formats)
+
+            if args.recurse_depth and args.recurse_depth > 0:
+                await _recurse_scan(
+                    scanner, all_results, username, scan_level, args.recurse_depth, console
+                )
+
+            correlation = None
+            if args.correlate:
+                from aliens_eye.core.correlate import correlate_report
+
+                report = exporter.report_dict(username, scan_level, all_results)
+                correlation = await correlate_report(report, proxy=config.proxy, timeout=config.timeout)
+                _print_clusters(console, correlation)
+
+            domains = None
+            if args.domains:
+                from aliens_eye.core.domains import check_domains
+
+                domains = await check_domains(username, proxy=config.proxy)
+                _print_domains(console, domains)
+
+            written = exporter.save_results(
+                username, scan_level, all_results, formats,
+                correlation=correlation, domains=domains,
+            )
 
             files_list = ", ".join(str(path) for path in written)
             console.print(f"\n[green]Results saved to:[/green] [blue]{files_list}[/blue]")
@@ -503,16 +688,82 @@ async def run_scan(args) -> None:
                 f"[green]Summary: Found {total_found} profiles across "
                 f"{len(all_results)} username variations[/green]"
             )
+        if checkpoint is not None:
+            checkpoint.finalize()
     finally:
         fingerprints.save()
         if browser_fallback:
             await browser_fallback.close()
 
 
+async def _recurse_scan(scanner, all_results, base_username, scan_level, depth, console) -> None:
+    """Extract linked usernames from found profiles and scan them, up to `depth` hops."""
+    from aliens_eye.core.expand import candidate_usernames_from_results
+
+    seen = {base_username.lower()}
+    frontier = candidate_usernames_from_results(all_results, exclude=seen)
+    for hop in range(depth):
+        frontier = [u for u in frontier if u.lower() not in seen]
+        if not frontier:
+            break
+        console.print(
+            f"[blue]Recursion hop {hop + 1}:[/blue] {len(frontier)} linked username(s): "
+            f"[dim]{', '.join(frontier[:8])}{'...' if len(frontier) > 8 else ''}[/dim]"
+        )
+        next_frontier: list[str] = []
+        for uname in frontier:
+            seen.add(uname.lower())
+            sub = await scanner.scan_all_sites(uname)
+            all_results[uname] = sub
+            next_frontier.extend(
+                candidate_usernames_from_results({uname: sub}, exclude=seen)
+            )
+        frontier = list(dict.fromkeys(next_frontier))
+
+
+def _print_clusters(console, correlation: dict) -> None:
+    clusters = correlation.get("clusters", [])
+    if not clusters:
+        console.print("[dim]Correlation: no cross-site clusters found.[/dim]")
+        return
+    from rich.table import Table
+
+    table = Table(title="Correlation: likely same person", header_style="bold blue")
+    table.add_column("#", justify="right")
+    table.add_column("Sites", style="yellow")
+    table.add_column("Linked by")
+    for i, cluster in enumerate(clusters, 1):
+        sites = ", ".join(f"{m['site']}" for m in cluster["members"])
+        table.add_row(str(i), sites, ", ".join(cluster.get("reasons", [])))
+    console.print(table)
+    if not correlation.get("avatar_hashing"):
+        console.print(
+            "[dim]Tip: install \"aliens-eye\\[correlate]\" for avatar-image matching.[/dim]"
+        )
+
+
+def _print_domains(console, domains: dict) -> None:
+    from rich.table import Table
+
+    table = Table(title="Domain check", header_style="bold blue")
+    table.add_column("Domain", style="yellow")
+    table.add_column("Registered")
+    table.add_column("Live")
+    for entry in domains.get("results", []):
+        table.add_row(
+            entry["domain"],
+            "[green]yes[/green]" if entry["registered"] else "[dim]no[/dim]",
+            "[green]yes[/green]" if entry["live"] else "[dim]no[/dim]",
+        )
+    console.print(table)
+
+
 async def run_selfcheck_command(args) -> None:
     from aliens_eye.selfcheck import run_selfcheck
 
-    if args.plain:
+    if args.report == "json":
+        set_plain(True, stderr=True)
+    elif args.plain:
         set_plain(True)
     logger = setup_logger(args.verbose)
     config = ScannerConfig(retries=1)
@@ -520,7 +771,10 @@ async def run_selfcheck_command(args) -> None:
     detector = Detector()
     if not args.no_ml:
         detector.load_model(logger, Path(args.model) if args.model else None)
-    await run_selfcheck(sites_data, detector, config, logger)
+    await run_selfcheck(
+        sites_data, detector, config, logger,
+        negatives=args.negatives, report_format=args.report,
+    )
 
 
 async def run_train_command(args) -> None:
@@ -550,6 +804,68 @@ async def run_train_command(args) -> None:
         )
 
 
+def run_diff_command(args) -> None:
+    from aliens_eye.core.report import ReportError, diff_reports, load_report
+
+    if args.json_stdout:
+        set_plain(True, stderr=True)
+    elif args.plain:
+        set_plain(True)
+    console = get_console()
+    try:
+        old = load_report(args.old)
+        new = load_report(args.new)
+    except ReportError as exc:
+        console.print(f"[red]{exc}[/red]")
+        sys.exit(1)
+
+    delta = diff_reports(old, new)
+    if args.json_stdout:
+        print(json.dumps(delta, indent=2))
+        return
+
+    from rich.table import Table
+
+    if not (delta["new"] or delta["gone"] or delta["changed"]):
+        console.print("[dim]No differences between the two reports.[/dim]")
+        return
+
+    table = Table(title="Report diff", header_style="bold blue")
+    table.add_column("Change")
+    table.add_column("Account (variation:site)", style="yellow")
+    table.add_column("Detail")
+    for item in delta["new"]:
+        table.add_row("[green]+ NEW[/green]", item["key"], item.get("url", ""))
+    for item in delta["gone"]:
+        table.add_row("[red]- GONE[/red]", item["key"], item.get("url", ""))
+    for item in delta["changed"]:
+        before, after = item["before"], item["after"]
+        detail = (
+            f"{before['status']} ({before['confidence']}%) -> "
+            f"{after['status']} ({after['confidence']}%)"
+        )
+        table.add_row("[yellow]~ CHANGED[/yellow]", item["key"], detail)
+    console.print(table)
+
+
+async def run_serve_command(args) -> None:
+    from aliens_eye.mcp_server import serve
+
+    await serve(args)
+
+
+def run_tui_command(args) -> None:
+    from aliens_eye.tui.app import run_tui
+
+    run_tui(args)
+
+
+async def run_label_command(args) -> None:
+    from aliens_eye.ml.label import label_report
+
+    await label_report(args)
+
+
 def main() -> None:
     if sys.platform == "win32":
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
@@ -563,6 +879,18 @@ def main() -> None:
         elif argv and argv[0] == "train":
             args = build_train_parser().parse_args(argv[1:])
             asyncio.run(run_train_command(args))
+        elif argv and argv[0] == "diff":
+            args = build_diff_parser().parse_args(argv[1:])
+            run_diff_command(args)
+        elif argv and argv[0] == "serve":
+            args = build_serve_parser().parse_args(argv[1:])
+            asyncio.run(run_serve_command(args))
+        elif argv and argv[0] == "tui":
+            args = build_tui_parser().parse_args(argv[1:])
+            run_tui_command(args)
+        elif argv and argv[0] == "label":
+            args = build_label_parser().parse_args(argv[1:])
+            asyncio.run(run_label_command(args))
         else:
             args = build_parser().parse_args(argv)
             asyncio.run(run_scan(args))

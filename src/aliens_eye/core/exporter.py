@@ -1,6 +1,7 @@
 import csv
 import json
 from datetime import datetime
+from html import escape as _esc
 from pathlib import Path
 from typing import Any
 
@@ -9,7 +10,18 @@ from rich.prompt import Prompt
 
 from aliens_eye.utils.console import build_results_table, get_console
 
-KNOWN_FORMATS = {"json", "csv", "html", "md", "markdown", "all"}
+KNOWN_FORMATS = {
+    "json", "csv", "html", "md", "markdown",
+    "gexf", "maltego", "mermaid", "pdf", "all",
+}
+
+# Formats that need the correlation graph rather than the flat report.
+GRAPH_FORMATS = {"gexf", "maltego", "mermaid"}
+
+
+def _md_cell(value: Any) -> str:
+    """Sanitize a value for use inside a Markdown table cell."""
+    return str(value or "").replace("|", "\\|").replace("\n", " ").replace("\r", " ").strip()
 
 
 class ResultsExporter:
@@ -26,11 +38,17 @@ class ResultsExporter:
         level: str,
         all_results: dict[str, list[dict[str, Any]]],
         formats: list[str],
+        correlation: dict[str, Any] | None = None,
+        domains: dict[str, Any] | None = None,
     ) -> list[Path]:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_data = self._build_results_data(
             base_username, level, all_results, timestamp
         )
+        if correlation is not None:
+            results_data["correlation"] = correlation
+        if domains is not None:
+            results_data["domains"] = domains
         written: list[Path] = []
         stem = f"{base_username}_{level}_{timestamp}"
 
@@ -55,7 +73,36 @@ class ResultsExporter:
             self._write_markdown(md_path, results_data)
             written.append(md_path)
 
+        # Graph and PDF formats are opt-in only (not bundled into "all"), since
+        # they are analysis artifacts rather than the standard document report.
+        if "gexf" in formats:
+            p = self.output_dir / f"{stem}.gexf"
+            self._write_gexf(p, results_data)
+            written.append(p)
+        if "maltego" in formats:
+            p = self.output_dir / f"{stem}_maltego.csv"
+            self._write_maltego(p, results_data)
+            written.append(p)
+        if "mermaid" in formats:
+            p = self.output_dir / f"{stem}.mmd"
+            self._write_mermaid(p, results_data)
+            written.append(p)
+        if "pdf" in formats:
+            p = self.output_dir / f"{stem}.pdf"
+            if self._write_pdf(p, results_data):
+                written.append(p)
+
         return written
+
+    def report_dict(
+        self,
+        base_username: str,
+        level: str,
+        all_results: dict[str, list[dict[str, Any]]],
+    ) -> dict[str, Any]:
+        """Public accessor for the structured report (used for --json-stdout)."""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        return self._build_results_data(base_username, level, all_results, timestamp)
 
     def _build_results_data(
         self,
@@ -165,10 +212,24 @@ class ResultsExporter:
         rows = []
         for variation, data in variations.items():
             for site, info in data.get("sites", {}).items():
+                profile = info.get("ai_analysis", {}).get("signals", {}).get("profile", {})
+                is_hit = info.get("status") in {"Found", "Maybe"}
+                avatar_url = profile.get("avatar", "") if is_hit else ""
+                avatar_cell = (
+                    f"<img src='{_esc(avatar_url, quote=True)}' alt='' style='height:40px;border-radius:4px'>"
+                    if avatar_url
+                    else ""
+                )
+                name = _esc(profile.get("name", "")) if is_hit else ""
+                bio = _esc(profile.get("bio", "")) if is_hit else ""
+                url = info.get("url", "")
                 rows.append(
-                    f"<tr><td>{variation}</td><td>{site}</td><td>{info.get('status','')}</td>"
-                    f"<td>{info.get('confidence',0)}</td><td>{info.get('code',0)}</td>"
-                    f"<td><a href='{info.get('url','')}'>{info.get('url','')}</a></td></tr>"
+                    f"<tr><td>{_esc(variation)}</td><td>{_esc(site)}</td>"
+                    f"<td>{_esc(info.get('status',''))}</td>"
+                    f"<td>{_esc(str(info.get('confidence',0)))}</td>"
+                    f"<td>{_esc(str(info.get('code',0)))}</td>"
+                    f"<td><a href='{_esc(url, quote=True)}'>{_esc(url)}</a></td>"
+                    f"<td>{avatar_cell}</td><td>{name}</td><td>{bio}</td></tr>"
                 )
 
         html = f"""
@@ -188,8 +249,8 @@ th {{ background-color: #f2f2f2; text-align: left; }}
 </head>
 <body>
 <h1>Aliens Eye Report</h1>
-<p><strong>Base Username:</strong> {summary.get('base_username','')}</p>
-<p><strong>Scan Level:</strong> {summary.get('scan_level','')}</p>
+<p><strong>Base Username:</strong> {_esc(str(summary.get('base_username','')))}</p>
+<p><strong>Scan Level:</strong> {_esc(str(summary.get('scan_level','')))}</p>
 <p><strong>Total Variations:</strong> {summary.get('total_variations',0)}</p>
 <p><strong>Total Sites Scanned:</strong> {summary.get('total_sites_scanned',0)}</p>
 <p><strong>Total Found:</strong> {summary.get('total_found',0)}</p>
@@ -204,6 +265,9 @@ th {{ background-color: #f2f2f2; text-align: left; }}
 <th>Confidence</th>
 <th>HTTP Code</th>
 <th>URL</th>
+<th>Avatar</th>
+<th>Name</th>
+<th>Bio</th>
 </tr>
 </thead>
 <tbody>
@@ -242,8 +306,8 @@ th {{ background-color: #f2f2f2; text-align: left; }}
                     f"Found: {info.get('found', 0)} | Maybe: {info.get('maybe', 0)} | "
                     f"Not Found: {info.get('not_found', 0)} | Errors: {info.get('errors', 0)}",
                     "",
-                    "| Site | Status | Confidence | HTTP | URL |",
-                    "| --- | --- | --- | --- | --- |",
+                    "| Site | Status | Confidence | HTTP | Name | Bio | URL |",
+                    "| --- | --- | --- | --- | --- | --- | --- |",
                 ]
             )
             sites = sorted(
@@ -257,13 +321,113 @@ th {{ background-color: #f2f2f2; text-align: left; }}
                 status = site_info.get("status", "")
                 if status not in {"Found", "Maybe"}:
                     continue
+                profile = (
+                    site_info.get("ai_analysis", {})
+                    .get("signals", {})
+                    .get("profile", {})
+                )
+                name = _md_cell(profile.get("name", ""))
+                bio = _md_cell(profile.get("bio", ""))
                 lines.append(
                     f"| {site} | {status} | {site_info.get('confidence', 0)}% | "
-                    f"{site_info.get('code', 0)} | {site_info.get('url', '')} |"
+                    f"{site_info.get('code', 0)} | {name} | {bio} | {site_info.get('url', '')} |"
                 )
             lines.append("")
 
         path.write_text("\n".join(lines), encoding="utf-8")
+
+    # --- graph exports ----------------------------------------------------
+
+    @staticmethod
+    def _graph_model(results_data: dict[str, Any]) -> dict[str, Any]:
+        """Build (nodes, edges) from Found/Maybe accounts + correlation clusters."""
+        nodes: dict[str, dict[str, Any]] = {}
+        edges: list[dict[str, str]] = []
+        variations = results_data.get("variations", {})
+        for variation, block in variations.items():
+            has_hit = False
+            for site, info in (block.get("sites", {}) or {}).items():
+                if info.get("status") not in {"Found", "Maybe"}:
+                    continue
+                has_hit = True
+                acct = f"{variation}:{site}"
+                nodes[acct] = {"label": site, "type": "account", "url": info.get("url", "")}
+                edges.append({"source": variation, "target": acct, "label": "has-account"})
+            if has_hit:
+                nodes[variation] = {"label": variation, "type": "username", "url": ""}
+
+        for cluster in results_data.get("correlation", {}).get("clusters", []):
+            members = [m["variation"] + ":" + m["site"] for m in cluster.get("members", [])]
+            reason = ",".join(cluster.get("reasons", [])) or "same-person"
+            for i in range(len(members)):
+                for j in range(i + 1, len(members)):
+                    if members[i] in nodes and members[j] in nodes:
+                        edges.append({"source": members[i], "target": members[j], "label": reason})
+        return {"nodes": nodes, "edges": edges}
+
+    def _write_gexf(self, path: Path, results_data: dict[str, Any]) -> None:
+        model = self._graph_model(results_data)
+        ids = {name: str(i) for i, name in enumerate(model["nodes"])}
+        node_xml = "".join(
+            f'<node id="{ids[name]}" label="{_esc(data["label"], quote=True)}"/>'
+            for name, data in model["nodes"].items()
+        )
+        edge_xml = "".join(
+            f'<edge id="{i}" source="{ids[e["source"]]}" target="{ids[e["target"]]}" '
+            f'label="{_esc(e["label"], quote=True)}"/>'
+            for i, e in enumerate(model["edges"])
+            if e["source"] in ids and e["target"] in ids
+        )
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<gexf xmlns="http://gexf.net/1.3" version="1.3">\n'
+            '<graph defaultedgetype="undirected">\n'
+            f"<nodes>{node_xml}</nodes>\n<edges>{edge_xml}</edges>\n"
+            "</graph>\n</gexf>\n"
+        )
+        path.write_text(xml, encoding="utf-8")
+
+    def _write_maltego(self, path: Path, results_data: dict[str, Any]) -> None:
+        model = self._graph_model(results_data)
+        with path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["SourceEntity", "SourceType", "TargetEntity", "TargetType", "Relationship"])
+            for e in model["edges"]:
+                src = model["nodes"].get(e["source"], {})
+                tgt = model["nodes"].get(e["target"], {})
+                if not src or not tgt:
+                    continue
+                writer.writerow([
+                    e["source"], "maltego.Affiliation" if src.get("type") == "account" else "maltego.Alias",
+                    e["target"], "maltego.Affiliation" if tgt.get("type") == "account" else "maltego.Alias",
+                    e["label"],
+                ])
+
+    def _write_mermaid(self, path: Path, results_data: dict[str, Any]) -> None:
+        model = self._graph_model(results_data)
+        ids = {name: f"n{i}" for i, name in enumerate(model["nodes"])}
+        lines = ["```mermaid", "graph TD"]
+        for name, data in model["nodes"].items():
+            label = data["label"].replace('"', "'")
+            shape = f'(["{label}"])' if data["type"] == "username" else f'["{label}"]'
+            lines.append(f"    {ids[name]}{shape}")
+        for e in model["edges"]:
+            if e["source"] in ids and e["target"] in ids:
+                lines.append(f"    {ids[e['source']]} -- {e['label']} --- {ids[e['target']]}")
+        lines.append("```")
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    def _write_pdf(self, path: Path, results_data: dict[str, Any]) -> bool:
+        """Investigator PDF report. Returns False (with a note) if reportlab is missing."""
+        try:
+            from aliens_eye.core.pdf_report import write_pdf
+        except ImportError:
+            self.console.print(
+                "[yellow]PDF export needs reportlab: pip install \"aliens-eye\\[pdf]\"[/yellow]"
+            )
+            return False
+        write_pdf(path, results_data)
+        return True
 
     def display_results_from_file(self, file_path: str) -> None:
         try:
