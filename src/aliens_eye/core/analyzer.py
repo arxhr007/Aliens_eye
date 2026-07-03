@@ -233,6 +233,10 @@ class FeatureExtractor:
         then plain <title>/<meta>. Per-site CSS overrides in
         data/site_profiles.json take precedence when present.
         """
+        # A "structured" name comes from a real profile field (OpenGraph title,
+        # JSON-LD Person, or a per-site CSS override). Only those are trustworthy
+        # as an identity signal; the bare <title> fallback is page chrome (bot
+        # walls, error pages, brand titles) and must not drive correlation.
         name = self._meta_content(tree, 'meta[property="og:title"]')
         bio = self._meta_content(tree, 'meta[property="og:description"]')
         avatar = self._meta_content(tree, 'meta[property="og:image"]')
@@ -244,8 +248,6 @@ class FeatureExtractor:
 
         if not bio:
             bio = self._meta_content(tree, 'meta[name="description"]')
-        if not name:
-            name = title_text
         if not avatar:
             icon = tree.css_first('link[rel="apple-touch-icon"]')
             if icon:
@@ -257,6 +259,10 @@ class FeatureExtractor:
             bio = self._select_text(tree, overrides.get("bio")) or bio
             avatar = self._select_attr(tree, overrides.get("avatar")) or avatar
 
+        structured_name = (name or "").strip()
+        if not name:
+            name = title_text
+
         if avatar:
             avatar = urljoin(url, avatar)
 
@@ -264,6 +270,7 @@ class FeatureExtractor:
             "name": (name or "").strip()[:200],
             "bio": (bio or "").strip()[:500],
             "avatar": (avatar or "").strip(),
+            "name_from_profile": bool(structured_name),
         }
 
     @staticmethod

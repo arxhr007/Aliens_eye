@@ -17,7 +17,10 @@ from aliens_eye.ml.collect import write_rows
 from aliens_eye.selfcheck import _metrics
 
 
-def _profile_result(site, variation, status="Found", name="", bio="", avatar="", url=""):
+def _profile_result(
+    site, variation, status="Found", name="", bio="", avatar="", url="",
+    name_from_profile=True,
+):
     return {
         "site": site,
         "url": url or f"https://{site}.com/{variation}",
@@ -28,7 +31,14 @@ def _profile_result(site, variation, status="Found", name="", bio="", avatar="",
         "confidence": 90,
         "ai_analysis": {
             "features": {"http_200": 1.0},
-            "signals": {"profile": {"name": name, "bio": bio, "avatar": avatar}},
+            "signals": {
+                "profile": {
+                    "name": name,
+                    "bio": bio,
+                    "avatar": avatar,
+                    "name_from_profile": name_from_profile,
+                }
+            },
         },
     }
 
@@ -115,12 +125,53 @@ def test_no_cluster_when_unrelated():
 def test_profiles_from_report_skips_not_found():
     rep = _report({
         "alice": [
-            _profile_result("github", "alice", status="Found", name="A"),
+            _profile_result("github", "alice", status="Found", name="Alice Smith"),
             _profile_result("reddit", "alice", status="Not Found"),
         ]
     })
     profiles = profiles_from_report(rep)
     assert [p.site for p in profiles] == ["github"]
+
+
+def test_profiles_from_report_is_found_only():
+    # Maybe-band results (mostly bot-walls) must be excluded by default.
+    rep = _report({
+        "alice": [
+            _profile_result("github", "alice", status="Found", name="Alice Smith"),
+            _profile_result("reddit", "alice", status="Maybe", name="Alice Smith"),
+        ]
+    })
+    profiles = profiles_from_report(rep)
+    assert [p.site for p in profiles] == ["github"]
+
+
+def test_title_derived_name_not_used_for_identity():
+    # Same name on two sites, but it came from <title> (name_from_profile=False):
+    # must NOT cluster. Flip the flag on and it should.
+    junk = _report({
+        "alice": [
+            _profile_result("s1", "alice", name="Just a moment...", name_from_profile=False),
+            _profile_result("s2", "alice", name="Just a moment...", name_from_profile=False),
+        ]
+    })
+    assert cluster_profiles(profiles_from_report(junk)) == []
+
+    real = _report({
+        "alice": [
+            _profile_result("s1", "alice", name="Alice Smith", name_from_profile=True),
+            _profile_result("s2", "alice", name="Alice Smith", name_from_profile=True),
+        ]
+    })
+    assert len(cluster_profiles(profiles_from_report(real))) == 1
+
+
+def test_common_name_downweighted():
+    # A structured name shared by many profiles is boilerplate -> no cluster.
+    profiles = [
+        Profile("u", f"s{i}", name="Sign In", bio="", avatar="", url="", status="Found")
+        for i in range(10)
+    ]
+    assert cluster_profiles(profiles) == []
 
 
 # --- expansion ------------------------------------------------------------

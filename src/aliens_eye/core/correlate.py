@@ -84,19 +84,28 @@ def _jaccard(a: set[str], b: set[str]) -> float:
     return inter / union if union else 0.0
 
 
-def profiles_from_report(report: dict[str, Any]) -> list[Profile]:
-    """Extract Found/Maybe profiles (with any profile signals) from a report dict."""
+def profiles_from_report(
+    report: dict[str, Any], statuses: frozenset[str] = frozenset({"Found"}),
+) -> list[Profile]:
+    """Extract profiles (with profile signals) from a report dict.
+
+    Defaults to Found-only: the Maybe band is dominated by 403/404 bot-walls whose
+    boilerplate would pollute correlation. Only a *structured* display name (see
+    ``name_from_profile``) is used as an identity signal — a bare ``<title>``
+    fallback is dropped so page chrome cannot cluster unrelated sites.
+    """
     profiles: list[Profile] = []
     for variation, block in report.get("variations", {}).items():
         for site, info in (block.get("sites", {}) or {}).items():
-            if info.get("status") not in {"Found", "Maybe"}:
+            if info.get("status") not in statuses:
                 continue
             prof = info.get("ai_analysis", {}).get("signals", {}).get("profile", {}) or {}
             bio = prof.get("bio", "") or ""
+            identity_name = (prof.get("name", "") or "") if prof.get("name_from_profile") else ""
             p = Profile(
                 variation=variation,
                 site=site,
-                name=prof.get("name", "") or "",
+                name=identity_name,
                 bio=bio,
                 avatar=prof.get("avatar", "") or "",
                 url=info.get("url", "") or "",
@@ -197,8 +206,15 @@ class _UnionFind:
             self.parent[rb] = ra
 
 
-def _pair_reason(a: Profile, b: Profile) -> str | None:
-    """Return the reason two profiles are the same person, or None."""
+def _pair_reason(
+    a: Profile, b: Profile, common_names: frozenset[str] = frozenset()
+) -> str | None:
+    """Return the reason two profiles are the same person, or None.
+
+    ``common_names`` holds normalized names that are too frequent across the scan
+    to be identifying (boilerplate / generic brand titles); a name in that set
+    never links a pair.
+    """
     if (
         a.avatar_hash is not None
         and b.avatar_hash is not None
@@ -210,21 +226,33 @@ def _pair_reason(a: Profile, b: Profile) -> str | None:
     if a.handles & b.handles or (a.variation and a.variation in b.handles) or (b.variation and b.variation in a.handles):
         return "handle"
     na, nb = _norm_name(a.name), _norm_name(b.name)
-    if na and na == nb and len(na) > 3:
+    if na and na == nb and len(na) > 3 and na not in common_names:
         return "name"
     if _jaccard(_tokens(a.bio), _tokens(b.bio)) >= BIO_MIN_JACCARD:
         return "bio"
     return None
 
 
+def _common_names(profiles: list[Profile]) -> frozenset[str]:
+    """Normalized names shared by too many profiles to be identifying."""
+    from collections import Counter
+
+    counts: Counter[str] = Counter(
+        na for p in profiles if (na := _norm_name(p.name))
+    )
+    threshold = max(4, int(0.02 * len(profiles)))
+    return frozenset(name for name, count in counts.items() if count > threshold)
+
+
 def cluster_profiles(profiles: list[Profile]) -> list[dict[str, Any]]:
     """Union-find clustering. Returns clusters as dicts (only multi-site clusters)."""
     n = len(profiles)
     uf = _UnionFind(n)
+    common_names = _common_names(profiles)
     reasons: dict[tuple[int, int], str] = {}
     for i in range(n):
         for j in range(i + 1, n):
-            reason = _pair_reason(profiles[i], profiles[j])
+            reason = _pair_reason(profiles[i], profiles[j], common_names)
             if reason:
                 uf.union(i, j)
                 reasons[(i, j)] = reason
