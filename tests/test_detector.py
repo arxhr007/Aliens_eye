@@ -90,6 +90,26 @@ def test_load_packaged_model_blends(logger):
     assert 0.0 <= result.probability <= 1.0
 
 
+def test_redirect_off_username_path_penalized():
+    # Same base features, but one landed on a generic page after a redirect
+    # (visitor/login/geo-block-wall pattern) -> should score lower.
+    detector = Detector()
+    base = {"http_200": 1.0, "positive_keyword_count": 3.0}
+    on_profile = {**base, "has_username_in_path": 1.0, "redirect_count": 1.0}
+    bounced = {**base, "has_username_in_path": 0.0, "redirect_count": 1.0}
+    assert detector.predict(on_profile).score > detector.predict(bounced).score
+
+
+def test_redirect_without_leaving_username_path_not_penalized():
+    # A redirect that still lands on a URL containing the username (e.g. a
+    # canonical-URL normalization) should not be penalized.
+    detector = Detector()
+    base = {"http_200": 1.0, "has_username_in_path": 1.0}
+    assert detector.predict({**base, "redirect_count": 0.0}).score == detector.predict(
+        {**base, "redirect_count": 1.0}
+    ).score
+
+
 def test_sigmoid_bounds():
     assert _sigmoid(1000) == 1.0
     assert _sigmoid(-1000) < 1e-20

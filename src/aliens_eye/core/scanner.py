@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 import aiohttp
 
@@ -99,6 +100,26 @@ def filter_sites(
     return result
 
 
+def format_site_url(site_name: str, url_template: str, username: str) -> str:
+    """Substitute a username into a site's URL template, percent-encoded.
+
+    ``quote()`` leaves ASCII letters/digits/``-_.~`` untouched, so ordinary
+    handles are unaffected; non-ASCII (CJK, etc.) and otherwise URL-unsafe
+    characters (spaces, ``@``, ``#``, ...) are percent-encoded rather than
+    pasted into the URL verbatim.
+    """
+    encoded = quote(username, safe="")
+    try:
+        url = url_template.format(encoded)
+    except (KeyError, IndexError):
+        url = url_template.replace("{}", encoded)
+        if "{" in url:
+            url = f"https://{site_name}.com/{encoded}"
+    except Exception:
+        url = f"https://{site_name}.com/{encoded}"
+    return url
+
+
 def build_connector(config: ScannerConfig, limit: int) -> aiohttp.BaseConnector:
     """TCP connector, or a SOCKS proxy connector when a socks:// proxy is set."""
     if config.proxy and config.proxy.lower().startswith(("socks4://", "socks5://")):
@@ -149,6 +170,13 @@ class UsernameScanner:
             preview = ", ".join(variations[:5])
             more = f" and {len(variations) - 5} more..." if len(variations) > 5 else ""
             self.console.print(f"[dim]Variations: {preview}{more}[/dim]")
+
+        if not base_username.isascii():
+            self.console.print(
+                "[dim]Note: non-ASCII username. URLs are percent-encoded, but many "
+                "platforms key profiles by an internal ID rather than the display "
+                "handle, so results on those sites may be unreliable.[/dim]"
+            )
 
         for username in variations:
             results = await self.scan_all_sites(username)
@@ -394,12 +422,4 @@ class UsernameScanner:
 
     @staticmethod
     def _format_url(site_name: str, url_template: str, username: str) -> str:
-        try:
-            url = url_template.format(username)
-        except (KeyError, IndexError):
-            url = url_template.replace("{}", username)
-            if "{" in url:
-                url = f"https://{site_name}.com/{username}"
-        except Exception:
-            url = f"https://{site_name}.com/{username}"
-        return url
+        return format_site_url(site_name, url_template, username)

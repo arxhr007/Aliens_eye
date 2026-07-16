@@ -25,6 +25,7 @@ from aliens_eye.core.config import DEFAULT_HEADERS, ScannerConfig
 from aliens_eye.core.detector import Detector
 from aliens_eye.core.http import fetch_url
 from aliens_eye.core.rate_limit import DomainRateLimiter
+from aliens_eye.core.scanner import format_site_url
 from aliens_eye.utils.console import get_console
 
 
@@ -97,10 +98,7 @@ async def run_selfcheck(
     async with aiohttp.ClientSession(headers=DEFAULT_HEADERS, connector=connector) as session:
 
         async def check(site: str, template: str, username: str, label: int) -> None:
-            try:
-                url = template.format(username)
-            except Exception:
-                url = template.replace("{}", username)
+            url = format_site_url(site, template, username)
             async with semaphore:
                 fetch = await fetch_url(session, url, config, rate_limiter, logger)
             if fetch.error:

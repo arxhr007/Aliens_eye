@@ -24,6 +24,7 @@ from aliens_eye.core.detector import Detector
 from aliens_eye.core.features import FEATURE_SCHEMA, vectorize_features
 from aliens_eye.core.http import fetch_url
 from aliens_eye.core.rate_limit import DomainRateLimiter
+from aliens_eye.core.scanner import format_site_url
 
 
 def load_selfcheck_data() -> dict[str, list[str]]:
@@ -65,10 +66,7 @@ async def _collect_row(
     label: int,
     logger,
 ) -> list[float] | None:
-    try:
-        url = url_template.format(username)
-    except Exception:
-        url = url_template.replace("{}", username)
+    url = format_site_url(site, url_template, username)
     fetch = await fetch_url(session, url, config, rate_limiter, logger)
     if fetch.error:
         return None

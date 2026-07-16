@@ -92,6 +92,12 @@ class Detector:
         if features.get("is_homepage", 0.0) > 0 and features.get("http_200", 0.0) > 0:
             score -= 5
 
+        # Redirected off a username-bearing URL to one that no longer has it: the
+        # structural signature of a visitor/login/geo/bot-wall interstitial, not a
+        # profile — regardless of language or the specific wording used.
+        if features.get("redirect_count", 0.0) > 0 and features.get("has_username_in_path", 0.0) == 0:
+            score -= 4
+
         score -= features.get("error_section_count", 0.0) * 3
         score += features.get("profile_section_count", 0.0) * 4
 

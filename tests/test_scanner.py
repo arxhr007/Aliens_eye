@@ -9,7 +9,7 @@ from aliens_eye.core.analyzer import FeatureExtractor
 from aliens_eye.core.config import ScannerConfig
 from aliens_eye.core.detector import Detector
 from aliens_eye.core.fingerprints import FingerprintStore
-from aliens_eye.core.scanner import UsernameScanner, build_connector
+from aliens_eye.core.scanner import UsernameScanner, build_connector, format_site_url
 
 
 def free_port() -> int:
@@ -103,6 +103,21 @@ def test_format_url_fallbacks():
         UsernameScanner._format_url("x", "https://x.com/{user}", "bob")
         == "https://x.com/bob"
     )
+
+
+def test_format_site_url_percent_encodes_non_ascii():
+    url = format_site_url("weibo", "https://weibo.com/{}", "坦途")
+    assert url == "https://weibo.com/%E5%9D%A6%E9%80%94"
+    assert "坦途" not in url
+
+
+def test_format_site_url_leaves_ascii_handles_unchanged():
+    assert format_site_url("x", "https://x.com/{}", "bob_dev-99") == "https://x.com/bob_dev-99"
+
+
+def test_format_site_url_encodes_special_characters():
+    url = format_site_url("x", "https://x.com/{}", "a b@c")
+    assert url == "https://x.com/a%20b%40c"
 
 
 async def test_build_connector_tcp():
