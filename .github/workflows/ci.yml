@@ -47,3 +47,54 @@ jobs:
         with:
           name: dist
           path: dist/
+
+  check-version:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.decide.outputs.should_release }}
+      version: ${{ steps.decide.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: decide
+        run: |
+          set -e
+          version=$(python3 -c "import re; print(re.search(r'(?m)^version = \"([^\"]+)\"', open('pyproject.toml').read()).group(1))")
+          init_version=$(python3 -c "import re; print(re.search(r'__version__ = \"([^\"]+)\"', open('src/aliens_eye/__init__.py').read()).group(1))")
+          echo "pyproject.toml version: $version, __init__.py version: $init_version"
+          if [ "$version" != "$init_version" ]; then
+            echo "::error::Version mismatch: pyproject.toml=$version __init__.py=$init_version"
+            exit 1
+          fi
+          if git rev-parse "v$version" >/dev/null 2>&1; then
+            echo "Tag v$version already exists; nothing to release."
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  tag-and-release:
+    needs: [build, check-version]
+    if: needs.check-version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.check-version.outputs.version }}
+          files: dist/*
+          generate_release_notes: true
