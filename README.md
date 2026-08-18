@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/arxhr007-aliens-eye-badge.png)](https://mseep.ai/app/arxhr007-aliens-eye)
+
 <h1 align="center">ALIENS EYE</h1>
 
 <div align="center">
