@@ -10,3 +10,5 @@ venv/
 results/
 cache/
 config.json
+.pip-cache/
+.pip-tmp/
