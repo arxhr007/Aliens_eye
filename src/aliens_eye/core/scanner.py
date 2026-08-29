@@ -120,6 +120,39 @@ def format_site_url(site_name: str, url_template: str, username: str) -> str:
     return url
 
 
+# 反爬/人机验证/报错页的标题或 meta 里常出现的特征词。命中说明是风控拦截页、
+# Cloudflare/验证码/安全验证/拒绝访问/服务宕机等，不是真实用户主页。
+_BOT_WALL_KEYWORDS = (
+    "just a moment",
+    "checking your browser",
+    "client challenge",
+    "captcha",
+    "verify you are human",
+    "verify your browser",
+    "security verification",
+    "access denied",
+    "attention required",
+    "please wait",
+    "too many requests",
+    "ddos",
+    "general error",
+    "internal server error",
+    "temporarily unavailable",
+    "has been retired",
+    "are you human",
+    "the request could not be",
+    "invalid user",
+)
+
+
+def _looks_like_bot_wall(signals: dict[str, Any]) -> bool:
+    """判断该响应是否是反爬/验证/报错类页面，而非真实用户主页。"""
+    title = str(signals.get("title", "") or "").lower()
+    meta = " ".join(str(m) for m in (signals.get("meta_samples") or [])).lower()
+    haystack = f"{title} {meta}"
+    return any(keyword in haystack for keyword in _BOT_WALL_KEYWORDS)
+
+
 def build_connector(config: ScannerConfig, limit: int) -> aiohttp.BaseConnector:
     """TCP connector, or a SOCKS proxy connector when a socks:// proxy is set."""
     if config.proxy and config.proxy.lower().startswith(("socks4://", "socks5://")):
@@ -357,6 +390,13 @@ class UsernameScanner:
                     status_text,
                     confidence,
                 )
+
+            # 反爬/人机验证/报错页绝不算作真实命中：这类页面常返回 200 且带
+            # user/profile 字样，易被误判为 Found。统一降级为 Maybe 以减少假阳性。
+            if status_text == "Found" and _looks_like_bot_wall(bundle.signals):
+                status_text = "Maybe"
+                confidence = min(confidence, 55)
+                ai_analysis["method"] = f"{ai_analysis['method']}-botwall-capped"
 
             if status_text in {"Found", "Not Found"} and confidence >= 85:
                 label = "found" if status_text == "Found" else "not_found"
