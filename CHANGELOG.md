@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.2.3 (2026-09-06)
+
+### Fixed
+- **Scans failed outright on many platforms due to a Brotli decoding error.** The default
+  request headers advertised `Accept-Encoding: gzip, deflate, br`, but Brotli was not an
+  install dependency, so any server that honoured `br` returned a response the HTTP client
+  could not decode (`can not decode content-encoding: brotli (br)`). Affected sites were
+  reported as fetch errors rather than checked — a silent, total failure rather than a
+  degraded result.
+
+  Measured across a 428-site run, this accounted for 852 of 978 errors, with 173 sites
+  failing on every request, including **artstation, bitbucket, anilist, about.me,
+  archiveofourown, allmylinks, behance and bandcamp**. All return normal results now.
+
+  Brotli is now a required dependency, and `Accept-Encoding` is built from the codecs that
+  are actually importable, so an environment predating this release degrades to
+  `gzip, deflate` instead of failing.
+
 ## 2.0.0 (2026-06-11)
 
 ### Added
