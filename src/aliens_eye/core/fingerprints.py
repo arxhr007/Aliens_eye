@@ -31,11 +31,25 @@ def build_fingerprint(raw: dict[str, Any]) -> dict[str, str]:
 
 
 class FingerprintStore:
-    """Persist lightweight fingerprints per site."""
+    """Persist lightweight fingerprints per site.
 
-    def __init__(self, path: Path, max_entries_per_label: int = 50) -> None:
+    ``read_only`` freezes the store: :meth:`add` and :meth:`save` become no-ops
+    while :meth:`score` keeps working. This exists for reproducible evaluation.
+    A live store accumulates signatures *during* a scan and scores each response
+    against whatever earlier responses happened to finish first, so its
+    contribution depends on async worker completion order -- which would make
+    results vary run to run even when replaying a frozen corpus.
+    """
+
+    def __init__(
+        self,
+        path: Path,
+        max_entries_per_label: int = 50,
+        read_only: bool = False,
+    ) -> None:
         self.path = path
         self.max_entries_per_label = max_entries_per_label
+        self.read_only = read_only
         self.data: dict[str, Any] = {"sites": {}}
 
     def load(self, logger=None) -> None:
@@ -52,6 +66,8 @@ class FingerprintStore:
                 )
 
     def save(self) -> None:
+        if self.read_only:
+            return
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("w", encoding="utf-8") as handle:
             json.dump(self.data, handle, indent=2, ensure_ascii=True)
@@ -61,7 +77,7 @@ class FingerprintStore:
         return sites.setdefault(site, {"found": [], "not_found": []})
 
     def add(self, site: str, label: str, fingerprint: dict[str, str]) -> None:
-        if label not in {"found", "not_found"}:
+        if self.read_only or label not in {"found", "not_found"}:
             return
         site_entry = self._ensure_site(site)
         entries = site_entry[label]

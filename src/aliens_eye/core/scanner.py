@@ -142,7 +142,12 @@ class UsernameScanner:
         logger,
         browser_fallback: BrowserFallback | None = None,
         checkpoint=None,
+        fetch=fetch_url,
     ) -> None:
+        # ``fetch`` is the single seam between the scanner and the network.
+        # Swapping it for aliens_eye.corpus.replay.ReplayFetcher runs the whole
+        # pipeline off a frozen corpus with every downstream stage unchanged.
+        self.fetch = fetch
         self.sites_data = sites_data
         self.config = config
         self.extractor = extractor
@@ -286,7 +291,7 @@ class UsernameScanner:
         rate_limiter: DomainRateLimiter,
     ) -> dict[str, Any]:
         url = self._format_url(site_name, url_template, username)
-        fetch = await fetch_url(session, url, self.config, rate_limiter, self.logger)
+        fetch = await self.fetch(session, url, self.config, rate_limiter, self.logger)
 
         if fetch.error and fetch.status == 408:
             status_text = "Timeout"

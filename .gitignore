@@ -10,3 +10,7 @@ venv/
 results/
 cache/
 config.json
+
+# Corpus response bodies hold third-party page content: metadata and labels
+# are versioned, raw bodies are shared on request (see paper/corpus/README.md).
+paper/corpus/*/bodies/
