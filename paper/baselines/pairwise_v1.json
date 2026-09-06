@@ -1,0 +1,117 @@
+{
+  "comparisons": [
+    {
+      "baseline": "status_only",
+      "candidate": "ml_only",
+      "ci_high": 0.2747,
+      "ci_low": 0.0325,
+      "delta": 0.1566,
+      "separable": true,
+      "verdict": "SEPARABLE"
+    },
+    {
+      "baseline": "status_only",
+      "candidate": "blended_shipped",
+      "ci_high": 0.0842,
+      "ci_low": -0.0195,
+      "delta": 0.0312,
+      "separable": false,
+      "verdict": "not separable"
+    },
+    {
+      "baseline": "status_only",
+      "candidate": "heuristic_only",
+      "ci_high": 0.0446,
+      "ci_low": -0.0868,
+      "delta": -0.0243,
+      "separable": false,
+      "verdict": "not separable"
+    },
+    {
+      "baseline": "heuristic_only",
+      "candidate": "ml_only",
+      "ci_high": 0.3088,
+      "ci_low": 0.0419,
+      "delta": 0.1809,
+      "separable": true,
+      "verdict": "SEPARABLE"
+    },
+    {
+      "baseline": "blended_shipped",
+      "candidate": "ml_only",
+      "ci_high": 0.2385,
+      "ci_low": 0.0062,
+      "delta": 0.1255,
+      "separable": true,
+      "verdict": "SEPARABLE"
+    },
+    {
+      "baseline": "status_not_404",
+      "candidate": "ml_only",
+      "ci_high": 0.313,
+      "ci_low": 0.0353,
+      "delta": 0.1806,
+      "separable": true,
+      "verdict": "SEPARABLE"
+    }
+  ],
+  "configs": {
+    "blended_shipped": {
+      "f1": 0.569,
+      "false_positive_rate": 0.3929,
+      "fn": 6,
+      "fp": 44,
+      "maybe_rate": 0.2848,
+      "precision": 0.4286,
+      "recall": 0.8462,
+      "tn": 68,
+      "tp": 33
+    },
+    "heuristic_only": {
+      "f1": 0.5135,
+      "false_positive_rate": 0.6339,
+      "fn": 1,
+      "fp": 71,
+      "maybe_rate": 0.0927,
+      "precision": 0.3486,
+      "recall": 0.9744,
+      "tn": 41,
+      "tp": 38
+    },
+    "ml_only": {
+      "f1": 0.6944,
+      "false_positive_rate": 0.0714,
+      "fn": 14,
+      "fp": 8,
+      "maybe_rate": 0.5033,
+      "precision": 0.7576,
+      "recall": 0.641,
+      "tn": 104,
+      "tp": 25
+    },
+    "status_not_404": {
+      "f1": 0.5139,
+      "false_positive_rate": 0.6071,
+      "fn": 2,
+      "fp": 68,
+      "maybe_rate": 0.0,
+      "precision": 0.3524,
+      "recall": 0.9487,
+      "tn": 44,
+      "tp": 37
+    },
+    "status_only": {
+      "f1": 0.5378,
+      "false_positive_rate": 0.4286,
+      "fn": 7,
+      "fp": 48,
+      "maybe_rate": 0.0,
+      "precision": 0.4,
+      "recall": 0.8205,
+      "tn": 64,
+      "tp": 32
+    }
+  },
+  "corpus": "C:\\Users\\aaron\\Desktop\\Aliens_eye\\paper\\corpus\\v1",
+  "rows": 151
+}

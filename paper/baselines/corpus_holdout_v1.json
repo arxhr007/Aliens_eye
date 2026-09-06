@@ -1,0 +1,117 @@
+{
+  "split": "corpus",
+  "overall": {
+    "precision": 0.4444,
+    "recall": 0.6667,
+    "f1": 0.5333,
+    "false_positive_rate": 0.25,
+    "tp": 8,
+    "fp": 10,
+    "fn": 4,
+    "tn": 30
+  },
+  "per_site": {
+    "archive.org": {
+      "precision": 0.2,
+      "recall": 1.0,
+      "f1": 0.3333,
+      "false_positive_rate": 1.0,
+      "tp": 1,
+      "fp": 4,
+      "fn": 0,
+      "tn": 0
+    },
+    "codechef": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "false_positive_rate": 0.0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "tn": 4
+    },
+    "dribbble": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "false_positive_rate": 0.0,
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "tn": 4
+    },
+    "duolingo": {
+      "precision": 0.2,
+      "recall": 1.0,
+      "f1": 0.3333,
+      "false_positive_rate": 1.0,
+      "tp": 1,
+      "fp": 4,
+      "fn": 0,
+      "tn": 0
+    },
+    "hackernews": {
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1": 0.6667,
+      "false_positive_rate": 0.0,
+      "tp": 1,
+      "fp": 0,
+      "fn": 1,
+      "tn": 4
+    },
+    "last.fm": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "false_positive_rate": 0.0,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "tn": 4
+    },
+    "linktree": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "false_positive_rate": 0.0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "tn": 4
+    },
+    "steamcommunity": {
+      "precision": 0.3333,
+      "recall": 1.0,
+      "f1": 0.5,
+      "false_positive_rate": 0.5,
+      "tp": 1,
+      "fp": 2,
+      "fn": 0,
+      "tn": 2
+    },
+    "unsplash": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "false_positive_rate": 0.0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "tn": 4
+    },
+    "vimeo": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "false_positive_rate": 0.0,
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "tn": 4
+    }
+  },
+  "errors": 15,
+  "samples": 52
+}

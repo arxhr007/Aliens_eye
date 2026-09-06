@@ -37,6 +37,7 @@
 - **Proxy & Tor support** — `--proxy socks5://...` or just `--tor`
 - **Site filtering** — `--site github,reddit`, `--exclude-site`, `--no-nsfw`, plus drop-in `sites.d/` plugin site maps
 - **Calibrated self-check** — `aliens_eye selfcheck` reports precision / recall / F1 / FPR per site
+- **Reproducible evaluation** — record a frozen response corpus once, then replay it for identical metrics run to run (`aliens_eye corpus record` / `selfcheck --corpus`)
 - **Retrainable + active learning** — retrain with `aliens_eye train`, or hand-label uncertain hits with `aliens_eye label`
 - **Reports** in JSON, CSV, HTML, Markdown, PDF, and graph formats (GEXF, Mermaid, Maltego CSV)
 - **Playwright fallback** for JavaScript-heavy pages (optional extra)
@@ -141,6 +142,11 @@ aliens_eye diff results/old.json results/new.json
 # Validate detection accuracy (precision / recall / F1 per site)
 aliens_eye selfcheck --negatives 2 --report json
 
+# Record a frozen response corpus, then evaluate against it reproducibly
+aliens_eye corpus record --out corpus/v1 --split all --negatives 4
+aliens_eye corpus stats corpus/v1
+aliens_eye selfcheck --split holdout --corpus corpus/v1 --report json
+
 # Interactively label uncertain hits into a training set
 aliens_eye label results/username_basic_20260611_120000.json --out labeled.csv
 
@@ -164,7 +170,9 @@ Two judges then vote:
 1. **Heuristic engine** — weighted scoring over the features
 2. **ML model** — logistic regression trained on labeled scans of real (and deliberately fake) accounts, shipped with the package and running in pure Python (no sklearn needed at runtime)
 
-The blended probability maps to **Found / Maybe / Not Found** with a confidence percentage. If a model file is missing or invalid, the scanner silently falls back to heuristics.
+The blended probability maps to **Found / Maybe / Not Found** with a confidence percentage. The loaded model supplies both the blend weight and the thresholds — the shipped model uses `0.6 * ml + 0.4 * heuristic`, Found above `0.556`, Not Found below `0.322`. If a model file is missing or invalid, the scanner silently falls back to heuristics with the defaults in `core/detector.py` (`0.4` ML weight, `0.6` / `0.35` thresholds). See [WORKING.md](WORKING.md) for the full table.
+
+> **Detection accuracy is preliminary.** The shipped model was fit on 368 samples from 43 platforms (`cv_f1 = 0.5622`), with ground-truth accounts skewed toward high-profile users. Treat Found/Maybe as leads to verify, not as findings.
 
 ### Retraining the model
 
@@ -172,14 +180,22 @@ The blended probability maps to **Found / Maybe / Not Found** with a confidence 
 pip install "aliens-eye[train]"
 
 # 1. Scan ground-truth accounts + random non-existent usernames to build a dataset
+#    (reads the train split only; the eval holdout is never touched)
 aliens_eye train collect --out dataset.csv --negatives 4
 
 # 2. Fit and export the model
 aliens_eye train fit --data dataset.csv --out model.json
 
-# 3. Use it
+# 3. Score it on platforms it never trained on
+aliens_eye selfcheck --split holdout --model model.json --report json
+
+# 4. Use it
 aliens_eye username --model model.json
 ```
+
+Ground truth is split **site-disjoint** into `data/selfcheck.json` (train, 30
+sites) and `data/eval_holdout.json` (holdout, 13 sites). Scoring `--split train`
+measures fit, not generalization, and will read high.
 
 ## Configuration
 

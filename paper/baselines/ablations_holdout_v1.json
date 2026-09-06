@@ -1,0 +1,1646 @@
+{
+  "bootstrap_iterations": 2000,
+  "corpus": "paper\\corpus\\v1",
+  "excluded_rows": 15,
+  "fingerprints": false,
+  "model_ml_weight": 0.6,
+  "negatives": 40,
+  "positives": 12,
+  "reference": "blended_shipped",
+  "results": [
+    {
+      "bootstrap": {
+        "ci_high": 0.6486,
+        "ci_low": 0.2,
+        "f1": 0.4516,
+        "iterations": 2000
+      },
+      "description": "HTTP 200 means found. The naive check most enumerators use.",
+      "dropped_groups": [],
+      "name": "status_only",
+      "overall": {
+        "f1": 0.4516,
+        "false_positive_rate": 0.3,
+        "fn": 5,
+        "fp": 12,
+        "maybe_rate": 0.0,
+        "precision": 0.3684,
+        "recall": 0.5833,
+        "tn": 28,
+        "tp": 7
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "steamcommunity": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        }
+      },
+      "samples": 52,
+      "tags": [
+        "baseline"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0,
+        "ci_low": -0.2061,
+        "delta": -0.0817,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.5862,
+        "ci_low": 0.2553,
+        "f1": 0.4314,
+        "iterations": 2000
+      },
+      "description": "Anything that is not an explicit 404/410 counts as found.",
+      "dropped_groups": [],
+      "name": "status_not_404",
+      "overall": {
+        "f1": 0.4314,
+        "false_positive_rate": 0.7,
+        "fn": 1,
+        "fp": 28,
+        "maybe_rate": 0.0,
+        "precision": 0.2821,
+        "recall": 0.9167,
+        "tn": 12,
+        "tp": 11
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "hackernews": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "unsplash": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "vimeo": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        }
+      },
+      "samples": 52,
+      "tags": [
+        "baseline"
+      ],
+      "vs_reference": {
+        "ci_high": 0.1165,
+        "ci_low": -0.3069,
+        "delta": -0.102,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6531,
+        "ci_low": 0.3,
+        "f1": 0.4889,
+        "iterations": 2000
+      },
+      "description": "Weighted structural scoring, no ML (equivalent to --no-ml).",
+      "dropped_groups": [],
+      "name": "heuristic_only",
+      "overall": {
+        "f1": 0.4889,
+        "false_positive_rate": 0.55,
+        "fn": 1,
+        "fp": 22,
+        "maybe_rate": 0.2308,
+        "precision": 0.3333,
+        "recall": 0.9167,
+        "tn": 18,
+        "tp": 11
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "last.fm": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "unsplash": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "vimeo": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        }
+      },
+      "samples": 52,
+      "tags": [
+        "judge"
+      ],
+      "vs_reference": {
+        "ci_high": 0.1429,
+        "ci_low": -0.2051,
+        "delta": -0.0444,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.7692,
+        "ci_low": 0.2353,
+        "f1": 0.5455,
+        "iterations": 2000
+      },
+      "description": "Logistic regression alone, heuristic used only as an input feature.",
+      "dropped_groups": [],
+      "name": "ml_only",
+      "overall": {
+        "f1": 0.5455,
+        "false_positive_rate": 0.1,
+        "fn": 6,
+        "fp": 4,
+        "maybe_rate": 0.5,
+        "precision": 0.6,
+        "recall": 0.5,
+        "tn": 36,
+        "tp": 6
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "steamcommunity": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        }
+      },
+      "samples": 52,
+      "tags": [
+        "judge"
+      ],
+      "vs_reference": {
+        "ci_high": 0.1851,
+        "ci_low": -0.2037,
+        "delta": 0.0121,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.7333,
+        "ci_low": 0.2727,
+        "f1": 0.5333,
+        "iterations": 2000
+      },
+      "description": "The system as released: 0.6 ML + 0.4 heuristic.",
+      "dropped_groups": [],
+      "name": "blended_shipped",
+      "overall": {
+        "f1": 0.5333,
+        "false_positive_rate": 0.25,
+        "fn": 4,
+        "fp": 10,
+        "maybe_rate": 0.5,
+        "precision": 0.4444,
+        "recall": 0.6667,
+        "tn": 30,
+        "tp": 8
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "steamcommunity": {
+          "f1": 0.5,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 1
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        }
+      },
+      "samples": 52,
+      "tags": [
+        "judge",
+        "shipped"
+      ]
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.7333,
+        "ci_low": 0.2727,
+        "f1": 0.5333,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the dom feature group zeroed.",
+      "dropped_groups": [
+        "dom"
+      ],
+      "name": "no_dom",
+      "overall": {
+        "f1": 0.5333,
+        "false_positive_rate": 0.25,
+        "fn": 4,
+        "fp": 10,
+        "maybe_rate": 0.5192,
+        "precision": 0.4444,
+        "recall": 0.6667,
+        "tn": 30,
+        "tp": 8
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "steamcommunity": {
+          "f1": 0.5,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 1
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        }
+      },
+      "samples": 52,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0,
+        "ci_low": 0.0,
+        "delta": 0.0,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6957,
+        "ci_low": 0.25,
+        "f1": 0.5,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the keywords feature group zeroed.",
+      "dropped_groups": [
+        "keywords"
+      ],
+      "name": "no_keywords",
+      "overall": {
+        "f1": 0.5,
+        "false_positive_rate": 0.3,
+        "fn": 4,
+        "fp": 12,
+        "maybe_rate": 0.4615,
+        "precision": 0.4,
+        "recall": 0.6667,
+        "tn": 28,
+        "tp": 8
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "steamcommunity": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        }
+      },
+      "samples": 52,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0,
+        "ci_low": -0.0888,
+        "delta": -0.0333,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.7692,
+        "ci_low": 0.3158,
+        "f1": 0.5714,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the size feature group zeroed.",
+      "dropped_groups": [
+        "size"
+      ],
+      "name": "no_size",
+      "overall": {
+        "f1": 0.5714,
+        "false_positive_rate": 0.2,
+        "fn": 4,
+        "fp": 8,
+        "maybe_rate": 0.5385,
+        "precision": 0.5,
+        "recall": 0.6667,
+        "tn": 32,
+        "tp": 8
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "steamcommunity": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        }
+      },
+      "samples": 52,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.101,
+        "ci_low": 0.0,
+        "delta": 0.0381,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6512,
+        "ci_low": 0.2424,
+        "f1": 0.4706,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the status feature group zeroed.",
+      "dropped_groups": [
+        "status"
+      ],
+      "name": "no_status",
+      "overall": {
+        "f1": 0.4706,
+        "false_positive_rate": 0.35,
+        "fn": 4,
+        "fp": 14,
+        "maybe_rate": 0.5769,
+        "precision": 0.3636,
+        "recall": 0.6667,
+        "tn": 26,
+        "tp": 8
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.0,
+          "false_positive_rate": 0.25,
+          "fn": 1,
+          "fp": 1,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 3,
+          "tp": 0
+        },
+        "codechef": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "last.fm": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "steamcommunity": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 0.4,
+          "false_positive_rate": 0.75,
+          "fn": 0,
+          "fp": 3,
+          "precision": 0.25,
+          "recall": 1.0,
+          "tn": 1,
+          "tp": 1
+        }
+      },
+      "samples": 52,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.1124,
+        "ci_low": -0.2364,
+        "delta": -0.0627,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6897,
+        "ci_low": 0.2143,
+        "f1": 0.4828,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the structured_data feature group zeroed.",
+      "dropped_groups": [
+        "structured_data"
+      ],
+      "name": "no_structured_data",
+      "overall": {
+        "f1": 0.4828,
+        "false_positive_rate": 0.25,
+        "fn": 5,
+        "fp": 10,
+        "maybe_rate": 0.5192,
+        "precision": 0.4118,
+        "recall": 0.5833,
+        "tn": 30,
+        "tp": 7
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "steamcommunity": {
+          "f1": 0.5,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 1
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        }
+      },
+      "samples": 52,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0,
+        "ci_low": -0.1714,
+        "delta": -0.0506,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.7692,
+        "ci_low": 0.3158,
+        "f1": 0.5714,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the timing feature group zeroed.",
+      "dropped_groups": [
+        "timing"
+      ],
+      "name": "no_timing",
+      "overall": {
+        "f1": 0.5714,
+        "false_positive_rate": 0.2,
+        "fn": 4,
+        "fp": 8,
+        "maybe_rate": 0.5385,
+        "precision": 0.5,
+        "recall": 0.6667,
+        "tn": 32,
+        "tp": 8
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "steamcommunity": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        }
+      },
+      "samples": 52,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.101,
+        "ci_low": 0.0,
+        "delta": 0.0381,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.7273,
+        "ci_low": 0.25,
+        "f1": 0.5185,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the url_shape feature group zeroed.",
+      "dropped_groups": [
+        "url_shape"
+      ],
+      "name": "no_url_shape",
+      "overall": {
+        "f1": 0.5185,
+        "false_positive_rate": 0.2,
+        "fn": 5,
+        "fp": 8,
+        "maybe_rate": 0.5192,
+        "precision": 0.4667,
+        "recall": 0.5833,
+        "tn": 32,
+        "tp": 7
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "steamcommunity": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        }
+      },
+      "samples": 52,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0833,
+        "ci_low": -0.1478,
+        "delta": -0.0148,
+        "separable": false
+      }
+    }
+  ],
+  "rows": 67,
+  "sites": [
+    "archive.org",
+    "bitbucket",
+    "codechef",
+    "dribbble",
+    "duolingo",
+    "hackernews",
+    "last.fm",
+    "linktree",
+    "monkeytype",
+    "steamcommunity",
+    "tumblr",
+    "unsplash",
+    "vimeo"
+  ],
+  "usable_rows": 52
+}

@@ -1,0 +1,3836 @@
+{
+  "bootstrap_iterations": 2000,
+  "corpus": "paper\\corpus\\v1",
+  "excluded_rows": 81,
+  "fingerprints": false,
+  "model_ml_weight": 0.6,
+  "negatives": 112,
+  "positives": 39,
+  "reference": "blended_shipped",
+  "results": [
+    {
+      "bootstrap": {
+        "ci_high": 0.6423,
+        "ci_low": 0.4211,
+        "f1": 0.5378,
+        "iterations": 2000
+      },
+      "description": "HTTP 200 means found. The naive check most enumerators use.",
+      "dropped_groups": [],
+      "name": "status_only",
+      "overall": {
+        "f1": 0.5378,
+        "false_positive_rate": 0.4286,
+        "fn": 7,
+        "fp": 48,
+        "maybe_rate": 0.0,
+        "precision": 0.4,
+        "recall": 0.8205,
+        "tn": 64,
+        "tp": 32
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "codewars": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dev.to": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "devrant": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "docker hub": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "github": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 3
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "imgur": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "kaggle": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "mastodon.social": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "medium": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "npm": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "patreon": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "pypi": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "reddit": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "scratch": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "soundcloud": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "spotify": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "telegram": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "wikipedia": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        }
+      },
+      "samples": 151,
+      "tags": [
+        "baseline"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0185,
+        "ci_low": -0.0858,
+        "delta": -0.0312,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6133,
+        "ci_low": 0.4113,
+        "f1": 0.5139,
+        "iterations": 2000
+      },
+      "description": "Anything that is not an explicit 404/410 counts as found.",
+      "dropped_groups": [],
+      "name": "status_not_404",
+      "overall": {
+        "f1": 0.5139,
+        "false_positive_rate": 0.6071,
+        "fn": 2,
+        "fp": 68,
+        "maybe_rate": 0.0,
+        "precision": 0.3524,
+        "recall": 0.9487,
+        "tn": 44,
+        "tp": 37
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codewars": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dev.to": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "devrant": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "docker hub": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "github": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 3
+        },
+        "hackernews": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "imgur": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "kaggle": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "mastodon.social": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "medium": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "npm": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "patreon": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "pypi": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "reddit": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "scratch": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "soundcloud": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "spotify": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "telegram": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "unsplash": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "vimeo": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "wikipedia": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        }
+      },
+      "samples": 151,
+      "tags": [
+        "baseline"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0305,
+        "ci_low": -0.1342,
+        "delta": -0.0551,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6082,
+        "ci_low": 0.4138,
+        "f1": 0.5135,
+        "iterations": 2000
+      },
+      "description": "Weighted structural scoring, no ML (equivalent to --no-ml).",
+      "dropped_groups": [],
+      "name": "heuristic_only",
+      "overall": {
+        "f1": 0.5135,
+        "false_positive_rate": 0.6339,
+        "fn": 1,
+        "fp": 71,
+        "maybe_rate": 0.0927,
+        "precision": 0.3486,
+        "recall": 0.9744,
+        "tn": 41,
+        "tp": 38
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codewars": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dev.to": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "devrant": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "docker hub": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "github": {
+          "f1": 0.6,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.4286,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 3
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "imgur": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "kaggle": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "last.fm": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "mastodon.social": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "medium": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "npm": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "patreon": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "pypi": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "reddit": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "scratch": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "soundcloud": {
+          "f1": 0.8,
+          "false_positive_rate": 0.25,
+          "fn": 0,
+          "fp": 1,
+          "precision": 0.6667,
+          "recall": 1.0,
+          "tn": 3,
+          "tp": 2
+        },
+        "spotify": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "telegram": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "unsplash": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "vimeo": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "wikipedia": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        }
+      },
+      "samples": 151,
+      "tags": [
+        "judge"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0167,
+        "ci_low": -0.1192,
+        "delta": -0.0555,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.8077,
+        "ci_low": 0.5526,
+        "f1": 0.6944,
+        "iterations": 2000
+      },
+      "description": "Logistic regression alone, heuristic used only as an input feature.",
+      "dropped_groups": [],
+      "name": "ml_only",
+      "overall": {
+        "f1": 0.6944,
+        "false_positive_rate": 0.0714,
+        "fn": 14,
+        "fp": 8,
+        "maybe_rate": 0.5033,
+        "precision": 0.7576,
+        "recall": 0.641,
+        "tn": 104,
+        "tp": 25
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "codewars": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dev.to": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "devrant": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "docker hub": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "github": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 3
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "imgur": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "kaggle": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 2,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "mastodon.social": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "medium": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "npm": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "patreon": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "pypi": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "reddit": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 2,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "scratch": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "soundcloud": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "spotify": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "telegram": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 2
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "wikipedia": {
+          "f1": 0.5,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 1
+        }
+      },
+      "samples": 151,
+      "tags": [
+        "judge"
+      ],
+      "vs_reference": {
+        "ci_high": 0.2397,
+        "ci_low": 0.0056,
+        "delta": 0.1255,
+        "separable": true
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6727,
+        "ci_low": 0.4494,
+        "f1": 0.569,
+        "iterations": 2000
+      },
+      "description": "The system as released: 0.6 ML + 0.4 heuristic.",
+      "dropped_groups": [],
+      "name": "blended_shipped",
+      "overall": {
+        "f1": 0.569,
+        "false_positive_rate": 0.3929,
+        "fn": 6,
+        "fp": 44,
+        "maybe_rate": 0.2848,
+        "precision": 0.4286,
+        "recall": 0.8462,
+        "tn": 68,
+        "tp": 33
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "codewars": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dev.to": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "devrant": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "docker hub": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "github": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 3
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "imgur": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "kaggle": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "mastodon.social": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "medium": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "npm": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "patreon": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "pypi": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "reddit": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "scratch": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "soundcloud": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "spotify": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 0.5,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 1
+        },
+        "telegram": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 2
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "wikipedia": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        }
+      },
+      "samples": 151,
+      "tags": [
+        "judge",
+        "shipped"
+      ]
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6667,
+        "ci_low": 0.4423,
+        "f1": 0.562,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the dom feature group zeroed.",
+      "dropped_groups": [
+        "dom"
+      ],
+      "name": "no_dom",
+      "overall": {
+        "f1": 0.562,
+        "false_positive_rate": 0.4286,
+        "fn": 5,
+        "fp": 48,
+        "maybe_rate": 0.2649,
+        "precision": 0.4146,
+        "recall": 0.8718,
+        "tn": 64,
+        "tp": 34
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "codewars": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dev.to": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "devrant": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "docker hub": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "github": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 3
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "imgur": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "kaggle": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "mastodon.social": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "medium": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "npm": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "patreon": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "pypi": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "reddit": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "scratch": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "soundcloud": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "spotify": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 0.5,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 1
+        },
+        "telegram": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 2
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "wikipedia": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        }
+      },
+      "samples": 151,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0259,
+        "ci_low": -0.0351,
+        "delta": -0.007,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6615,
+        "ci_low": 0.4444,
+        "f1": 0.5593,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the keywords feature group zeroed.",
+      "dropped_groups": [
+        "keywords"
+      ],
+      "name": "no_keywords",
+      "overall": {
+        "f1": 0.5593,
+        "false_positive_rate": 0.4107,
+        "fn": 6,
+        "fp": 46,
+        "maybe_rate": 0.2384,
+        "precision": 0.4177,
+        "recall": 0.8462,
+        "tn": 66,
+        "tp": 33
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "codewars": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dev.to": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "devrant": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "docker hub": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "github": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 3
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "imgur": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "kaggle": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "mastodon.social": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "medium": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "npm": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "patreon": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "pypi": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "reddit": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "scratch": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "soundcloud": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "spotify": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "telegram": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 2
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "wikipedia": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        }
+      },
+      "samples": 151,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.037,
+        "ci_low": -0.0567,
+        "delta": -0.0096,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6825,
+        "ci_low": 0.46,
+        "f1": 0.5789,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the size feature group zeroed.",
+      "dropped_groups": [
+        "size"
+      ],
+      "name": "no_size",
+      "overall": {
+        "f1": 0.5789,
+        "false_positive_rate": 0.375,
+        "fn": 6,
+        "fp": 42,
+        "maybe_rate": 0.298,
+        "precision": 0.44,
+        "recall": 0.8462,
+        "tn": 70,
+        "tp": 33
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "codewars": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dev.to": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "devrant": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "docker hub": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "github": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 3
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "imgur": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "kaggle": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "mastodon.social": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "medium": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "npm": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "patreon": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "pypi": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "reddit": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "scratch": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "soundcloud": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "spotify": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "telegram": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 2
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "wikipedia": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        }
+      },
+      "samples": 151,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0251,
+        "ci_low": 0.0,
+        "delta": 0.01,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6182,
+        "ci_low": 0.3855,
+        "f1": 0.5091,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the status feature group zeroed.",
+      "dropped_groups": [
+        "status"
+      ],
+      "name": "no_status",
+      "overall": {
+        "f1": 0.5091,
+        "false_positive_rate": 0.3839,
+        "fn": 11,
+        "fp": 43,
+        "maybe_rate": 0.5298,
+        "precision": 0.3944,
+        "recall": 0.7179,
+        "tn": 69,
+        "tp": 28
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.0,
+          "false_positive_rate": 0.25,
+          "fn": 1,
+          "fp": 1,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 3,
+          "tp": 0
+        },
+        "codechef": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codewars": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dev.to": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "devrant": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "docker hub": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.25,
+          "fn": 0,
+          "fp": 1,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 3,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "github": {
+          "f1": 0.6,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.4286,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 3
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "imgur": {
+          "f1": 0.0,
+          "false_positive_rate": 0.25,
+          "fn": 1,
+          "fp": 1,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 3,
+          "tp": 0
+        },
+        "kaggle": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 2,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "last.fm": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "mastodon.social": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "medium": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "npm": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "patreon": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "pypi": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "reddit": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 2,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "scratch": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "soundcloud": {
+          "f1": 0.8,
+          "false_positive_rate": 0.25,
+          "fn": 0,
+          "fp": 1,
+          "precision": 0.6667,
+          "recall": 1.0,
+          "tn": 3,
+          "tp": 2
+        },
+        "spotify": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "telegram": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 2
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 0.4,
+          "false_positive_rate": 0.75,
+          "fn": 0,
+          "fp": 3,
+          "precision": 0.25,
+          "recall": 1.0,
+          "tn": 1,
+          "tp": 1
+        },
+        "wikipedia": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        }
+      },
+      "samples": 151,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0202,
+        "ci_low": -0.1482,
+        "delta": -0.0599,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6612,
+        "ci_low": 0.434,
+        "f1": 0.5565,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the structured_data feature group zeroed.",
+      "dropped_groups": [
+        "structured_data"
+      ],
+      "name": "no_structured_data",
+      "overall": {
+        "f1": 0.5565,
+        "false_positive_rate": 0.3929,
+        "fn": 7,
+        "fp": 44,
+        "maybe_rate": 0.2914,
+        "precision": 0.4211,
+        "recall": 0.8205,
+        "tn": 68,
+        "tp": 32
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "codewars": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dev.to": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "devrant": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "docker hub": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "github": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 3
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "imgur": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "kaggle": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "mastodon.social": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "medium": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "npm": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "patreon": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "pypi": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "reddit": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "scratch": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "soundcloud": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "spotify": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 0.5,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 1
+        },
+        "telegram": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 2
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "wikipedia": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        }
+      },
+      "samples": 151,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0,
+        "ci_low": -0.0426,
+        "delta": -0.0124,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6825,
+        "ci_low": 0.46,
+        "f1": 0.5789,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the timing feature group zeroed.",
+      "dropped_groups": [
+        "timing"
+      ],
+      "name": "no_timing",
+      "overall": {
+        "f1": 0.5789,
+        "false_positive_rate": 0.375,
+        "fn": 6,
+        "fp": 42,
+        "maybe_rate": 0.298,
+        "precision": 0.44,
+        "recall": 0.8462,
+        "tn": 70,
+        "tp": 33
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "codewars": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dev.to": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "devrant": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "docker hub": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "github": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 3
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "imgur": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "kaggle": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "mastodon.social": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "medium": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "npm": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "patreon": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "pypi": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "reddit": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "scratch": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "soundcloud": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "spotify": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "telegram": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.5,
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tn": 2,
+          "tp": 2
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "wikipedia": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        }
+      },
+      "samples": 151,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0251,
+        "ci_low": 0.0,
+        "delta": 0.01,
+        "separable": false
+      }
+    },
+    {
+      "bootstrap": {
+        "ci_high": 0.6607,
+        "ci_low": 0.4176,
+        "f1": 0.549,
+        "iterations": 2000
+      },
+      "description": "Shipped blend with the url_shape feature group zeroed.",
+      "dropped_groups": [
+        "url_shape"
+      ],
+      "name": "no_url_shape",
+      "overall": {
+        "f1": 0.549,
+        "false_positive_rate": 0.3125,
+        "fn": 11,
+        "fp": 35,
+        "maybe_rate": 0.3377,
+        "precision": 0.4444,
+        "recall": 0.7179,
+        "tn": 77,
+        "tp": 28
+      },
+      "per_site": {
+        "archive.org": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "codechef": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "codewars": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dev.to": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "devrant": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "docker hub": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "dribbble": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "duolingo": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "github": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 3
+        },
+        "hackernews": {
+          "f1": 0.6667,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "tn": 4,
+          "tp": 1
+        },
+        "imgur": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "kaggle": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 2,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "last.fm": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "linktree": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "mastodon.social": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "medium": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "npm": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "patreon": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "pypi": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "reddit": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 2,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "scratch": {
+          "f1": 0.5714,
+          "false_positive_rate": 0.75,
+          "fn": 0,
+          "fp": 3,
+          "precision": 0.4,
+          "recall": 1.0,
+          "tn": 1,
+          "tp": 2
+        },
+        "soundcloud": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 2
+        },
+        "spotify": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        },
+        "steamcommunity": {
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tn": 4,
+          "tp": 1
+        },
+        "telegram": {
+          "f1": 0.5,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 2
+        },
+        "unsplash": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "vimeo": {
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fn": 1,
+          "fp": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "tn": 4,
+          "tp": 0
+        },
+        "wikipedia": {
+          "f1": 0.3333,
+          "false_positive_rate": 1.0,
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.2,
+          "recall": 1.0,
+          "tn": 0,
+          "tp": 1
+        }
+      },
+      "samples": 151,
+      "tags": [
+        "feature_group"
+      ],
+      "vs_reference": {
+        "ci_high": 0.0432,
+        "ci_low": -0.0936,
+        "delta": -0.0199,
+        "separable": false
+      }
+    }
+  ],
+  "rows": 232,
+  "sites": [
+    "archive.org",
+    "artstation",
+    "bitbucket",
+    "chess.com",
+    "codechef",
+    "codepen",
+    "codewars",
+    "dev.to",
+    "devrant",
+    "docker hub",
+    "dribbble",
+    "duolingo",
+    "freecodecamp",
+    "github",
+    "gitlab",
+    "hackernews",
+    "imgur",
+    "kaggle",
+    "last.fm",
+    "lichess",
+    "linktree",
+    "mastodon.social",
+    "medium",
+    "monkeytype",
+    "npm",
+    "patreon",
+    "pinterest",
+    "producthunt",
+    "pypi",
+    "reddit",
+    "replit.com",
+    "scratch",
+    "soundcloud",
+    "spotify",
+    "steamcommunity",
+    "telegram",
+    "tumblr",
+    "twitch",
+    "unsplash",
+    "vimeo",
+    "wikipedia",
+    "wordpressorg",
+    "youtube user"
+  ],
+  "usable_rows": 151
+}
