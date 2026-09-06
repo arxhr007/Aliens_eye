@@ -32,6 +32,11 @@ def _supported_encodings() -> str:
     return ", ".join(encodings)
 
 
+# aiohttp defaults to 8190 bytes per header line. Real sites exceed that -- trakt
+# ships a very large Link header of asset preloads -- and the request then fails
+# with "Got more than 8190 bytes when reading" rather than returning a page.
+MAX_HEADER_SIZE = 65536
+
 DEFAULT_HEADERS = {
     "User-Agent": DEFAULT_USER_AGENT,
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",

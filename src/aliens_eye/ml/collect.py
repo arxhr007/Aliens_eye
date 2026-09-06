@@ -28,12 +28,12 @@ from typing import Any
 import aiohttp
 
 from aliens_eye.core.analyzer import FeatureExtractor
-from aliens_eye.core.config import DEFAULT_HEADERS, ScannerConfig
+from aliens_eye.core.config import ScannerConfig
 from aliens_eye.core.detector import Detector
 from aliens_eye.core.features import FEATURE_SCHEMA, vectorize_features
 from aliens_eye.core.http import fetch_url
 from aliens_eye.core.rate_limit import DomainRateLimiter
-from aliens_eye.core.scanner import format_site_url
+from aliens_eye.core.scanner import build_session, format_site_url
 
 TRAIN_SPLIT_RESOURCE = "selfcheck.json"
 HOLDOUT_SPLIT_RESOURCE = "eval_holdout.json"
@@ -197,8 +197,7 @@ async def collect_dataset(
     semaphore = asyncio.Semaphore(concurrency)
     rows: list[list[float]] = []
 
-    connector = aiohttp.TCPConnector(limit=concurrency)
-    async with aiohttp.ClientSession(headers=DEFAULT_HEADERS, connector=connector) as session:
+    async with build_session(config, concurrency) as session:
 
         async def run_job(job: tuple[str, str, str, int]) -> None:
             site, template, username, label = job

@@ -19,17 +19,16 @@ import string
 from pathlib import Path
 from typing import Any
 
-import aiohttp
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
 from aliens_eye.core.analyzer import FeatureExtractor
-from aliens_eye.core.config import DEFAULT_HEADERS, ScannerConfig
+from aliens_eye.core.config import ScannerConfig
 from aliens_eye.core.detector import Detector
 from aliens_eye.core.http import fetch_url
 from aliens_eye.core.rate_limit import DomainRateLimiter
-from aliens_eye.core.scanner import format_site_url
+from aliens_eye.core.scanner import build_session, format_site_url
 from aliens_eye.utils.console import get_console
 
 
@@ -120,8 +119,7 @@ async def run_selfcheck(
 
     rows: list[dict] = []
     semaphore = asyncio.Semaphore(min(10, len(jobs)))
-    connector = aiohttp.TCPConnector(limit=10)
-    async with aiohttp.ClientSession(headers=DEFAULT_HEADERS, connector=connector) as session:
+    async with build_session(config, 10) as session:
 
         fetch_result = fetch
 

@@ -18,10 +18,10 @@ from typing import Any
 import aiohttp
 
 from aliens_eye import __version__
-from aliens_eye.core.config import DEFAULT_HEADERS, ScannerConfig
+from aliens_eye.core.config import ScannerConfig
 from aliens_eye.core.http import FetchResult, fetch_url
 from aliens_eye.core.rate_limit import DomainRateLimiter
-from aliens_eye.core.scanner import build_connector, format_site_url
+from aliens_eye.core.scanner import build_session, format_site_url
 
 from .store import CorpusRecord, CorpusStore
 
@@ -222,9 +222,8 @@ async def record_corpus(
 
     conn_limit = max(1, min(concurrency, len(jobs) or 1))
     semaphore = asyncio.Semaphore(conn_limit)
-    connector = build_connector(config, conn_limit)
 
-    async with aiohttp.ClientSession(headers=DEFAULT_HEADERS, connector=connector) as session:
+    async with build_session(config, conn_limit) as session:
 
         async def run(url: str) -> None:
             async with semaphore:

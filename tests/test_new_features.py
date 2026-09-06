@@ -3,6 +3,8 @@ domains, checkpoint, graph export, dataset append, and selfcheck metrics."""
 
 import json
 
+import pytest
+
 from aliens_eye.core import report as report_mod
 from aliens_eye.core.checkpoint import Checkpoint
 from aliens_eye.core.correlate import (
@@ -259,3 +261,97 @@ def test_metrics_math():
     assert m["recall"] == 0.8
     assert round(m["f1"], 2) == 0.8
     assert m["false_positive_rate"] == 0.2
+
+
+# --- parse_duration: non-finite input -------------------------------------
+
+
+def test_parse_duration_rejects_nan():
+    """NaN defeats `<= 0`, so it reached asyncio.sleep(nan) in the watch loop."""
+    from aliens_eye.core.watch import parse_duration
+
+    for value in ("nan", "NaN", "-nan"):
+        with pytest.raises(ValueError, match="finite"):
+            parse_duration(value)
+
+
+def test_parse_duration_rejects_infinity():
+    from aliens_eye.core.watch import parse_duration
+
+    for value in ("inf", "-inf", "infinity"):
+        with pytest.raises(ValueError):
+            parse_duration(value)
+
+
+def test_parse_duration_still_accepts_normal_values():
+    from aliens_eye.core.watch import parse_duration
+
+    assert parse_duration("6h") == 21600.0
+    assert parse_duration("90") == 90.0
+    assert parse_duration("1.5m") == 90.0
+
+
+# --- avatar fetch: SSRF guard ---------------------------------------------
+
+
+def _fetchable(url, allow_private=False):
+    import asyncio
+
+    from aliens_eye.core.correlate import is_fetchable_avatar
+
+    return asyncio.run(is_fetchable_avatar(url, allow_private))
+
+
+def test_avatar_fetch_rejects_loopback_and_private_hosts():
+    """Avatar URLs come from the target's own page, so they are attacker-chosen.
+
+    Fetching them unchecked aims requests from the analyst's machine wherever
+    the target likes: cloud metadata, intranet hosts, services on loopback.
+    """
+    for url in (
+        "http://127.0.0.1:8080/admin",
+        "http://localhost/",
+        "http://169.254.169.254/latest/meta-data/",
+        "http://10.0.0.5/",
+        "http://192.168.1.1/",
+        "http://[::1]/",
+    ):
+        assert _fetchable(url) is False, url
+
+
+def test_avatar_fetch_rejects_non_http_schemes():
+    for url in ("file:///etc/passwd", "ftp://example.com/x.png", "gopher://x/", "data:image/png;base64,AAAA"):
+        assert _fetchable(url) is False, url
+
+
+def test_avatar_fetch_rejects_malformed_urls():
+    for url in ("", "http://", "notaurl", "https:///nohost"):
+        assert _fetchable(url) is False, url
+
+
+def test_avatar_fetch_allows_a_public_address():
+    # 8.8.8.8 is a literal public address, so this needs no DNS lookup.
+    assert _fetchable("https://8.8.8.8/avatar.png") is True
+
+
+def test_allow_private_opt_out_skips_the_check():
+    """Deliberate lab scanning must still be possible."""
+    assert _fetchable("http://127.0.0.1/x.png", allow_private=True) is True
+
+
+def test_blocked_avatar_is_never_downloaded(monkeypatch):
+    """The guard must run before any request is issued."""
+    import asyncio
+
+    from aliens_eye.core.correlate import Profile, _download_and_hash
+
+    class ExplodingSession:
+        def get(self, *a, **k):
+            raise AssertionError("a blocked avatar URL was fetched anyway")
+
+    profile = Profile(
+        variation="u", site="s", url="https://s/u", name="", bio="", status="Found",
+        avatar="http://169.254.169.254/latest/meta-data/",
+    )
+    asyncio.run(_download_and_hash(ExplodingSession(), profile, timeout=1.0))
+    assert profile.avatar_hash is None

@@ -12,9 +12,11 @@ correlation still runs on name/bio/link signals alone.
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import re
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import urlparse
 
 import aiohttp
 
@@ -153,10 +155,55 @@ def pillow_available() -> bool:
         return False
 
 
+ALLOWED_AVATAR_SCHEMES = {"http", "https"}
+
+
+async def is_fetchable_avatar(url: str, allow_private: bool = False) -> bool:
+    """Whether an avatar URL is safe for this process to fetch.
+
+    Avatar URLs are scraped from the target page (og:image, JSON-LD, a favicon
+    link, or a per-site CSS selector), so they are chosen by whoever controls
+    that page. Fetching them unchecked turns a scan into a request generator
+    aimed wherever the target likes -- cloud metadata endpoints, an intranet
+    host, a service bound to loopback on the analyst's own machine.
+
+    Investigators run this against hostile targets by definition, so the address
+    is resolved and rejected unless every answer is a public one. ``allow_private``
+    exists for scanning a lab network on purpose.
+    """
+    parsed = urlparse(url)
+    if parsed.scheme.lower() not in ALLOWED_AVATAR_SCHEMES:
+        return False
+    host = parsed.hostname
+    if not host:
+        return False
+    if allow_private:
+        return True
+    try:
+        infos = await asyncio.get_event_loop().getaddrinfo(host, None)
+    except (OSError, UnicodeError):
+        return False
+    if not infos:
+        return False
+    for info in infos:
+        try:
+            address = ipaddress.ip_address(info[4][0])
+        except ValueError:
+            return False
+        if not address.is_global or address.is_private or address.is_loopback:
+            return False
+    return True
+
+
 async def _download_and_hash(
-    session: aiohttp.ClientSession, profile: Profile, timeout: float
+    session: aiohttp.ClientSession,
+    profile: Profile,
+    timeout: float,
+    allow_private: bool = False,
 ) -> None:
     if not profile.avatar:
+        return
+    if not await is_fetchable_avatar(profile.avatar, allow_private):
         return
     try:
         async with session.get(profile.avatar, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
@@ -168,7 +215,12 @@ async def _download_and_hash(
     profile.avatar_hash = _dhash(data)
 
 
-async def hash_avatars(profiles: list[Profile], proxy: str | None = None, timeout: float = 10.0) -> None:
+async def hash_avatars(
+    profiles: list[Profile],
+    proxy: str | None = None,
+    timeout: float = 10.0,
+    allow_private: bool = False,
+) -> None:
     """Download and dhash every profile avatar in place. No-op without Pillow."""
     if not pillow_available():
         return
@@ -183,7 +235,7 @@ async def hash_avatars(profiles: list[Profile], proxy: str | None = None, timeou
 
         async def worker(p: Profile) -> None:
             async with sem:
-                await _download_and_hash(session, p, timeout)
+                await _download_and_hash(session, p, timeout, allow_private)
 
         await asyncio.gather(*(worker(p) for p in targets))
 
@@ -280,11 +332,19 @@ def cluster_profiles(profiles: list[Profile]) -> list[dict[str, Any]]:
 
 
 async def correlate_report(
-    report: dict[str, Any], proxy: str | None = None, timeout: float = 10.0
+    report: dict[str, Any],
+    proxy: str | None = None,
+    timeout: float = 10.0,
+    allow_private_avatars: bool = False,
 ) -> dict[str, Any]:
-    """Full correlation pass over a report dict. Returns a ``correlation`` block."""
+    """Full correlation pass over a report dict. Returns a ``correlation`` block.
+
+    ``allow_private_avatars`` lifts the guard that stops scraped avatar URLs
+    resolving to private or loopback addresses; only set it when scanning a
+    network you own.
+    """
     profiles = profiles_from_report(report)
-    await hash_avatars(profiles, proxy=proxy, timeout=timeout)
+    await hash_avatars(profiles, proxy=proxy, timeout=timeout, allow_private=allow_private_avatars)
     clusters = cluster_profiles(profiles)
     return {
         "avatar_hashing": pillow_available(),

@@ -13,7 +13,7 @@ from aliens_eye.utils.console import ScanView, get_console
 
 from .analyzer import FeatureExtractor
 from .browser import BrowserFallback
-from .config import DEFAULT_HEADERS, ScannerConfig
+from .config import DEFAULT_HEADERS, MAX_HEADER_SIZE, ScannerConfig
 from .detector import Detector
 from .fingerprints import FingerprintStore, build_fingerprint
 from .http import fetch_url
@@ -129,6 +129,26 @@ def build_connector(config: ScannerConfig, limit: int) -> aiohttp.BaseConnector:
     return aiohttp.TCPConnector(limit=limit)
 
 
+def build_session(
+    config: ScannerConfig,
+    limit: int,
+    headers: dict[str, str] | None = None,
+) -> aiohttp.ClientSession:
+    """Session for fetching site pages, with the header-size limit raised.
+
+    aiohttp caps a single header line at 8190 bytes, which some real sites
+    exceed; the request then fails outright instead of returning the page. Every
+    path that fetches profile pages should build its session here so the limit,
+    the headers and the proxy connector stay consistent.
+    """
+    return aiohttp.ClientSession(
+        headers=DEFAULT_HEADERS if headers is None else headers,
+        connector=build_connector(config, limit),
+        max_line_size=MAX_HEADER_SIZE,
+        max_field_size=MAX_HEADER_SIZE,
+    )
+
+
 class UsernameScanner:
     """Coordinates async scanning across all platforms."""
 
@@ -216,12 +236,9 @@ class UsernameScanner:
         view = ScanView(self.console)
         view.start(username, len(pending))
 
-        connector = build_connector(self.config, conn_limit)
         start_time = time.monotonic()
         try:
-            async with aiohttp.ClientSession(
-                headers=DEFAULT_HEADERS, connector=connector
-            ) as session:
+            async with build_session(self.config, conn_limit) as session:
                 workers = [
                     asyncio.create_task(
                         self._worker(queue, username, session, rate_limiter, results, view)

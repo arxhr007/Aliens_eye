@@ -8,6 +8,7 @@ cycle (seeded from the most recent report on disk, if any).
 from __future__ import annotations
 
 import asyncio
+import math
 from pathlib import Path
 from typing import Any
 
@@ -34,8 +35,11 @@ def parse_duration(value: str) -> float:
         number = text
         factor = 1.0
     seconds = float(number) * factor
-    if seconds <= 0:
-        raise ValueError(f"duration must be positive: {value!r}")
+    # NaN defeats every ordering comparison, so `seconds <= 0` alone lets it
+    # through and the watch loop ends up in asyncio.sleep(nan). Infinity passes
+    # the same check and sleeps forever.
+    if not math.isfinite(seconds) or seconds <= 0:
+        raise ValueError(f"duration must be a positive, finite number: {value!r}")
     return seconds
 
 
