@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 from aliens_eye.cli import (
@@ -130,16 +131,33 @@ def test_accept_encoding_only_advertises_decodable_encodings():
     )
 
 
+def _pyproject_text() -> str:
+    return (Path(__file__).resolve().parents[1] / "pyproject.toml").read_text(
+        encoding="utf-8"
+    )
+
+
+def _declared_dependencies() -> list[str]:
+    """Requirement strings from [project].dependencies.
+
+    Parsed with a regex rather than tomllib: tomllib is 3.11+, and this project
+    supports 3.10. Only the quoted requirements are returned, so a comment
+    mentioning a package name inside the array does not count as declaring it.
+    """
+    block = re.search(r"^dependencies\s*=\s*\[(.*?)^\]", _pyproject_text(), re.M | re.S)
+    assert block, "could not locate [project].dependencies in pyproject.toml"
+    return [match.lower() for match in re.findall(r'"([^"]+)"', block.group(1))]
+
+
+def _declared_version() -> str:
+    match = re.search(r'^version\s*=\s*"([^"]+)"', _pyproject_text(), re.M)
+    assert match, "could not locate [project].version in pyproject.toml"
+    return match.group(1)
+
+
 def test_brotli_is_a_declared_dependency():
     """It is required, not an extra: the default headers depend on it."""
-    from pathlib import Path
-
-    import tomllib
-
-    root = Path(__file__).resolve().parents[1]
-    data = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
-    deps = " ".join(data["project"]["dependencies"]).lower()
-    assert "brotli" in deps
+    assert any(dep.startswith("brotli") for dep in _declared_dependencies())
 
 
 def test_package_version_matches_pyproject():
@@ -151,12 +169,6 @@ def test_package_version_matches_pyproject():
     corpus manifest records as tool_version, so a stale value silently
     mislabels captured research data.
     """
-    from pathlib import Path
-
-    import tomllib
-
     from aliens_eye import __version__
 
-    root = Path(__file__).resolve().parents[1]
-    data = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
-    assert __version__ == data["project"]["version"]
+    assert __version__ == _declared_version()
