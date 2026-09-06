@@ -445,3 +445,31 @@ def test_build_jobs_urls_are_stable_for_resume():
     first = {j[1] for j in build_jobs(SITES, gt, 4, random.Random(1234))}
     second = {j[1] for j in build_jobs(SITES, gt, 4, random.Random(1234))}
     assert first == second
+
+
+def test_manifest_counts_survive_incremental_flushing(tmp_path, monkeypatch, found_html, not_found_html):
+    """Regression: the manifest summarised the in-memory buffer.
+
+    With incremental flushing that buffer holds only the final batch, so a
+    2284-record capture across 428 sites reported "17 sites".
+    """
+    import asyncio as _asyncio
+
+    from aliens_eye.corpus import record as record_mod
+
+    urls = {f"https://s{i}.example/u": (200 if i % 2 else 404, found_html) for i in range(12)}
+    monkeypatch.setattr(record_mod, "fetch_url", FakeNetwork(urls))
+
+    root = tmp_path / "c"
+    manifest = _asyncio.run(record_mod.record_corpus(
+        {f"s{i}": f"https://s{i}.example/{{}}" for i in range(12)},
+        {f"s{i}": ["u"] for i in range(12)},
+        root,
+        _NullLogger(),
+        negatives_per_site=1,
+        concurrency=4,
+        flush_every=3,
+    ))
+    assert manifest["records"] == 24
+    assert len(manifest["sites"]) == 12, "manifest must describe the whole corpus"
+    assert ReplayFetcher(root).stats()["records"] == 24

@@ -238,10 +238,13 @@ async def record_corpus(
 
         await asyncio.gather(*(run(job[1]) for job in jobs))
 
-    captured = recorder.records
-    errors = sum(1 for r in captured if r.error)
     written = recorder.flush()
     total_written = recorder.flushed
+    # Read back from disk, not from the buffer: incremental flushing clears
+    # recorder.records as it goes, so summarising the buffer would describe only
+    # whatever happened to remain in the final batch.
+    persisted = list(store.iter_records())
+    errors = sum(1 for r in persisted if r.error)
 
     manifest = {
         "tool_version": __version__,
@@ -254,7 +257,7 @@ async def record_corpus(
         "records": total_written,
         "records_final_flush": written,
         "errors": errors,
-        "sites": sorted({r.site for r in captured if r.site}),
+        "sites": sorted({r.site for r in persisted if r.site}),
         "skipped_sites": skipped,
     }
     store.write_manifest(manifest)

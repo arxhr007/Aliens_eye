@@ -424,3 +424,94 @@ Not the detector — the measurement.
 
 Fixing attrition — multiple vantage points, retries across days, honouring
 Retry-After more patiently — is now worth more than any change to the detector.
+
+---
+
+# Corpus v3 — attrition fixed, and the null result confirmed
+
+The 43% attrition in v2 was not the network being hostile. It was a bug in this
+tool: `DEFAULT_HEADERS` advertised `br` while Brotli was not a dependency, so
+every server that honoured it returned a body aiohttp raised on. 852 of 978
+errors, 173 of 428 sites failing completely.
+
+Fixed, re-captured, and the evaluation is a different instrument:
+
+| | v2 | v3 |
+|---|---|---|
+| Records | 2284 | 2284 |
+| Capture errors | 978 (**42.8%**) | 126 (**5.5%**) |
+| Sites failing completely | 173 | 0 |
+| Distinct bodies | 974 | 1720 |
+| Usable holdout rows | 375 | **696** |
+
+**This was the decisive test, and the null result survived it.** The earlier
+caveat — "the evaluation is limited by measurement, not detection" — turned out
+to be only half right. Measurement *was* badly broken; fixing it nearly doubled
+the usable data and changed the conclusion not at all.
+
+## Ablations, v3 holdout (142 sites, 696 rows: 170 pos / 526 neg)
+
+| Configuration | P | R | F1 | 95% CI | FPR | Maybe | vs shipped |
+|---|---|---|---|---|---|---|---|
+| status_only | 0.434 | 0.676 | 0.529 | 0.47–0.58 | 0.285 | 0.000 | +0.011 ns |
+| status_not_404 | 0.373 | 0.912 | 0.529 | 0.48–0.58 | 0.496 | 0.000 | +0.011 ns |
+| heuristic_only | 0.344 | 0.853 | 0.490 | 0.44–0.54 | 0.527 | 0.108 | −0.028 ns |
+| ml_only | 0.642 | 0.453 | 0.531 | 0.46–0.60 | **0.082** | 0.510 | +0.013 ns |
+| blended_shipped | 0.434 | 0.641 | 0.518 | 0.46–0.58 | 0.270 | 0.351 | reference |
+| no_size | 0.458 | 0.635 | 0.532 | 0.47–0.59 | 0.243 | 0.369 | +0.014 |
+| no_timing | 0.460 | 0.635 | 0.533 | 0.47–0.59 | 0.241 | 0.356 | +0.015 |
+
+Every F1 sits between 0.49 and 0.53, with overlapping CIs. `no_size` and
+`no_timing` cross the significance line by +0.014 and +0.015; across 12
+comparisons at 95% roughly one such crossing is expected by chance, and an effect
+that small is not worth acting on either way.
+
+The one real difference is **not in F1 but in the error profile**: `ml_only` runs
+at FPR 0.082 against the shipped blend's 0.270 and `heuristic_only`'s 0.527. It
+buys that by abstaining on 51% of rows and recalling only 0.453. For an
+investigative tool — where a false lead costs an analyst an hour and a miss costs
+a retry — that trade may well be the right one. It is a design argument, not an
+accuracy claim, and the paper should present it as such.
+
+## External baselines, v3 holdout, cross-sourced
+
+**Sherlock** — 182 rows (26% of holdout; 422 self-sourced rows excluded):
+
+| Detector | F1 | ΔF1 vs Sherlock | 95% CI |
+|---|---|---|---|
+| Sherlock | 0.576 | reference | |
+| ours: ml_only | 0.630 | +0.055 | [−0.065, +0.167] ns |
+| ours: status_only | 0.585 | +0.009 | [−0.056, +0.074] ns |
+| ours: blended_shipped | 0.549 | −0.026 | [−0.098, +0.045] ns |
+
+**WhatsMyName** — 57 rows (8%; 286 no rule, 144 undecided, 209 excluded):
+
+| Detector | F1 | ΔF1 vs WMN | 95% CI |
+|---|---|---|---|
+| WhatsMyName | 0.929 | reference | |
+| ours: ml_only | **0.929** | **+0.000** | **[+0.000, +0.000]** ns |
+| ours: blended_shipped | 0.765 | −0.164 | [−0.312, −0.055] separable |
+| ours: status_only | 0.722 | −0.206 | [−0.368, −0.086] separable |
+
+`ml_only` again produces **predictions identical to WhatsMyName on every row WMN
+decides** — 57 rows now, up from 37 in v2. A zero-width CI twice, on independent
+captures, is not coincidence: on the subset where curated rules are confident, a
+rule-free classifier reaches the same answers.
+
+## The claim, after three corpora
+
+1. **A rule-free classifier matches curated per-site rules.** Tied with Sherlock
+   on 182 non-circular rows; prediction-identical to WhatsMyName on all 57 rows
+   it decides. Achieved with zero per-site maintenance and defined on all 840
+   catalogue sites rather than 475 or 688.
+2. **No approach — ML, heuristic, or curated rules — beats an HTTP-status
+   baseline on held-out platforms.** This now rests on 696 rows at 5.5%
+   attrition, so it is a finding about the problem, not an artifact of bad data.
+3. **The tri-state design is the real lever.** Abstention converts F1-neutral
+   configurations into materially different error profiles (FPR 0.082 vs 0.527).
+4. **Live-web evaluation is unstable**: 45.5% of pages changed feature vector
+   within hours.
+
+Remaining threats: ~7.6% label noise in imported positives; external rule
+coverage of only 26% (Sherlock) and 8% (WhatsMyName) of holdout rows; single
+vantage point; no human-rated subsample or inter-rater agreement.
