@@ -140,3 +140,23 @@ def test_brotli_is_a_declared_dependency():
     data = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
     deps = " ".join(data["project"]["dependencies"]).lower()
     assert "brotli" in deps
+
+
+def test_package_version_matches_pyproject():
+    """__version__ and pyproject must agree.
+
+    Regression: 2.2.3 was built with pyproject bumped but
+    src/aliens_eye/__init__.py left at 2.2.2, so the installed package reported
+    the previous version. __version__ is what `--version` prints and what the
+    corpus manifest records as tool_version, so a stale value silently
+    mislabels captured research data.
+    """
+    from pathlib import Path
+
+    import tomllib
+
+    from aliens_eye import __version__
+
+    root = Path(__file__).resolve().parents[1]
+    data = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+    assert __version__ == data["project"]["version"]
