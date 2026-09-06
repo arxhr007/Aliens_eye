@@ -34,6 +34,14 @@ CURATED = "curated"
 SHERLOCK = "sherlock"
 WHATSMYNAME = "whatsmyname"
 
+#: Status codes that actually carry evidence about whether an account exists.
+#: Anything else -- 401/403 (auth or bot wall), 429 (rate limited), 5xx, 0
+#: (transport failure) -- says the request did not get a real answer. Treating
+#: those as evidence of absence conflates a capture failure with a label error:
+#: an early version of this check flagged Hacker News accounts that plainly
+#: exist, purely because the capture was rate limited.
+CONCLUSIVE_STATUSES = {200, 203, 204, 301, 302, 303, 307, 308, 404, 410}
+
 #: Handles used as generic placeholders rather than real accounts. Present in a
 #: source's data as test fixtures; they need verification before use as positives.
 PLACEHOLDER_HANDLES = {
@@ -221,10 +229,14 @@ def verify_positives(
     engine agreeing with its own tuning set proves nothing.
     """
     suspects: list[dict[str, Any]] = []
-    confirmed = skipped = unrulable = 0
+    confirmed = unrulable = inconclusive = 0
 
     for obs in observations:
         if obs.error or obs.label != 1:
+            continue
+        if obs.status_code not in CONCLUSIVE_STATUSES:
+            # The capture never got a real answer, so it is not evidence either way.
+            inconclusive += 1
             continue
         source = provenance.get(obs.site, CURATED)
         verdicts: dict[str, str] = {}
@@ -249,7 +261,6 @@ def verify_positives(
             })
         else:
             confirmed += 1
-        skipped += 0
 
     by_source: dict[str, int] = {}
     for entry in suspects:
@@ -259,6 +270,7 @@ def verify_positives(
         "corroborated": confirmed,
         "suspect": len(suspects),
         "no_independent_rule": unrulable,
+        "inconclusive_capture": inconclusive,
         "suspect_by_source": dict(sorted(by_source.items())),
         "suspect_placeholder_handles": sum(1 for s in suspects if s["placeholder"]),
         "suspects": sorted(suspects, key=lambda s: (s["source"], s["site"])),

@@ -89,3 +89,61 @@ An earlier version of this work did exactly that and reported a meaningless
    are ordinary users with sparse pages.
 4. **Single snapshot.** One capture, one day. No measurement of how fast platform
    markup drifts, which is itself worth reporting.
+
+---
+
+# Ground truth v2 — cross-sourced expansion
+
+43 sites → **428 sites, 572 accounts**, built from the account lists Sherlock and
+WhatsMyName already ship.
+
+```bash
+aliens_eye eval groundtruth --sherlock sherlock.json --whatsmyname wmn.json
+```
+
+| Split | Sites | Accounts | curated | sherlock | whatsmyname |
+|---|---|---|---|---|---|
+| train | 286 | 389 | 30 | 171 | 85 |
+| holdout | 142 | 183 | 13 | 90 | 39 |
+
+## Why provenance is recorded
+
+Each project's accounts are **its own tuning set**. Sherlock's rules are
+maintained so `username_claimed` returns Found; WhatsMyName's `e_string` markers
+are chosen against its `known` accounts. Scoring a tool on the accounts its rules
+were tuned against measures memorisation, not detection — and would have made
+both external baselines look far better than they are.
+
+So every site records its source, sites covered by both projects are alternated
+between them, and `eval external` drops a site when scoring the project that
+supplied it. Both tools stay measurable: the holdout has 90 Sherlock-sourced
+sites (used to score WhatsMyName) and 39 WhatsMyName-sourced ones (used to score
+Sherlock). The 43 originally curated sites are scoreable against either.
+
+## Label quality — the main open risk
+
+Imported accounts are **asserted by their source project, not verified here**.
+220 of Sherlock's 481 handles are generic placeholders (`blue`, `red`, `user`).
+Some certainly do not exist, and a false positive in ground truth is worse than a
+missing site: it teaches the model that an absent-user page is a profile.
+
+Mitigations in place:
+
+- Every imported entry carries `verified: false` and flags placeholder handles.
+- `verify_positives()` cross-checks each imported positive against every rule set
+  **other than its own source** and reports positives that all independent rules
+  call absent. These are candidates for review, not automatic deletions — a rule
+  can be stale, and deleting on one signal would silently bias the set.
+
+What this does **not** give is a human-rated sample or a Cohen's κ, which a
+forensics venue will expect. The honest position: this is a machine-corroborated
+set, and the paper must describe it that way rather than as verified ground
+truth. A hand-labelled subsample is still required.
+
+## Licensing of the derived set
+
+The ground truth mixes MIT (Sherlock) and CC BY-SA 4.0 (WhatsMyName) material.
+The WhatsMyName-derived portion carries attribution and share-alike; provenance
+is recorded per site precisely so the obligations can be honoured per entry
+rather than assumed across the whole file. Neither upstream data file is
+redistributed here.

@@ -325,3 +325,102 @@ experiment needs the Phase C expansion.
 - Only Sherlock and WhatsMyName were run. Maigret is supported (same rule
   vocabulary) but was not fetched.
 - 151 rows, 39 positives. Same power limits as the rest of Phase D.
+
+---
+
+# Phase C — 428-site corpus, and what it overturns
+
+Corpus v2: 428 sites, 2284 records (572 positive / 1712 negative), 974 distinct
+bodies, 978 capture errors (43%). Ground truth cross-sourced with provenance, so
+neither external tool is scored on its own tuning set.
+
+**The Phase D findings did not replicate.** They were measured on a 43-site
+corpus that included sites the model trained on. On a site-disjoint 142-site
+holdout they disappear.
+
+## Ablations — v1 (43 sites) vs v2 holdout (142 sites)
+
+| Configuration | v1 F1 | v1 vs shipped | v2 F1 | v2 95% CI | v2 vs shipped |
+|---|---|---|---|---|---|
+| status_only | 0.538 | −0.031 ns | 0.538 | 0.46–0.61 | +0.007 ns |
+| heuristic_only | 0.513 | −0.056 ns | 0.500 | 0.43–0.57 | −0.031 ns |
+| **ml_only** | 0.694 | **+0.126 separable** | 0.546 | 0.45–0.63 | **+0.015 ns** |
+| blended_shipped | 0.569 | reference | 0.531 | 0.45–0.60 | reference |
+
+`ml_only`'s significant +0.126 advantage over the shipped blend **vanishes**
+(+0.015, ns) once the model is evaluated only on platforms it never trained on.
+Its F1 falls 0.694 → 0.546 and its precision 0.758 → 0.595. The Phase D
+conclusion — "drop the heuristic, ship ml_weight 1.0" — **is not supported by
+this evaluation** and should not be acted on.
+
+More bluntly: on the v2 holdout **no configuration is distinguishable from
+`if status == 200`.** Every comparison against the shipped blend is ns except
+`no_timing` (+0.023), and with 12 comparisons at 95% confidence roughly one
+false positive is expected by chance, so that row is not evidence either.
+
+## External baselines, cross-sourced and non-circular
+
+Sherlock scored only on sites whose accounts came from WhatsMyName or our own
+curation (225 self-sourced rows excluded); WhatsMyName likewise (98 excluded).
+
+**Sherlock** — 120 rows, 32% of the holdout:
+
+| Detector | F1 | ΔF1 vs Sherlock | 95% CI |
+|---|---|---|---|
+| Sherlock | 0.562 | reference | |
+| ours: ml_only | 0.613 | +0.051 | [−0.093, +0.194] ns |
+| ours: status_only | 0.588 | +0.026 | [−0.054, +0.107] ns |
+| ours: blended_shipped | 0.571 | +0.010 | [−0.084, +0.108] ns |
+| ours: heuristic_only | 0.522 | −0.039 | [−0.111, +0.037] ns |
+
+**WhatsMyName** — 37 rows, 10% of the holdout (141 no rule, 99 undecided):
+
+| Detector | F1 | ΔF1 vs WMN | 95% CI |
+|---|---|---|---|
+| WhatsMyName | 0.933 | reference | |
+| ours: ml_only | 0.933 | +0.000 | [+0.000, +0.000] ns |
+| ours: blended_shipped | 0.667 | −0.267 | [−0.504, −0.089] **separable** |
+| ours: status_only | 0.636 | −0.297 | [−0.538, −0.111] **separable** |
+
+`ml_only` produces **identical predictions to WhatsMyName on all 37 rows** — a
+zero-width CI, not a near miss. On the narrow subset WMN is willing to decide,
+the rule-free classifier and 688 curated rules agree completely.
+
+## Where this leaves the paper
+
+Supportable now:
+
+1. **A rule-free classifier matches curated per-site rules on held-out
+   platforms.** Statistically tied with Sherlock on 120 non-circular rows;
+   identical to WhatsMyName on the 37 rows it decides. Neither better nor worse —
+   but achieved with zero per-site maintenance, and defined on all 840 catalogue
+   sites rather than 475 or 688.
+2. **Current username-enumeration benchmarks cannot resolve the differences the
+   field claims.** On 375 holdout rows, nothing — not ML, not heuristics, not
+   curated rules — separates from an HTTP-status baseline.
+3. **Live-web evaluation is unstable**: 45.5% of pages changed feature vector
+   within hours (Phase B).
+
+Not supportable, and previously overstated here:
+
+- That this tool beats a naive status check. It does not, on held-out sites.
+- That dropping the heuristic significantly helps. It does not replicate.
+- Any claim resting on the v1 corpus, which was not a generalization test.
+
+## What actually limits this evaluation
+
+Not the detector — the measurement.
+
+- **Capture attrition 43%** (978/2284; 376/751 on the holdout). Half the
+  evaluation is thrown away before scoring, and what survives is conditioned on
+  being reachable and unblocked from one residential connection on one day.
+- **Label noise ≈ 7.6%.** Of 131 independently checkable positives, 10 are
+  contradicted by every rule set other than their own source — `fanpop/test`,
+  `notabug.org/red`, `mstdn.io/greg` (HTTP 410 Gone). Imported accounts are
+  asserted, not verified.
+- **Rule coverage is thin on ordinary sites.** Sherlock has rules for only 32% of
+  holdout rows, WhatsMyName decides 10%. The comparison rests on a fraction of
+  the corpus.
+
+Fixing attrition — multiple vantage points, retries across days, honouring
+Retry-After more patiently — is now worth more than any change to the detector.

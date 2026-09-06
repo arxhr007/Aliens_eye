@@ -243,3 +243,31 @@ def test_suspects_report_source_and_placeholder_status():
     assert result["suspect_by_source"] == {SHERLOCK: 1}
     assert result["suspect_placeholder_handles"] == 1
     assert "blue" in PLACEHOLDER_HANDLES
+
+
+def test_inconclusive_captures_are_not_evidence_of_a_bad_label():
+    """A rate-limited or bot-walled capture says nothing about existence.
+
+    Regression: an earlier version flagged Hacker News accounts that plainly
+    exist, purely because the capture came back 429.
+    """
+    from aliens_eye.eval.ablate import Observation
+
+    rows = [
+        Observation("hn", "pg", "https://hn.example/pg", 1, 429, {}, {}),
+        Observation("hn", "dang", "https://hn.example/dang", 1, 403, {}, {}),
+        Observation("hn", "x", "https://hn.example/x", 1, 0, {}, {}),
+    ]
+    result = verify_positives(rows, {"sherlock": _Engine("Not Found")}, {})
+    assert result["suspect"] == 0
+    assert result["inconclusive_capture"] == 3
+    assert result["checked"] == 0
+
+
+def test_conclusive_statuses_are_still_checked():
+    from aliens_eye.eval.ablate import Observation
+
+    rows = [Observation("s", "ghost", "https://s.example/ghost", 1, 404, {}, {})]
+    result = verify_positives(rows, {"sherlock": _Engine("Not Found")}, {})
+    assert result["suspect"] == 1
+    assert result["inconclusive_capture"] == 0
