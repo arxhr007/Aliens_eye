@@ -177,6 +177,25 @@ def build_selfcheck_parser() -> ArgumentParser:
         "--report", choices=["table", "json"], default="table",
         help="Output format: rich table (default) or machine-readable JSON",
     )
+    parser.add_argument(
+        "--split", choices=["train", "holdout", "all"], default="train",
+        help="Ground-truth split to score: train (default), holdout (sites the "
+             "model never trained on), or all",
+    )
+    parser.add_argument(
+        "--ground-truth", type=str,
+        help="Path to a custom ground-truth JSON (overrides --split)",
+    )
+    parser.add_argument(
+        "--corpus", type=str,
+        help="Score against a frozen response corpus instead of the live web "
+             "(reproducible; see 'aliens_eye corpus record')",
+    )
+    parser.add_argument(
+        "--allow-corpus-misses", action="store_true",
+        help="With --corpus, score URLs absent from the corpus as fetch errors "
+             "instead of failing loudly",
+    )
     return parser
 
 
@@ -192,12 +211,111 @@ def build_train_parser() -> ArgumentParser:
     collect.add_argument("--negatives", type=int, default=2, help="Negative samples per site")
     collect.add_argument("--seed", type=int, default=None, help="Random seed")
     collect.add_argument("--sites", type=str, help="Path to a custom sites JSON")
+    collect.add_argument(
+        "--split", choices=["train", "holdout", "all"], default="train",
+        help="Ground-truth split to collect from. Defaults to train; anything "
+             "else reintroduces train/eval leakage and requires --allow-leakage",
+    )
+    collect.add_argument(
+        "--allow-leakage", action="store_true",
+        help="Permit collecting training data from a non-train split (research use only)",
+    )
     collect.add_argument("-v", "--verbose", action="store_true")
 
     fit = sub.add_parser("fit", help="Train the model from a labeled dataset CSV")
     fit.add_argument("--data", type=str, required=True, help="Labeled dataset CSV")
     fit.add_argument("--out", type=str, default="model.json", help="Output model JSON path")
     fit.add_argument("-v", "--verbose", action="store_true")
+    return parser
+
+
+def build_corpus_parser() -> ArgumentParser:
+    parser = ArgumentParser(
+        prog="aliens_eye corpus",
+        description="Record and inspect a frozen response corpus for reproducible evaluation",
+    )
+    sub = parser.add_subparsers(dest="corpus_command", required=True)
+
+    record = sub.add_parser("record", help="Capture live responses for the ground-truth accounts")
+    record.add_argument("--out", type=str, required=True, help="Corpus directory to write")
+    record.add_argument(
+        "--split", choices=["train", "holdout", "all"], default="all",
+        help="Ground-truth split to capture (default: all)",
+    )
+    record.add_argument("--ground-truth", type=str, help="Custom ground-truth JSON (overrides --split)")
+    record.add_argument("--negatives", type=int, default=4, help="Negative usernames per site")
+    record.add_argument(
+        "--plausible-ratio", type=float, default=0.5,
+        help="Fraction of negatives with realistic handle morphology rather than random strings",
+    )
+    record.add_argument("--seed", type=int, default=1234, help="Seed for negative generation")
+    record.add_argument("--concurrency", type=int, default=20)
+    record.add_argument("--timeout", type=float, default=15.0)
+    record.add_argument("--sites", type=str, help="Path to a custom sites JSON")
+    record.add_argument("-v", "--verbose", action="store_true")
+
+    stats = sub.add_parser("stats", help="Summarise a recorded corpus")
+    stats.add_argument("path", type=str, help="Corpus directory")
+    stats.add_argument("--json", action="store_true", dest="json_out", help="Machine-readable output")
+    stats.add_argument("-v", "--verbose", action="store_true")
+    return parser
+
+
+def build_eval_parser() -> ArgumentParser:
+    parser = ArgumentParser(
+        prog="aliens_eye eval",
+        description="Reproducible detector evaluation over a frozen corpus",
+    )
+    sub = parser.add_subparsers(dest="eval_command", required=True)
+
+    ablate = sub.add_parser(
+        "ablate", help="Score detector configurations over a corpus (baselines, judges, feature groups)"
+    )
+    ablate.add_argument("--corpus", type=str, required=True, help="Corpus directory")
+    ablate.add_argument(
+        "--split", choices=["train", "holdout", "all"], default="holdout",
+        help="Ground-truth split to score (default: holdout)",
+    )
+    ablate.add_argument("--ground-truth", type=str, help="Custom ground-truth JSON")
+    ablate.add_argument("--model", type=str, help="Path to a custom ML model JSON")
+    ablate.add_argument(
+        "--only", type=str,
+        help="Comma-separated ablation names to run (default: all)",
+    )
+    ablate.add_argument(
+        "--fingerprints", action="store_true",
+        help="Enable the fingerprint store, populated in a fixed order",
+    )
+    ablate.add_argument("--out", type=str, help="Write the full result bundle as JSON here")
+    ablate.add_argument("--json", action="store_true", dest="json_out", help="Print JSON to stdout")
+    ablate.add_argument("-v", "--verbose", action="store_true")
+
+    external = sub.add_parser(
+        "external",
+        help="Compare against external tool rule sets (Sherlock / Maigret / WhatsMyName) over the corpus",
+    )
+    external.add_argument("--corpus", type=str, required=True, help="Corpus directory")
+    external.add_argument(
+        "--split", choices=["train", "holdout", "all"], default="all",
+        help="Ground-truth split to score (default: all)",
+    )
+    external.add_argument("--ground-truth", type=str, help="Custom ground-truth JSON")
+    external.add_argument("--model", type=str, help="Path to a custom ML model JSON")
+    external.add_argument(
+        "--sherlock", type=str,
+        help="Path to Sherlock's data.json (MIT; fetch it yourself, it is not vendored)",
+    )
+    external.add_argument(
+        "--maigret", type=str,
+        help="Path to Maigret's data.json (MIT); read with the Sherlock rule semantics",
+    )
+    external.add_argument(
+        "--whatsmyname", type=str,
+        help="Path to wmn-data.json (CC BY-SA 4.0, (C) Micah Hoffman et al.)",
+    )
+    external.add_argument("--out", type=str, help="Write the result bundle as JSON here")
+    external.add_argument("--json", action="store_true", dest="json_out", help="Print JSON to stdout")
+    external.add_argument("-v", "--verbose", action="store_true")
     return parser
 
 
@@ -759,8 +877,10 @@ def _print_domains(console, domains: dict) -> None:
 
 
 async def run_selfcheck_command(args) -> None:
+    from aliens_eye.core.http import fetch_url
     from aliens_eye.selfcheck import run_selfcheck
 
+    console = get_console()
     if args.report == "json":
         set_plain(True, stderr=True)
     elif args.plain:
@@ -771,9 +891,46 @@ async def run_selfcheck_command(args) -> None:
     detector = Detector()
     if not args.no_ml:
         detector.load_model(logger, Path(args.model) if args.model else None)
+    fetch = fetch_url
+    jobs = None
+    if args.corpus:
+        from aliens_eye.corpus.replay import ReplayFetcher
+        from aliens_eye.ml.collect import load_selfcheck_data
+
+        replay = ReplayFetcher(Path(args.corpus), strict=not args.allow_corpus_misses)
+        fetch = replay
+        # The corpus supplies the evaluation set, filtered to the requested
+        # split. Regenerating negatives here would miss the corpus entirely and
+        # leave the negative class empty.
+        sites = None
+        if args.split != "all":
+            sites = set(
+                load_selfcheck_data(
+                    args.split, Path(args.ground_truth) if args.ground_truth else None
+                )
+            )
+        jobs = replay.eval_jobs(sites)
+        if not jobs:
+            console.print(
+                f"[red]Corpus at {args.corpus} holds no labelled records for split "
+                f"{args.split!r}.[/red]"
+            )
+            return
+        positives = sum(1 for j in jobs if j[3] == 1)
+        if args.report != "json":
+            console.print(
+                f"[dim]Replaying {len(jobs)} corpus rows "
+                f"({positives} positive / {len(jobs) - positives} negative) "
+                f"from {args.corpus} — no network.[/dim]"
+            )
+
     await run_selfcheck(
         sites_data, detector, config, logger,
         negatives=args.negatives, report_format=args.report,
+        split=args.split,
+        ground_truth_path=Path(args.ground_truth) if args.ground_truth else None,
+        fetch=fetch,
+        jobs=jobs,
     )
 
 
@@ -783,6 +940,12 @@ async def run_train_command(args) -> None:
     if args.train_command == "collect":
         from aliens_eye.ml.collect import collect_dataset
 
+        if args.split != "train" and not args.allow_leakage:
+            console.print(
+                f"[red]Refusing to collect training data from the '{args.split}' split:[/red] "
+                "it overlaps the evaluation holdout. Pass --allow-leakage to override."
+            )
+            return
         sites_data = load_sites_data(Path(args.sites) if args.sites else None)
         count = await collect_dataset(
             sites_data,
@@ -790,6 +953,7 @@ async def run_train_command(args) -> None:
             logger,
             negatives_per_site=args.negatives,
             seed=args.seed,
+            split=args.split,
         )
         console.print(f"[green]Collected {count} labeled samples -> {args.out}[/green]")
     elif args.train_command == "fit":
@@ -802,6 +966,243 @@ async def run_train_command(args) -> None:
             + (f" (cv accuracy {cv:.1%})" if cv is not None else "")
             + f" -> {args.out}[/green]"
         )
+
+
+async def run_corpus_command(args) -> None:
+    logger = setup_logger(args.verbose)
+    console = get_console()
+
+    if args.corpus_command == "record":
+        from aliens_eye.corpus.record import record_corpus
+        from aliens_eye.ml.collect import load_selfcheck_data
+
+        sites_data = load_sites_data(Path(args.sites) if args.sites else None)
+        ground_truth = load_selfcheck_data(
+            args.split, Path(args.ground_truth) if args.ground_truth else None
+        )
+        console.print(
+            f"[blue]Recording[/blue] {sum(len(v) for v in ground_truth.values())} positives + "
+            f"{args.negatives}/site negatives across {len(ground_truth)} sites -> {args.out}"
+        )
+        manifest = await record_corpus(
+            sites_data,
+            ground_truth,
+            Path(args.out),
+            logger,
+            negatives_per_site=args.negatives,
+            concurrency=args.concurrency,
+            seed=args.seed,
+            split=args.split,
+            plausible_ratio=args.plausible_ratio,
+            config=ScannerConfig(retries=2, timeout=args.timeout),
+        )
+        console.print(
+            f"[green]Captured {manifest['records']} records[/green] "
+            f"({manifest['errors']} fetch errors) across {len(manifest['sites'])} sites"
+        )
+        if manifest["skipped_sites"]:
+            console.print(
+                f"[yellow]Skipped (missing from sites.json):[/yellow] "
+                f"{', '.join(manifest['skipped_sites'])}"
+            )
+        return
+
+    from rich.table import Table
+
+    from aliens_eye.corpus.replay import ReplayFetcher
+
+    replay = ReplayFetcher(Path(args.path), strict=False)
+    stats = replay.stats()
+    if args.json_out:
+        print(json.dumps(stats, indent=2))
+        return
+    table = Table(title=f"Corpus: {args.path}", header_style="bold blue")
+    table.add_column("Field", style="yellow")
+    table.add_column("Value", justify="right")
+    for key, value in stats.items():
+        table.add_row(key, str(value))
+    console.print(table)
+
+
+async def run_eval_command(args) -> None:
+    from rich.table import Table
+
+    from aliens_eye.eval.ablate import run_ablations
+
+    if args.eval_command == "external":
+        await run_eval_external_command(args)
+        return
+
+    if args.json_out:
+        set_plain(True, stderr=True)
+    logger = setup_logger(args.verbose)
+    console = get_console()
+
+    detector = Detector()
+    detector.load_model(logger, Path(args.model) if args.model else None)
+    if detector.model is None:
+        console.print("[yellow]No ML model loaded; ml_only and blended rows will match heuristic_only.[/yellow]")
+
+    sites = None
+    if args.split != "all":
+        from aliens_eye.ml.collect import load_selfcheck_data
+
+        sites = set(
+            load_selfcheck_data(
+                args.split, Path(args.ground_truth) if args.ground_truth else None
+            )
+        )
+
+    bundle = await run_ablations(
+        Path(args.corpus),
+        detector,
+        logger,
+        sites=sites,
+        names=[n.strip() for n in args.only.split(",")] if args.only else None,
+        use_fingerprints=args.fingerprints,
+    )
+
+    if args.out:
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(bundle, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    if args.json_out:
+        print(json.dumps(bundle, indent=2, sort_keys=True))
+        return
+
+    console.print(
+        f"[blue]Corpus[/blue] {bundle['corpus']}  "
+        f"[blue]split[/blue] {args.split}  "
+        f"[blue]rows[/blue] {bundle['usable_rows']} usable "
+        f"({bundle['positives']} pos / {bundle['negatives']} neg, "
+        f"{bundle['excluded_rows']} excluded)"
+    )
+    table = Table(title="Ablation results", header_style="bold blue")
+    table.add_column("Configuration", style="yellow")
+    for col in ("P", "R", "F1", "F1 95% CI", "FPR", "Maybe", "vs shipped"):
+        table.add_column(col, justify="right")
+    for row in bundle["results"]:
+        m = row["overall"]
+        f1 = m["f1"]
+        style = "green" if f1 >= 0.8 else "yellow" if f1 >= 0.6 else "red"
+        boot = row.get("bootstrap", {})
+        ci = f"{boot.get('ci_low', 0):.2f}-{boot.get('ci_high', 0):.2f}" if boot else "-"
+        delta = row.get("vs_reference")
+        if delta is None:
+            vs = "[dim]reference[/dim]"
+        elif delta["separable"]:
+            vs = f"[bold]{delta['delta']:+.3f}[/bold]"
+        else:
+            vs = f"[dim]{delta['delta']:+.3f} ns[/dim]"
+        table.add_row(
+            row["name"],
+            f"{m['precision']:.3f}", f"{m['recall']:.3f}",
+            f"[{style}]{f1:.3f}[/{style}]", ci,
+            f"{m['false_positive_rate']:.3f}", f"{m['maybe_rate']:.3f}", vs,
+        )
+    console.print(table)
+    console.print(
+        "[dim]ns = 95% paired-bootstrap CI on the F1 difference spans zero: "
+        "this corpus cannot distinguish that configuration from the shipped blend.[/dim]"
+    )
+    if args.out:
+        console.print(f"[dim]Full bundle written to {args.out}[/dim]")
+
+
+async def run_eval_external_command(args) -> None:
+    from rich.table import Table
+
+    from aliens_eye.eval.external import compare_external
+
+    if args.json_out:
+        set_plain(True, stderr=True)
+    logger = setup_logger(args.verbose)
+    console = get_console()
+
+    rule_paths = {
+        name: Path(value)
+        for name, value in (
+            ("sherlock", args.sherlock),
+            ("maigret", args.maigret),
+            ("whatsmyname", args.whatsmyname),
+        )
+        if value
+    }
+    if not rule_paths:
+        console.print(
+            "[red]No rule sets given.[/red] Pass at least one of --sherlock / --maigret / "
+            "--whatsmyname. The rule data is not vendored; fetch it from the upstream "
+            "project and mind its licence."
+        )
+        return
+    missing = [str(p) for p in rule_paths.values() if not p.exists()]
+    if missing:
+        console.print(f"[red]Rule file(s) not found:[/red] {', '.join(missing)}")
+        return
+
+    detector = Detector()
+    detector.load_model(logger, Path(args.model) if args.model else None)
+
+    sites = None
+    if args.split != "all":
+        from aliens_eye.ml.collect import load_selfcheck_data
+
+        sites = set(
+            load_selfcheck_data(
+                args.split, Path(args.ground_truth) if args.ground_truth else None
+            )
+        )
+
+    bundle = await compare_external(
+        Path(args.corpus), detector, logger, rule_paths, sites=sites
+    )
+
+    if args.out:
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(bundle, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if args.json_out:
+        print(json.dumps(bundle, indent=2, sort_keys=True))
+        return
+
+    console.print(
+        f"[blue]Corpus[/blue] {bundle['corpus']}  "
+        f"[blue]usable rows[/blue] {bundle['usable_rows']}"
+    )
+    for entry in bundle["external"]:
+        m = entry["overall"]
+        console.print(
+            f"\n[bold]{entry['name']}[/bold]  "
+            f"rules {entry['source']['usable_rules']}  "
+            f"covered {entry['samples']} rows ({entry['site_coverage']:.0%})  "
+            f"no rule {entry['rows_without_rule']}  undecided {entry['rows_rule_undecided']}"
+        )
+        table = Table(header_style="bold blue")
+        table.add_column("Detector", style="yellow")
+        for col in ("P", "R", "F1", "FPR", "vs this tool", "95% CI"):
+            table.add_column(col, justify="right")
+        table.add_row(
+            entry["name"],
+            f"{m['precision']:.3f}", f"{m['recall']:.3f}", f"{m['f1']:.3f}",
+            f"{m['false_positive_rate']:.3f}", "[dim]reference[/dim]", "",
+        )
+        for our_name, cmp in entry["vs_ours"].items():
+            verdict = "[bold]separable[/bold]" if cmp["separable"] else "[dim]ns[/dim]"
+            table.add_row(
+                f"ours: {our_name}", "", "",
+                f"{cmp['our_f1_on_covered_rows']:.3f}", "",
+                f"{cmp['delta']:+.3f} {verdict}",
+                f"[{cmp['ci_low']:+.3f}, {cmp['ci_high']:+.3f}]",
+            )
+        console.print(table)
+    console.print(
+        "\n[dim]External verdicts come from reimplemented rule semantics applied to the "
+        "same stored responses, not from running the upstream tools. Rows a tool has no "
+        "rule for are excluded from its score rather than counted against it.[/dim]"
+    )
+    if args.out:
+        console.print(f"[dim]Full bundle written to {args.out}[/dim]")
 
 
 def run_diff_command(args) -> None:
@@ -879,6 +1280,12 @@ def main() -> None:
         elif argv and argv[0] == "train":
             args = build_train_parser().parse_args(argv[1:])
             asyncio.run(run_train_command(args))
+        elif argv and argv[0] == "corpus":
+            args = build_corpus_parser().parse_args(argv[1:])
+            asyncio.run(run_corpus_command(args))
+        elif argv and argv[0] == "eval":
+            args = build_eval_parser().parse_args(argv[1:])
+            asyncio.run(run_eval_command(args))
         elif argv and argv[0] == "diff":
             args = build_diff_parser().parse_args(argv[1:])
             run_diff_command(args)
