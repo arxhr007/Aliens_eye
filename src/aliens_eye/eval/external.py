@@ -210,7 +210,11 @@ def _strip(url: str) -> str:
     return url.rstrip("/").lower()
 
 
-def score_engine(engine: RuleEngine, observations) -> dict[str, Any]:
+def score_engine(
+    engine: RuleEngine,
+    observations,
+    excluded_sites: set[str] | None = None,
+) -> dict[str, Any]:
     """Score one external engine over pre-collected corpus observations.
 
     Rows the engine has no rule for, or returns UNKNOWN on, are **excluded** and
@@ -219,14 +223,21 @@ def score_engine(engine: RuleEngine, observations) -> dict[str, Any]:
     """
     from aliens_eye.selfcheck import _metrics
 
+    excluded_sites = excluded_sites or set()
     tp = fp = fn = tn = 0
-    covered = unknown = no_rule = 0
+    covered = unknown = no_rule = self_sourced = 0
     predictions: list[tuple[int, int]] = []
     covered_urls: list[str] = []
     per_site: dict[str, dict[str, int]] = {}
 
     for obs in observations:
         if obs.error:
+            continue
+        if obs.site in excluded_sites:
+            # This site's ground-truth accounts came from the very project being
+            # scored. Its rules are maintained against those accounts, so a
+            # verdict here measures memorisation rather than detection.
+            self_sourced += 1
             continue
         if engine.rule_for(obs.url) is None:
             no_rule += 1
@@ -263,6 +274,7 @@ def score_engine(engine: RuleEngine, observations) -> dict[str, Any]:
         "samples": covered,
         "rows_without_rule": no_rule,
         "rows_rule_undecided": unknown,
+        "rows_excluded_self_sourced": self_sourced,
         "overall": overall,
         "per_site": {
             s: _metrics(c["tp"], c["fp"], c["fn"], c["tn"]) for s, c in per_site.items()
@@ -279,6 +291,7 @@ async def compare_external(
     rule_paths: dict[str, Path],
     sites: set[str] | None = None,
     bootstrap_iterations: int = 4000,
+    provenance: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Score external engines and our own configurations on the same rows.
 
@@ -312,7 +325,9 @@ async def compare_external(
         engine_cls = ENGINES[engine_name]
         engine = engine_cls.load(Path(path))
         engine.name = engine_name
-        scored = score_engine(engine, observations)
+        # Never score a tool on sites whose accounts came from that same tool.
+        excluded = {s for s, src in (provenance or {}).items() if src == engine_name}
+        scored = score_engine(engine, observations, excluded_sites=excluded)
         idx = [index_of[u] for u in scored["covered_urls"] if u in index_of]
 
         against = {}

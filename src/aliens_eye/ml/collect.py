@@ -71,8 +71,41 @@ def load_selfcheck_data(
             data.update(_read_split(name, None))
     else:
         data = _read_split(split, path)
+    return {site: _usernames_of(value) for site, value in data.items()}
+
+
+def _usernames_of(value: Any) -> list[str]:
+    """Accept all three ground-truth shapes.
+
+    Historically a site mapped to a username string or a list of them. Entries
+    imported from an external project also carry provenance, so a site may map
+    to {"usernames": [...], "source": ...} instead; see eval/groundtruth.py.
+    """
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        return [str(u) for u in value.get("usernames", [])]
+    return [str(u) for u in value]
+
+
+def load_ground_truth_sources(
+    split: str = "train",
+    path: Path | None = None,
+) -> dict[str, str]:
+    """Map site -> the project its accounts came from.
+
+    Used to keep an external tool from being scored on the accounts its own
+    rules were tuned against. Sites without recorded provenance are reported as
+    "curated", which is scoreable against every tool.
+    """
+    if path is None and split == "all":
+        data: dict[str, Any] = {}
+        for name in SPLIT_RESOURCES:
+            data.update(_read_split(name, None))
+    else:
+        data = _read_split(split, path)
     return {
-        site: [value] if isinstance(value, str) else list(value)
+        site: (value.get("source", "curated") if isinstance(value, dict) else "curated")
         for site, value in data.items()
     }
 

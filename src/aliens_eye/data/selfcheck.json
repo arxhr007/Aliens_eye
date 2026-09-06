@@ -1,107 +1,2419 @@
 {
-  "github": [
-    "torvalds",
-    "gvanrossum",
-    "mojombo"
-  ],
-  "reddit": [
-    "spez",
-    "kn0thing"
-  ],
-  "gitlab": [
-    "sytses"
-  ],
-  "twitch": [
-    "shroud",
-    "ninja"
-  ],
-  "medium": [
-    "ev"
-  ],
-  "dev.to": [
-    "ben",
-    "jess"
-  ],
-  "npm": [
-    "sindresorhus",
-    "isaacs"
-  ],
-  "pypi": [
-    "dstufft"
-  ],
-  "soundcloud": [
-    "skrillex",
-    "diplo"
-  ],
-  "imgur": [
-    "sarah"
-  ],
-  "patreon": [
-    "jacksepticeye"
-  ],
-  "telegram": [
-    "durov",
-    "telegram"
-  ],
-  "chess.com": [
-    "hikaru",
-    "magnuscarlsen"
-  ],
-  "lichess": [
-    "thibault",
-    "drnykterstein"
-  ],
-  "mastodon.social": [
-    "Gargron"
-  ],
-  "pinterest": [
-    "pinterest"
-  ],
-  "devrant": [
-    "dfox",
-    "trogus"
-  ],
-  "spotify": [
-    "spotify"
-  ],
-  "kaggle": [
-    "kaggle",
-    "abhishek"
-  ],
-  "wikipedia": [
-    "Jimbo_Wales"
-  ],
-  "youtube user": [
-    "pewdiepie"
-  ],
-  "codepen": [
-    "chriscoyier",
-    "cassiecodes"
-  ],
-  "wordpressorg": [
-    "matt",
-    "automattic"
-  ],
-  "docker hub": [
-    "docker"
-  ],
-  "scratch": [
-    "Scratch",
-    "griffpatch"
-  ],
-  "replit.com": [
-    "replit"
-  ],
-  "producthunt": [
-    "ryanhoover"
-  ],
-  "artstation": [
-    "artstation"
-  ],
-  "codewars": [
-    "jhoffner"
-  ],
-  "freecodecamp": [
-    "QuincyLarson"
-  ]
+  "7cups": {
+    "notes": {
+      "placeholder_handles": [
+        "john"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "john",
+      "jbob"
+    ]
+  },
+  "9gag": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "academia.edu": {
+    "source": "whatsmyname",
+    "usernames": [
+      "peter",
+      "LiamM"
+    ]
+  },
+  "admireme.vip": {
+    "source": "sherlock",
+    "usernames": [
+      "DemiDevil"
+    ]
+  },
+  "airliners": {
+    "source": "sherlock",
+    "usernames": [
+      "yushinlin"
+    ]
+  },
+  "akniga": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "all things worn": {
+    "source": "sherlock",
+    "usernames": [
+      "pink"
+    ]
+  },
+  "allmylinks": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "apclips": {
+    "source": "sherlock",
+    "usernames": [
+      "onlybbyraq"
+    ]
+  },
+  "apple developer": {
+    "source": "sherlock",
+    "usernames": [
+      "lio24d"
+    ]
+  },
+  "archive of our own": {
+    "notes": {
+      "placeholder_handles": [
+        "test"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "test"
+    ]
+  },
+  "artstation": {
+    "source": "curated",
+    "usernames": [
+      "artstation"
+    ],
+    "verified": true
+  },
+  "asciinema": {
+    "notes": {
+      "placeholder_handles": [
+        "john",
+        "red"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "john",
+      "red"
+    ]
+  },
+  "atcoder": {
+    "source": "sherlock",
+    "usernames": [
+      "ksun48"
+    ]
+  },
+  "audiojungle": {
+    "notes": {
+      "placeholder_handles": [
+        "john"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "john",
+      "reds"
+    ]
+  },
+  "autofrage": {
+    "source": "sherlock",
+    "usernames": [
+      "autofrage"
+    ]
+  },
+  "avizo": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "babyru": {
+    "notes": {
+      "placeholder_handles": [
+        "example"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "example"
+    ]
+  },
+  "bandcamp": {
+    "source": "whatsmyname",
+    "usernames": [
+      "alice",
+      "bob"
+    ]
+  },
+  "bazar.cz": {
+    "source": "sherlock",
+    "usernames": [
+      "pianina"
+    ]
+  },
+  "behance": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "biggerpockets": {
+    "source": "whatsmyname",
+    "usernames": [
+      "trustgreene",
+      "chasel9"
+    ]
+  },
+  "biohacking": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "blogger": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "bluesky": {
+    "source": "sherlock",
+    "usernames": [
+      "mcuban"
+    ]
+  },
+  "bookcrossing": {
+    "source": "whatsmyname",
+    "usernames": [
+      "countofmonte",
+      "Doris52"
+    ]
+  },
+  "booth": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "buymeacoffee": {
+    "notes": {
+      "placeholder_handles": [
+        "red"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "red"
+    ]
+  },
+  "buzzfeed": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "cafecito": {
+    "source": "whatsmyname",
+    "usernames": [
+      "braftty",
+      "guillermo"
+    ]
+  },
+  "calendly": {
+    "source": "whatsmyname",
+    "usernames": [
+      "honey",
+      "roger"
+    ]
+  },
+  "carbonmade": {
+    "source": "sherlock",
+    "usernames": [
+      "jenny"
+    ]
+  },
+  "career.habr": {
+    "source": "whatsmyname",
+    "usernames": [
+      "sergey-kobets3",
+      "fixten"
+    ]
+  },
+  "cgtrader": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "championat": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "chatujme.cz": {
+    "source": "sherlock",
+    "usernames": [
+      "david"
+    ]
+  },
+  "chaturbate": {
+    "source": "sherlock",
+    "usernames": [
+      "cute18cute"
+    ]
+  },
+  "chess.com": {
+    "source": "curated",
+    "usernames": [
+      "hikaru",
+      "magnuscarlsen"
+    ],
+    "verified": true
+  },
+  "choice community": {
+    "source": "sherlock",
+    "usernames": [
+      "gordon"
+    ]
+  },
+  "clapper": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "clozemaster": {
+    "notes": {
+      "placeholder_handles": [
+        "green"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "green"
+    ]
+  },
+  "clubhouse": {
+    "source": "whatsmyname",
+    "usernames": [
+      "kirbyplessas",
+      "rohan"
+    ]
+  },
+  "code snippet wiki": {
+    "source": "sherlock",
+    "usernames": [
+      "bob"
+    ]
+  },
+  "codeberg": {
+    "source": "whatsmyname",
+    "usernames": [
+      "tivasyk",
+      "happy"
+    ]
+  },
+  "codeforces": {
+    "source": "whatsmyname",
+    "usernames": [
+      "Abdul01",
+      "Abdullah"
+    ]
+  },
+  "codementor": {
+    "source": "whatsmyname",
+    "usernames": [
+      "e4c5",
+      "juanelfers"
+    ]
+  },
+  "codepen": {
+    "source": "curated",
+    "usernames": [
+      "chriscoyier",
+      "cassiecodes"
+    ],
+    "verified": true
+  },
+  "coderwall": {
+    "source": "sherlock",
+    "usernames": [
+      "hacker"
+    ]
+  },
+  "codewars": {
+    "source": "curated",
+    "usernames": [
+      "jhoffner"
+    ],
+    "verified": true
+  },
+  "coinvote": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "contently": {
+    "source": "sherlock",
+    "usernames": [
+      "jordanteicher"
+    ]
+  },
+  "coroflot": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "cracked": {
+    "source": "whatsmyname",
+    "usernames": [
+      "mbattagl",
+      "Hatchback"
+    ]
+  },
+  "crevado": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "cryptomator forum": {
+    "source": "sherlock",
+    "usernames": [
+      "michael"
+    ]
+  },
+  "ctan": {
+    "source": "sherlock",
+    "usernames": [
+      "briggs"
+    ]
+  },
+  "d3ru": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "dailykos": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "datingru": {
+    "notes": {
+      "placeholder_handles": [
+        "john",
+        "blue"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "john",
+      "blue"
+    ]
+  },
+  "dealabs": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "dev community": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "dev.to": {
+    "source": "curated",
+    "usernames": [
+      "ben",
+      "jess"
+    ],
+    "verified": true
+  },
+  "deviantart": {
+    "notes": {
+      "placeholder_handles": [
+        "john"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "rattybike",
+      "john"
+    ]
+  },
+  "devrant": {
+    "source": "curated",
+    "usernames": [
+      "dfox",
+      "trogus"
+    ],
+    "verified": true
+  },
+  "discord": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "discourse": {
+    "source": "whatsmyname",
+    "usernames": [
+      "ndalliard",
+      "gerhard"
+    ]
+  },
+  "disqus": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "dmoj": {
+    "source": "sherlock",
+    "usernames": [
+      "junferno"
+    ]
+  },
+  "docker hub": {
+    "source": "curated",
+    "usernames": [
+      "docker"
+    ],
+    "verified": true
+  },
+  "egpu": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "eintrachtfrankfurt": {
+    "source": "sherlock",
+    "usernames": [
+      "mmammu"
+    ]
+  },
+  "erome": {
+    "source": "sherlock",
+    "usernames": [
+      "bob"
+    ]
+  },
+  "etsy": {
+    "source": "whatsmyname",
+    "usernames": [
+      "david",
+      "happiness"
+    ]
+  },
+  "eyeem": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "f3.cool": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "fameswap": {
+    "source": "sherlock",
+    "usernames": [
+      "fameswap"
+    ]
+  },
+  "fandom": {
+    "source": "sherlock",
+    "usernames": [
+      "Jungypoo"
+    ]
+  },
+  "figma": {
+    "source": "whatsmyname",
+    "usernames": [
+      "bob",
+      "mike"
+    ]
+  },
+  "finanzfrage": {
+    "source": "sherlock",
+    "usernames": [
+      "finanzfrage"
+    ]
+  },
+  "fixya": {
+    "notes": {
+      "placeholder_handles": [
+        "adam"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "adam"
+    ]
+  },
+  "fl": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "flightradar24": {
+    "source": "sherlock",
+    "usernames": [
+      "jebbrooks"
+    ]
+  },
+  "flipboard": {
+    "source": "whatsmyname",
+    "usernames": [
+      "cosmopolitan",
+      "Mashable"
+    ]
+  },
+  "fortnitetracker": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "forum ophilia": {
+    "source": "sherlock",
+    "usernames": [
+      "bob"
+    ]
+  },
+  "fosstodon": {
+    "source": "whatsmyname",
+    "usernames": [
+      "linux",
+      "Phil35"
+    ]
+  },
+  "foursquare": {
+    "source": "whatsmyname",
+    "usernames": [
+      "j0hn",
+      "ncyp23"
+    ]
+  },
+  "freecodecamp": {
+    "source": "curated",
+    "usernames": [
+      "QuincyLarson"
+    ],
+    "verified": true
+  },
+  "freesound": {
+    "source": "whatsmyname",
+    "usernames": [
+      "Manu593",
+      "somewhereinjp"
+    ]
+  },
+  "furaffinity": {
+    "source": "sherlock",
+    "usernames": [
+      "jesus"
+    ]
+  },
+  "gaiaonline": {
+    "notes": {
+      "placeholder_handles": [
+        "adam"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "adam"
+    ]
+  },
+  "gamespot": {
+    "source": "whatsmyname",
+    "usernames": [
+      "alice",
+      "bob"
+    ]
+  },
+  "geeksforgeeks": {
+    "notes": {
+      "placeholder_handles": [
+        "adam"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "adam"
+    ]
+  },
+  "genius (users)": {
+    "source": "sherlock",
+    "usernames": [
+      "genius"
+    ]
+  },
+  "gesundheitsfrage": {
+    "source": "sherlock",
+    "usernames": [
+      "gutefrage"
+    ]
+  },
+  "getmyuni": {
+    "source": "sherlock",
+    "usernames": [
+      "Upneet.Grover17"
+    ]
+  },
+  "giphy": {
+    "notes": {
+      "placeholder_handles": [
+        "red"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "red"
+    ]
+  },
+  "gitbook": {
+    "source": "sherlock",
+    "usernames": [
+      "gitbook"
+    ]
+  },
+  "github": {
+    "source": "curated",
+    "usernames": [
+      "torvalds",
+      "gvanrossum",
+      "mojombo"
+    ],
+    "verified": true
+  },
+  "gitlab": {
+    "source": "curated",
+    "usernames": [
+      "sytses"
+    ],
+    "verified": true
+  },
+  "gnome vcs": {
+    "notes": {
+      "placeholder_handles": [
+        "adam"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "adam"
+    ]
+  },
+  "goodreads": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "gradle": {
+    "source": "sherlock",
+    "usernames": [
+      "jetbrains"
+    ]
+  },
+  "grailed": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "gumroad": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "gutefrage": {
+    "source": "sherlock",
+    "usernames": [
+      "gutefrage"
+    ]
+  },
+  "habr": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "hackaday": {
+    "notes": {
+      "placeholder_handles": [
+        "john",
+        "adam"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "john",
+      "adam"
+    ]
+  },
+  "hackernoon": {
+    "notes": {
+      "placeholder_handles": [
+        "john"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "john",
+      "alex"
+    ]
+  },
+  "hackerone": {
+    "source": "whatsmyname",
+    "usernames": [
+      "born2hack",
+      "godiego"
+    ]
+  },
+  "hackster": {
+    "source": "whatsmyname",
+    "usernames": [
+      "hendra",
+      "sologithu"
+    ]
+  },
+  "harvard scholar": {
+    "source": "sherlock",
+    "usernames": [
+      "ousmanekane"
+    ]
+  },
+  "heavy-r": {
+    "source": "sherlock",
+    "usernames": [
+      "kilroy222"
+    ]
+  },
+  "hive.blog": {
+    "source": "sherlock",
+    "usernames": [
+      "mango-juice"
+    ]
+  },
+  "houzz": {
+    "source": "whatsmyname",
+    "usernames": [
+      "liam",
+      "alex"
+    ]
+  },
+  "hubpages": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "huggingface": {
+    "source": "sherlock",
+    "usernames": [
+      "Pasanlaksitha"
+    ]
+  },
+  "hunting": {
+    "notes": {
+      "placeholder_handles": [
+        "red"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "red"
+    ]
+  },
+  "ifttt": {
+    "source": "whatsmyname",
+    "usernames": [
+      "nr9992",
+      "sss90"
+    ]
+  },
+  "igromania": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "imgsrc.ru": {
+    "source": "whatsmyname",
+    "usernames": [
+      "natalisn",
+      "andydiamond",
+      "natalyck"
+    ]
+  },
+  "imgup.cz": {
+    "notes": {
+      "placeholder_handles": [
+        "adam"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "adam"
+    ]
+  },
+  "imgur": {
+    "source": "curated",
+    "usernames": [
+      "sarah"
+    ],
+    "verified": true
+  },
+  "instructables": {
+    "notes": {
+      "placeholder_handles": [
+        "test"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "davidandora",
+      "test"
+    ]
+  },
+  "interpals": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "ionic forum": {
+    "source": "sherlock",
+    "usernames": [
+      "theblue222"
+    ]
+  },
+  "irecommend": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "itch.io": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "itemfix": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "jellyfin weblate": {
+    "source": "sherlock",
+    "usernames": [
+      "EraYaN"
+    ]
+  },
+  "jeuxvideo": {
+    "notes": {
+      "placeholder_handles": [
+        "adam"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "adam"
+    ]
+  },
+  "joplin forum": {
+    "source": "sherlock",
+    "usernames": [
+      "laurent"
+    ]
+  },
+  "kaggle": {
+    "source": "curated",
+    "usernames": [
+      "kaggle",
+      "abhishek"
+    ],
+    "verified": true
+  },
+  "keybase": {
+    "notes": {
+      "placeholder_handles": [
+        "test"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "test",
+      "mubix"
+    ]
+  },
+  "kik": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "kofi": {
+    "source": "whatsmyname",
+    "usernames": [
+      "frank",
+      "marcmakescomics"
+    ]
+  },
+  "kwork": {
+    "source": "whatsmyname",
+    "usernames": [
+      "ilkarkarakurt",
+      "sergeymeshiy"
+    ]
+  },
+  "launchpad": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "leetcode": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "lemon8": {
+    "source": "whatsmyname",
+    "usernames": [
+      "dateandtravell",
+      "rolinda_reyes"
+    ]
+  },
+  "letterboxd": {
+    "source": "whatsmyname",
+    "usernames": [
+      "serdaraltin",
+      "choi"
+    ]
+  },
+  "liberapay": {
+    "source": "whatsmyname",
+    "usernames": [
+      "db0",
+      "bnjbvr"
+    ]
+  },
+  "lichess": {
+    "source": "curated",
+    "usernames": [
+      "thibault",
+      "drnykterstein"
+    ],
+    "verified": true
+  },
+  "linkedin": {
+    "source": "sherlock",
+    "usernames": [
+      "paulpfeister"
+    ]
+  },
+  "listed": {
+    "source": "sherlock",
+    "usernames": [
+      "listed"
+    ]
+  },
+  "livejournal": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "livelib": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "lor": {
+    "notes": {
+      "placeholder_handles": [
+        "red"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "red"
+    ]
+  },
+  "lottiefiles": {
+    "source": "sherlock",
+    "usernames": [
+      "lottiefiles"
+    ]
+  },
+  "masto.ai": {
+    "source": "whatsmyname",
+    "usernames": [
+      "rbreich",
+      "stux"
+    ]
+  },
+  "mastodon.cloud": {
+    "source": "sherlock",
+    "usernames": [
+      "TheAdmin"
+    ]
+  },
+  "mastodon.social": {
+    "source": "curated",
+    "usernames": [
+      "Gargron"
+    ],
+    "verified": true
+  },
+  "mastodon.xyz": {
+    "source": "sherlock",
+    "usernames": [
+      "TheKinrar"
+    ]
+  },
+  "medium": {
+    "source": "curated",
+    "usernames": [
+      "ev"
+    ],
+    "verified": true
+  },
+  "meetme": {
+    "notes": {
+      "placeholder_handles": [
+        "john"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "john",
+      "marsha"
+    ]
+  },
+  "mercadolivre": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "metacritic": {
+    "source": "whatsmyname",
+    "usernames": [
+      "Mcguy",
+      "goldzweig"
+    ]
+  },
+  "minecraft": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "mix": {
+    "notes": {
+      "placeholder_handles": [
+        "test"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "test",
+      "mixpicks"
+    ]
+  },
+  "mmorpg forum": {
+    "source": "sherlock",
+    "usernames": [
+      "goku"
+    ]
+  },
+  "moikrug": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "motorradfrage": {
+    "source": "sherlock",
+    "usernames": [
+      "gutefrage"
+    ]
+  },
+  "mstdn.io": {
+    "source": "whatsmyname",
+    "usernames": [
+      "mike",
+      "greg"
+    ]
+  },
+  "musescore": {
+    "source": "sherlock",
+    "usernames": [
+      "arrangeme"
+    ]
+  },
+  "myanimelist": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "myminifactory": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "myspace": {
+    "source": "whatsmyname",
+    "usernames": [
+      "alice",
+      "bob"
+    ]
+  },
+  "nationstates region": {
+    "source": "sherlock",
+    "usernames": [
+      "the_holy_principality_of_saint_mark"
+    ]
+  },
+  "naver": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "bob",
+      "blue"
+    ]
+  },
+  "newgrounds": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "nextcloud forum": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "nightbot": {
+    "notes": {
+      "placeholder_handles": [
+        "green"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "green"
+    ]
+  },
+  "ninja kiwi": {
+    "source": "sherlock",
+    "usernames": [
+      "Kyruko"
+    ]
+  },
+  "nitrotype": {
+    "source": "sherlock",
+    "usernames": [
+      "jianclash"
+    ]
+  },
+  "nnru": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "note": {
+    "source": "whatsmyname",
+    "usernames": [
+      "honey",
+      "yui"
+    ]
+  },
+  "npm": {
+    "source": "curated",
+    "usernames": [
+      "sindresorhus",
+      "isaacs"
+    ],
+    "verified": true
+  },
+  "nyaa.si": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "odnoklassniki": {
+    "notes": {
+      "placeholder_handles": [
+        "john"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "john",
+      "aleksandrvasillev"
+    ]
+  },
+  "opencollective": {
+    "source": "sherlock",
+    "usernames": [
+      "sindresorhus"
+    ]
+  },
+  "opensource": {
+    "source": "whatsmyname",
+    "usernames": [
+      "wuweijie",
+      "alansmithee"
+    ]
+  },
+  "openstreetmap": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "ourdjtalk": {
+    "source": "sherlock",
+    "usernames": [
+      "steve"
+    ]
+  },
+  "packagist": {
+    "source": "sherlock",
+    "usernames": [
+      "psr"
+    ]
+  },
+  "pastebin": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "patientlikeme": {
+    "source": "whatsmyname",
+    "usernames": [
+      "thjuland",
+      "Pedro0703",
+      "Hydropioneer"
+    ]
+  },
+  "patreon": {
+    "source": "curated",
+    "usernames": [
+      "jacksepticeye"
+    ],
+    "verified": true
+  },
+  "peerlist": {
+    "source": "whatsmyname",
+    "usernames": [
+      "taher_max_",
+      "naymurr"
+    ]
+  },
+  "pentesterlab": {
+    "source": "sherlock",
+    "usernames": [
+      "0day"
+    ]
+  },
+  "pikabu": {
+    "source": "whatsmyname",
+    "usernames": [
+      "igor01",
+      "serguei"
+    ]
+  },
+  "pinkbike": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "pinterest": {
+    "source": "curated",
+    "usernames": [
+      "pinterest"
+    ],
+    "verified": true
+  },
+  "plurk": {
+    "source": "sherlock",
+    "usernames": [
+      "plurkoffice"
+    ]
+  },
+  "pocketstars": {
+    "source": "sherlock",
+    "usernames": [
+      "hacker"
+    ]
+  },
+  "polarsteps": {
+    "source": "sherlock",
+    "usernames": [
+      "james"
+    ]
+  },
+  "polygon": {
+    "source": "sherlock",
+    "usernames": [
+      "swiftstickler"
+    ]
+  },
+  "pornhub": {
+    "source": "whatsmyname",
+    "usernames": [
+      "sexyc4u",
+      "desadelegacy"
+    ]
+  },
+  "poshmark": {
+    "source": "whatsmyname",
+    "usernames": [
+      "alice",
+      "bob"
+    ]
+  },
+  "producthunt": {
+    "source": "curated",
+    "usernames": [
+      "ryanhoover"
+    ],
+    "verified": true
+  },
+  "prog.hu": {
+    "source": "sherlock",
+    "usernames": [
+      "Sting"
+    ]
+  },
+  "promodj": {
+    "source": "whatsmyname",
+    "usernames": [
+      "sekoy",
+      "vovasmallny"
+    ]
+  },
+  "pypi": {
+    "source": "curated",
+    "usernames": [
+      "dstufft"
+    ],
+    "verified": true
+  },
+  "quizlet": {
+    "source": "whatsmyname",
+    "usernames": [
+      "Rita426",
+      "Muyao_531"
+    ]
+  },
+  "quora": {
+    "source": "whatsmyname",
+    "usernames": [
+      "John-Galan-5",
+      "Alex-Clay"
+    ]
+  },
+  "rarible": {
+    "source": "whatsmyname",
+    "usernames": [
+      "lokikot",
+      "vintagemozart"
+    ]
+  },
+  "rate your music": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "redbubble": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "reddit": {
+    "source": "curated",
+    "usernames": [
+      "spez",
+      "kn0thing"
+    ],
+    "verified": true
+  },
+  "redtube": {
+    "source": "sherlock",
+    "usernames": [
+      "hacker"
+    ]
+  },
+  "replit.com": {
+    "source": "curated",
+    "usernames": [
+      "replit"
+    ],
+    "verified": true
+  },
+  "researchgate": {
+    "source": "whatsmyname",
+    "usernames": [
+      "Tafara-Mwareya",
+      "Jose-Roberto-Rasi"
+    ]
+  },
+  "reverbnation": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "rockettube": {
+    "source": "sherlock",
+    "usernames": [
+      "Tatteddick5600"
+    ]
+  },
+  "royalcams": {
+    "source": "sherlock",
+    "usernames": [
+      "asuna-black"
+    ]
+  },
+  "rumble": {
+    "source": "whatsmyname",
+    "usernames": [
+      "SaltyCracker",
+      "GGreenwald"
+    ]
+  },
+  "satsisru": {
+    "notes": {
+      "placeholder_handles": [
+        "red"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "red"
+    ]
+  },
+  "scratch": {
+    "source": "curated",
+    "usernames": [
+      "Scratch",
+      "griffpatch"
+    ],
+    "verified": true
+  },
+  "scribd": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "sessionize": {
+    "source": "sherlock",
+    "usernames": [
+      "jason-mayes"
+    ]
+  },
+  "signal": {
+    "source": "sherlock",
+    "usernames": [
+      "jlund"
+    ]
+  },
+  "sketchfab": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "slant": {
+    "notes": {
+      "placeholder_handles": [
+        "john"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "bob",
+      "john"
+    ]
+  },
+  "slashdot": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "slideshare": {
+    "notes": {
+      "placeholder_handles": [
+        "john"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "rebeccaskeeles",
+      "john"
+    ]
+  },
+  "smugmug": {
+    "source": "sherlock",
+    "usernames": [
+      "winchester"
+    ]
+  },
+  "snapchat": {
+    "source": "whatsmyname",
+    "usernames": [
+      "djkhaled305",
+      "mileycyrus"
+    ]
+  },
+  "social.tchncs.de": {
+    "source": "sherlock",
+    "usernames": [
+      "Milan"
+    ]
+  },
+  "soundcloud": {
+    "source": "curated",
+    "usernames": [
+      "skrillex",
+      "diplo"
+    ],
+    "verified": true
+  },
+  "soylentnews": {
+    "notes": {
+      "placeholder_handles": [
+        "adam"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "adam"
+    ]
+  },
+  "spacehey": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "spletnik": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "splice": {
+    "source": "sherlock",
+    "usernames": [
+      "splice"
+    ]
+  },
+  "spoj": {
+    "source": "whatsmyname",
+    "usernames": [
+      "defrager",
+      "xilinx"
+    ]
+  },
+  "sporcle": {
+    "notes": {
+      "placeholder_handles": [
+        "Test"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "Test",
+      "lolshortee"
+    ]
+  },
+  "sportsru": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "spotify": {
+    "source": "curated",
+    "usernames": [
+      "spotify"
+    ],
+    "verified": true
+  },
+  "stackshare": {
+    "source": "whatsmyname",
+    "usernames": [
+      "gordonpn68492",
+      "Alan-Liang"
+    ]
+  },
+  "steamgifts": {
+    "source": "whatsmyname",
+    "usernames": [
+      "AbsurdPoncho",
+      "Wolod1402"
+    ]
+  },
+  "strava": {
+    "notes": {
+      "placeholder_handles": [
+        "adam"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "jane",
+      "adam"
+    ]
+  },
+  "sublimeforum": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "substack": {
+    "notes": {
+      "placeholder_handles": [
+        "green"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "green"
+    ]
+  },
+  "swapd": {
+    "source": "sherlock",
+    "usernames": [
+      "swapd"
+    ]
+  },
+  "taringa": {
+    "source": "whatsmyname",
+    "usernames": [
+      "jocaxav",
+      "engendrometal"
+    ]
+  },
+  "telegram": {
+    "source": "curated",
+    "usernames": [
+      "durov",
+      "telegram"
+    ],
+    "verified": true
+  },
+  "tenor": {
+    "notes": {
+      "placeholder_handles": [
+        "red"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "red"
+    ]
+  },
+  "tetr.io": {
+    "source": "whatsmyname",
+    "usernames": [
+      "icly",
+      "5han"
+    ]
+  },
+  "threads": {
+    "source": "sherlock",
+    "usernames": [
+      "zuck"
+    ]
+  },
+  "tiktok": {
+    "source": "whatsmyname",
+    "usernames": [
+      "gordonramsayofficial",
+      "pookiebear73"
+    ]
+  },
+  "tnaflix": {
+    "source": "sherlock",
+    "usernames": [
+      "hacker"
+    ]
+  },
+  "topcoder.profile": {
+    "notes": {
+      "placeholder_handles": [
+        "USER"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "USER"
+    ]
+  },
+  "tradingview": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "trakt": {
+    "notes": {
+      "placeholder_handles": [
+        "john"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "john",
+      "anne"
+    ]
+  },
+  "trashboxru": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "trawelling": {
+    "source": "sherlock",
+    "usernames": [
+      "lassestolley"
+    ]
+  },
+  "truth.social": {
+    "source": "whatsmyname",
+    "usernames": [
+      "realdonaldtrump",
+      "ScottAdamsTruth"
+    ]
+  },
+  "tryhackme": {
+    "source": "sherlock",
+    "usernames": [
+      "ashu"
+    ]
+  },
+  "tweakers": {
+    "source": "sherlock",
+    "usernames": [
+      "femme"
+    ]
+  },
+  "twitch": {
+    "source": "curated",
+    "usernames": [
+      "shroud",
+      "ninja"
+    ],
+    "verified": true
+  },
+  "typeracer": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "uid": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "ultimate-guitar": {
+    "source": "whatsmyname",
+    "usernames": [
+      "LYNX-Music",
+      "Mikhailo",
+      "MeGaDeth2314"
+    ]
+  },
+  "velomania": {
+    "notes": {
+      "placeholder_handles": [
+        "red"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "red"
+    ]
+  },
+  "venmo": {
+    "source": "whatsmyname",
+    "usernames": [
+      "John-Goolsby-8",
+      "kate-mura"
+    ]
+  },
+  "virustotal": {
+    "source": "whatsmyname",
+    "usernames": [
+      "cyber",
+      "cybersecstu"
+    ]
+  },
+  "vk": {
+    "source": "sherlock",
+    "usernames": [
+      "brown"
+    ]
+  },
+  "wakatime": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "warrior forum": {
+    "source": "whatsmyname",
+    "usernames": [
+      "alex",
+      "discrat"
+    ]
+  },
+  "weblate": {
+    "source": "whatsmyname",
+    "usernames": [
+      "login836039",
+      "Datura0808"
+    ]
+  },
+  "webnode": {
+    "source": "sherlock",
+    "usernames": [
+      "radkabalcarova"
+    ]
+  },
+  "weibo": {
+    "source": "whatsmyname",
+    "usernames": [
+      "guoailun12",
+      "fbb0916"
+    ]
+  },
+  "wicg forum": {
+    "source": "sherlock",
+    "usernames": [
+      "stefano"
+    ]
+  },
+  "wikimedia": {
+    "source": "whatsmyname",
+    "usernames": [
+      "sector051",
+      "webbreacher"
+    ]
+  },
+  "wikipedia": {
+    "source": "curated",
+    "usernames": [
+      "Jimbo_Wales"
+    ],
+    "verified": true
+  },
+  "windy": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "wolframalphaforum": {
+    "source": "sherlock",
+    "usernames": [
+      "unico"
+    ]
+  },
+  "wordnik": {
+    "notes": {
+      "placeholder_handles": [
+        "john"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "elle",
+      "john"
+    ]
+  },
+  "wordpressorg": {
+    "source": "curated",
+    "usernames": [
+      "matt",
+      "automattic"
+    ],
+    "verified": true
+  },
+  "wykop.pl": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "xbox gamertag": {
+    "notes": {
+      "placeholder_handles": [
+        "john"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "Spiken8",
+      "john"
+    ]
+  },
+  "xing": {
+    "source": "whatsmyname",
+    "usernames": [
+      "Andy_Hausmann",
+      "Stephan_Abele2"
+    ]
+  },
+  "xnxx": {
+    "notes": {
+      "placeholder_handles": [
+        "john"
+      ]
+    },
+    "source": "whatsmyname",
+    "usernames": [
+      "john",
+      "mumrra"
+    ]
+  },
+  "yandexmusic": {
+    "source": "sherlock",
+    "usernames": [
+      "ya.playlist"
+    ]
+  },
+  "younow": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "youporn": {
+    "notes": {
+      "placeholder_handles": [
+        "blue"
+      ]
+    },
+    "source": "sherlock",
+    "usernames": [
+      "blue"
+    ]
+  },
+  "youtube channel": {
+    "source": "whatsmyname",
+    "usernames": [
+      "OvylarockTHR",
+      "OSINTDojo"
+    ]
+  },
+  "youtube user": {
+    "source": "curated",
+    "usernames": [
+      "pewdiepie"
+    ],
+    "verified": true
+  }
 }

@@ -316,6 +316,23 @@ def build_eval_parser() -> ArgumentParser:
     external.add_argument("--out", type=str, help="Write the result bundle as JSON here")
     external.add_argument("--json", action="store_true", dest="json_out", help="Print JSON to stdout")
     external.add_argument("-v", "--verbose", action="store_true")
+
+    gt = sub.add_parser(
+        "groundtruth",
+        help="Rebuild the ground-truth splits from external projects' account lists",
+    )
+    gt.add_argument("--sherlock", type=str, help="Sherlock data.json (MIT)")
+    gt.add_argument("--whatsmyname", type=str, help="wmn-data.json (CC BY-SA 4.0)")
+    gt.add_argument("--sites", type=str, help="Path to a custom sites JSON")
+    gt.add_argument(
+        "--holdout-fraction", type=float, default=0.3,
+        help="Share of newly imported sites placed in the holdout split",
+    )
+    gt.add_argument(
+        "--dry-run", action="store_true",
+        help="Report what would change without writing the split files",
+    )
+    gt.add_argument("-v", "--verbose", action="store_true")
     return parser
 
 
@@ -1032,6 +1049,9 @@ async def run_eval_command(args) -> None:
     if args.eval_command == "external":
         await run_eval_external_command(args)
         return
+    if args.eval_command == "groundtruth":
+        run_eval_groundtruth_command(args)
+        return
 
     if args.json_out:
         set_plain(True, stderr=True)
@@ -1110,6 +1130,58 @@ async def run_eval_command(args) -> None:
         console.print(f"[dim]Full bundle written to {args.out}[/dim]")
 
 
+def run_eval_groundtruth_command(args) -> None:
+    from importlib import resources
+
+    from aliens_eye.eval import groundtruth as gt
+    from aliens_eye.ml.collect import load_selfcheck_data
+
+    console = get_console()
+    if not (args.sherlock or args.whatsmyname):
+        console.print(
+            "[red]Pass --sherlock and/or --whatsmyname.[/red] Neither project's data is "
+            "vendored here; fetch it upstream and mind the licence "
+            "(Sherlock MIT, WhatsMyName CC BY-SA 4.0)."
+        )
+        return
+
+    catalogue = gt._index_catalogue(load_sites_data(Path(args.sites) if args.sites else None))
+    sherlock = gt.read_sherlock_accounts(Path(args.sherlock), catalogue) if args.sherlock else {}
+    whatsmyname = (
+        gt.read_whatsmyname_accounts(Path(args.whatsmyname), catalogue)
+        if args.whatsmyname else {}
+    )
+
+    existing = load_selfcheck_data("all")
+    entries = gt.cross_source(existing, sherlock, whatsmyname)
+    splits = gt.assign_splits(
+        entries,
+        set(load_selfcheck_data("train")),
+        set(load_selfcheck_data("holdout")),
+        holdout_fraction=args.holdout_fraction,
+    )
+
+    console.print(
+        f"[blue]Catalogue[/blue] {len(catalogue)} hosts  "
+        f"[blue]Sherlock[/blue] {len(sherlock)} sites  "
+        f"[blue]WhatsMyName[/blue] {len(whatsmyname)} sites  "
+        f"[blue]existing[/blue] {len(existing)} -> [green]{len(entries)}[/green]"
+    )
+    if args.dry_run:
+        console.print("[yellow]Dry run: no files written.[/yellow]")
+        return
+
+    data_dir = Path(str(resources.files("aliens_eye.data")))
+    summary = gt.write_splits(
+        entries, splits, data_dir / "selfcheck.json", data_dir / "eval_holdout.json"
+    )
+    console.print(json.dumps(summary, indent=2))
+    console.print(
+        "[dim]Imported accounts are asserted by their source project, not verified. "
+        "Run a capture and the verification pass before treating them as labels.[/dim]"
+    )
+
+
 async def run_eval_external_command(args) -> None:
     from rich.table import Table
 
@@ -1154,8 +1226,14 @@ async def run_eval_external_command(args) -> None:
             )
         )
 
+    from aliens_eye.ml.collect import load_ground_truth_sources
+
+    provenance = load_ground_truth_sources(
+        args.split, Path(args.ground_truth) if args.ground_truth else None
+    )
     bundle = await compare_external(
-        Path(args.corpus), detector, logger, rule_paths, sites=sites
+        Path(args.corpus), detector, logger, rule_paths, sites=sites,
+        provenance=provenance,
     )
 
     if args.out:
@@ -1176,7 +1254,8 @@ async def run_eval_external_command(args) -> None:
             f"\n[bold]{entry['name']}[/bold]  "
             f"rules {entry['source']['usable_rules']}  "
             f"covered {entry['samples']} rows ({entry['site_coverage']:.0%})  "
-            f"no rule {entry['rows_without_rule']}  undecided {entry['rows_rule_undecided']}"
+            f"no rule {entry['rows_without_rule']}  undecided {entry['rows_rule_undecided']}  "
+            f"self-sourced excluded {entry.get('rows_excluded_self_sourced', 0)}"
         )
         table = Table(header_style="bold blue")
         table.add_column("Detector", style="yellow")
