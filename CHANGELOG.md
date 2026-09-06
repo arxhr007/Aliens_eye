@@ -1,5 +1,45 @@
 # Changelog
 
+## 2.3.0 (2026-09-06)
+
+Evaluation and reproducibility release. No change to detection behaviour: the shipped
+model, blend weights and thresholds are untouched.
+
+### Added
+- **Frozen response corpus** (`aliens_eye corpus record` / `corpus stats`). Captures raw
+  responses once and replays them through the same fetch path a scan uses, so detector
+  evaluation is reproducible — the same corpus yields byte-identical results regardless
+  of what platforms do afterwards. Bodies are content-addressed and deduplicated.
+- **Ablation harness** (`aliens_eye eval ablate`). Scores naive status baselines, each
+  judge in isolation, the shipped blend, and per-feature-group ablations over the same
+  corpus rows. Reports precision/recall/F1/FPR plus the **Maybe rate**, with
+  percentile-bootstrap confidence intervals and paired-bootstrap deltas.
+- **External tool baselines** (`aliens_eye eval external`). Runs Sherlock's, Maigret's and
+  WhatsMyName's own per-site rules against the same stored responses. Rule data is not
+  vendored; pass it by path and mind the upstream licence.
+- **Ground-truth builder** (`aliens_eye eval groundtruth`). Expands the ground-truth set
+  from those projects' account lists, recording per-site provenance so no tool is ever
+  scored on the accounts its own rules were tuned against.
+- `selfcheck --split train|holdout|all`, `--corpus`, and `--ground-truth`.
+- `FingerprintStore(read_only=True)`, required for deterministic replay.
+
+### Changed
+- **Ground truth expanded from 43 to 428 sites** (572 accounts), split site-disjoint into
+  train (286 sites) and holdout (142).
+- Corpus captures flush incrementally and support resume, so a long run cannot lose
+  everything on failure.
+
+### Fixed
+- **Train/eval leakage.** Training data and evaluation both derived from
+  `data/selfcheck.json`, so reported accuracy was a fit measure presented as a
+  generalization measure. Splits are now site-disjoint — by site rather than by account,
+  because the detector learns per-site page structure — and `train collect` refuses a
+  non-train split without `--allow-leakage`.
+- **Documented blend weights did not match the shipped model.** `WORKING.md` stated
+  `0.4*ml + 0.6*heuristic` with thresholds 0.6/0.35, while the shipped `model.json`
+  carries `ml_weight` 0.6 and thresholds 0.5559/0.3224 and overrides the module constants
+  at runtime. Docs corrected and a test now pins them together.
+
 ## 2.2.3 (2026-09-06)
 
 ### Fixed

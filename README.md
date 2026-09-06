@@ -38,6 +38,7 @@
 - **Site filtering** — `--site github,reddit`, `--exclude-site`, `--no-nsfw`, plus drop-in `sites.d/` plugin site maps
 - **Calibrated self-check** — `aliens_eye selfcheck` reports precision / recall / F1 / FPR per site
 - **Reproducible evaluation** — record a frozen response corpus once, then replay it for identical metrics run to run (`aliens_eye corpus record` / `selfcheck --corpus`)
+- **Ablations and baselines** — `aliens_eye eval ablate` scores detector configurations with bootstrap confidence intervals; `eval external` compares against Sherlock / Maigret / WhatsMyName rules on the same stored responses
 - **Retrainable + active learning** — retrain with `aliens_eye train`, or hand-label uncertain hits with `aliens_eye label`
 - **Reports** in JSON, CSV, HTML, Markdown, PDF, and graph formats (GEXF, Mermaid, Maltego CSV)
 - **Playwright fallback** for JavaScript-heavy pages (optional extra)
@@ -146,6 +147,15 @@ aliens_eye selfcheck --negatives 2 --report json
 aliens_eye corpus record --out corpus/v1 --split all --negatives 4
 aliens_eye corpus stats corpus/v1
 aliens_eye selfcheck --split holdout --corpus corpus/v1 --report json
+
+# Compare detector configurations over that corpus, with confidence intervals
+aliens_eye eval ablate --corpus corpus/v1 --split holdout
+
+# Compare against Sherlock / Maigret / WhatsMyName rules (fetch their data yourself)
+aliens_eye eval external --corpus corpus/v1 --sherlock data.json --whatsmyname wmn-data.json
+
+# Rebuild the ground-truth splits from those projects account lists
+aliens_eye eval groundtruth --sherlock data.json --whatsmyname wmn-data.json
 
 # Interactively label uncertain hits into a training set
 aliens_eye label results/username_basic_20260611_120000.json --out labeled.csv
