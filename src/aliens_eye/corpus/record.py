@@ -78,6 +78,7 @@ class RecordingFetcher:
         self._context: dict[str, dict[str, Any]] = {}
         self._records: list[CorpusRecord] = []
         self._lock = asyncio.Lock()
+        self.flushed = 0
 
     def register(
         self,
@@ -137,7 +138,22 @@ class RecordingFetcher:
         self.store.append_records(records)
         count = len(records)
         self._records.clear()
+        self.flushed += count
         return count
+
+    async def maybe_flush(self, every: int) -> int:
+        """Flush once the buffer reaches every records.
+
+        A long capture buffered entirely in memory loses everything if the run
+        dies partway; incremental flushing bounds that loss. Records are sorted
+        within each flush rather than globally, so the file is grouped rather
+        than fully ordered -- readers index by URL, and the corpus is a set, not
+        a sequence.
+        """
+        if every <= 0 or len(self._records) < every:
+            return 0
+        async with self._lock:
+            return self.flush()
 
 
 def build_jobs(
@@ -184,6 +200,8 @@ async def record_corpus(
     split: str = "all",
     plausible_ratio: float = 0.5,
     config: ScannerConfig | None = None,
+    flush_every: int = 100,
+    skip_urls: set[str] | None = None,
 ) -> dict[str, Any]:
     """Capture every ground-truth positive plus generated negatives to ``out_dir``."""
     store = CorpusStore(Path(out_dir))
@@ -195,6 +213,10 @@ async def record_corpus(
 
     jobs = build_jobs(sites_data, ground_truth, negatives_per_site, rng, plausible_ratio)
     skipped = sorted(set(ground_truth) - set(sites_data))
+    if skip_urls:
+        # Resume: negatives are seed-derived, so regenerating the job list
+        # reproduces the same URLs and already-captured ones can be dropped.
+        jobs = [job for job in jobs if job[1] not in skip_urls]
     for site, url, username, label, notes in jobs:
         recorder.register(url, site, username, label, notes)
 
@@ -210,12 +232,16 @@ async def record_corpus(
                     await recorder(session, url, config, rate_limiter, logger)
                 except Exception as exc:  # noqa: BLE001 - one bad host must not abort a capture
                     logger.debug("Capture failed for %s: %s", url, exc)
+            written = await recorder.maybe_flush(flush_every)
+            if written:
+                logger.info("Captured %d records so far", recorder.flushed)
 
         await asyncio.gather(*(run(job[1]) for job in jobs))
 
     captured = recorder.records
     errors = sum(1 for r in captured if r.error)
     written = recorder.flush()
+    total_written = recorder.flushed
 
     manifest = {
         "tool_version": __version__,
@@ -225,11 +251,12 @@ async def record_corpus(
         "negatives_per_site": negatives_per_site,
         "plausible_ratio": plausible_ratio,
         "requested": len(jobs),
-        "records": written,
+        "records": total_written,
+        "records_final_flush": written,
         "errors": errors,
         "sites": sorted({r.site for r in captured if r.site}),
         "skipped_sites": skipped,
     }
     store.write_manifest(manifest)
-    logger.info("Captured %d records (%d errors) to %s", written, errors, out_dir)
+    logger.info("Captured %d records (%d errors) to %s", total_written, errors, out_dir)
     return manifest

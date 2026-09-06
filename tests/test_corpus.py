@@ -388,3 +388,60 @@ def test_eval_jobs_skips_unlabelled_records(tmp_path, monkeypatch, found_html):
         [("github", url, "torvalds", None)],
     )
     assert ReplayFetcher(root).eval_jobs() == []
+
+
+# --- incremental flush and resume ----------------------------------------
+
+
+def test_maybe_flush_writes_once_the_threshold_is_reached(tmp_path):
+    """A long capture buffered only in memory loses everything if the run dies."""
+    store = CorpusStore(tmp_path / "c")
+    store.init()
+    recorder = RecordingFetcher(store, tool_version="test")
+
+    async def drive():
+        network = FakeNetwork({})
+        from aliens_eye.corpus import record as record_mod
+
+        original = record_mod.fetch_url
+        record_mod.fetch_url = network
+        try:
+            for i in range(5):
+                url = f"https://x.example/{i}"
+                recorder.register(url, "x", str(i), 0)
+                await recorder(None, url, ScannerConfig(), None, _NullLogger())
+                await recorder.maybe_flush(3)
+        finally:
+            record_mod.fetch_url = original
+
+    asyncio.run(drive())
+    # Threshold 3: one flush of 3 happened, 2 still buffered.
+    assert recorder.flushed == 3
+    assert len(recorder.records) == 2
+    assert len((store.records_path).read_text("utf-8").strip().splitlines()) == 3
+
+
+def test_maybe_flush_is_a_noop_below_the_threshold(tmp_path):
+    store = CorpusStore(tmp_path / "c")
+    store.init()
+    recorder = RecordingFetcher(store, tool_version="test")
+    assert asyncio.run(recorder.maybe_flush(10)) == 0
+    assert recorder.flushed == 0
+
+
+def test_maybe_flush_disabled_by_zero(tmp_path):
+    store = CorpusStore(tmp_path / "c")
+    store.init()
+    recorder = RecordingFetcher(store, tool_version="test")
+    recorder.register("u", "s", "n", 1)
+    assert asyncio.run(recorder.maybe_flush(0)) == 0
+
+
+def test_build_jobs_urls_are_stable_for_resume():
+    """Resume drops already-captured URLs, so regeneration must reproduce them."""
+    import random
+
+    gt = {"github": ["torvalds"]}
+    first = {j[1] for j in build_jobs(SITES, gt, 4, random.Random(1234))}
+    second = {j[1] for j in build_jobs(SITES, gt, 4, random.Random(1234))}
+    assert first == second
