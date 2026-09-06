@@ -1,9 +1,17 @@
 """Build a labeled training dataset by scanning ground-truth accounts.
 
-Positives come from a curated map of sites to usernames known to exist
-(data/selfcheck.json). Negatives are randomized usernames that almost
-certainly do not exist. Each scan produces one row of FEATURE_SCHEMA values
-plus a label column.
+Positives come from a curated map of sites to usernames known to exist.
+Negatives are randomized usernames that almost certainly do not exist. Each
+scan produces one row of FEATURE_SCHEMA values plus a label column.
+
+The ground truth is split **site-disjoint** into two files:
+
+* ``data/selfcheck.json``     -- the train split; the only split training reads.
+* ``data/eval_holdout.json``  -- held out; never seen by training.
+
+The split is site-disjoint rather than account-disjoint because the detector
+learns per-site page structure: holding out only accounts from a site whose
+layout the model already trained on would overstate generalization.
 """
 
 from __future__ import annotations
@@ -15,6 +23,7 @@ import random
 import string
 from importlib import resources
 from pathlib import Path
+from typing import Any
 
 import aiohttp
 
@@ -26,11 +35,42 @@ from aliens_eye.core.http import fetch_url
 from aliens_eye.core.rate_limit import DomainRateLimiter
 from aliens_eye.core.scanner import format_site_url
 
+TRAIN_SPLIT_RESOURCE = "selfcheck.json"
+HOLDOUT_SPLIT_RESOURCE = "eval_holdout.json"
+SPLIT_RESOURCES = {"train": TRAIN_SPLIT_RESOURCE, "holdout": HOLDOUT_SPLIT_RESOURCE}
 
-def load_selfcheck_data() -> dict[str, list[str]]:
-    """Map of site name to usernames known to exist there."""
-    text = (resources.files("aliens_eye.data") / "selfcheck.json").read_text("utf-8")
-    data = json.loads(text)
+
+def _read_split(split: str, path: Path | None) -> dict[str, Any]:
+    if path is not None:
+        text = Path(path).read_text("utf-8")
+    else:
+        try:
+            resource = SPLIT_RESOURCES[split]
+        except KeyError:
+            raise ValueError(
+                f"Unknown ground-truth split {split!r}; expected one of "
+                f"{', '.join(sorted(SPLIT_RESOURCES))} or 'all'."
+            ) from None
+        text = (resources.files("aliens_eye.data") / resource).read_text("utf-8")
+    return json.loads(text)
+
+
+def load_selfcheck_data(
+    split: str = "train",
+    path: Path | None = None,
+) -> dict[str, list[str]]:
+    """Map of site name to usernames known to exist there.
+
+    ``split`` selects the ground-truth file: ``"train"`` (default, the only
+    split training may read), ``"holdout"``, or ``"all"`` to merge both. Pass
+    ``path`` to load an arbitrary ground-truth JSON instead.
+    """
+    if path is None and split == "all":
+        data: dict[str, Any] = {}
+        for name in SPLIT_RESOURCES:
+            data.update(_read_split(name, None))
+    else:
+        data = _read_split(split, path)
     return {
         site: [value] if isinstance(value, str) else list(value)
         for site, value in data.items()
@@ -65,9 +105,10 @@ async def _collect_row(
     username: str,
     label: int,
     logger,
+    fetch=fetch_url,
 ) -> list[float] | None:
     url = format_site_url(site, url_template, username)
-    fetch = await fetch_url(session, url, config, rate_limiter, logger)
+    fetch = await fetch(session, url, config, rate_limiter, logger)
     if fetch.error:
         return None
     try:
@@ -94,9 +135,16 @@ async def collect_dataset(
     negatives_per_site: int = 2,
     concurrency: int = 20,
     seed: int | None = None,
+    split: str = "train",
+    ground_truth_path: Path | None = None,
+    fetch=fetch_url,
 ) -> int:
-    """Scan ground-truth positives and random negatives, write a labeled CSV."""
-    selfcheck = load_selfcheck_data()
+    """Scan ground-truth positives and random negatives, write a labeled CSV.
+
+    Reads the train split by default. Training must never read the holdout:
+    doing so reintroduces the train/eval leak the split exists to remove.
+    """
+    selfcheck = load_selfcheck_data(split, ground_truth_path)
     rng = random.Random(seed)
     config = ScannerConfig(retries=1, timeout=10.0)
     extractor = FeatureExtractor()
@@ -124,7 +172,7 @@ async def collect_dataset(
             async with semaphore:
                 row = await _collect_row(
                     session, extractor, rate_limiter, config,
-                    site, template, username, label, logger,
+                    site, template, username, label, logger, fetch,
                 )
             if row is not None:
                 rows.append(row)

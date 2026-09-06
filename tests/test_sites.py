@@ -59,8 +59,35 @@ def test_nsfw_list_subset_of_sites():
 
 def test_selfcheck_sites_exist():
     sites = load_sites_data()
-    selfcheck = load_selfcheck_data()
+    selfcheck = load_selfcheck_data("all")
     missing = [site for site in selfcheck if site not in sites]
     assert not missing, f"selfcheck entries missing from sites.json: {missing}"
     for site, usernames in selfcheck.items():
         assert usernames, f"{site} has no usernames"
+
+
+def test_ground_truth_splits_are_site_disjoint():
+    """The train split and the eval holdout must share no site.
+
+    This is the guard against the train/eval leak: training reads
+    data/selfcheck.json and evaluation reads data/eval_holdout.json, so any
+    overlap means the detector is scored on platforms it trained on.
+    """
+    train = set(load_selfcheck_data("train"))
+    holdout = set(load_selfcheck_data("holdout"))
+    overlap = train & holdout
+    assert not overlap, f"train/holdout splits overlap on: {sorted(overlap)}"
+    assert train and holdout
+
+
+def test_ground_truth_all_split_is_the_union():
+    train = set(load_selfcheck_data("train"))
+    holdout = set(load_selfcheck_data("holdout"))
+    assert set(load_selfcheck_data("all")) == train | holdout
+
+
+def test_unknown_split_rejected():
+    import pytest
+
+    with pytest.raises(ValueError, match="Unknown ground-truth split"):
+        load_selfcheck_data("nope")

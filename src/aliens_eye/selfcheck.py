@@ -1,9 +1,13 @@
 """Validate detection accuracy against accounts known to exist (and to not exist).
 
-Scans each known ``(site, username)`` positive from data/selfcheck.json plus a few
-random negatives per site, then reports precision / recall / F1 / false-positive
-rate overall and per site. Doubles as a rot detector for sites.json and a
-calibration baseline for the ML model.
+Scans each known ``(site, username)`` positive plus a few random negatives per
+site, then reports precision / recall / F1 / false-positive rate overall and per
+site. Doubles as a rot detector for sites.json and a calibration baseline for
+the ML model.
+
+Ground truth is split site-disjoint (see ``aliens_eye.ml.collect``). Scoring the
+``holdout`` split measures generalization to platforms the model never trained
+on; scoring ``train`` measures fit and will read optimistically high.
 """
 
 from __future__ import annotations
@@ -12,7 +16,7 @@ import asyncio
 import json
 import random
 import string
-from importlib import resources
+from pathlib import Path
 from typing import Any
 
 import aiohttp
@@ -29,14 +33,21 @@ from aliens_eye.core.scanner import format_site_url
 from aliens_eye.utils.console import get_console
 
 
-def load_selfcheck_data() -> dict[str, str]:
-    """Map of site name to one username known to exist there."""
-    text = (resources.files("aliens_eye.data") / "selfcheck.json").read_text("utf-8")
-    data = json.loads(text)
+def load_selfcheck_data(
+    split: str = "train",
+    path: Path | None = None,
+) -> dict[str, str]:
+    """Map of site name to one username known to exist there.
+
+    Thin wrapper over :func:`aliens_eye.ml.collect.load_selfcheck_data` that
+    keeps one username per site; see there for the ``split`` values.
+    """
+    from aliens_eye.ml.collect import load_selfcheck_data as load_ground_truth
+
     return {
-        site: value if isinstance(value, str) else value[0]
-        for site, value in data.items()
-        if value
+        site: usernames[0]
+        for site, usernames in load_ground_truth(split, path).items()
+        if usernames
     }
 
 
@@ -67,24 +78,39 @@ async def run_selfcheck(
     negatives: int = 1,
     report_format: str | None = None,
     seed: int | None = 1234,
+    split: str = "train",
+    ground_truth_path: Path | None = None,
+    fetch=fetch_url,
+    jobs: list[tuple[str, str, str, int]] | None = None,
 ) -> dict[str, Any]:
     """Run the self-check. Returns a metrics dict; renders a report unless report_format='json'."""
     console = get_console()
-    selfcheck = load_selfcheck_data()
+    jobs_supplied = jobs is not None
+    selfcheck = load_selfcheck_data(split, ground_truth_path)
     extractor = FeatureExtractor()
     rate_limiter = DomainRateLimiter()
     rng = random.Random(seed)
 
-    # Build (site, username, expected_label) jobs. label 1 = should be Found.
-    jobs: list[tuple[str, str, str, int]] = []
-    for site, username in selfcheck.items():
-        if site not in sites_data:
-            continue
-        jobs.append((site, sites_data[site], username, 1))
-        for _ in range(max(0, negatives)):
-            jobs.append((site, sites_data[site], _random_username(rng), 0))
-
-    skipped = [site for site in selfcheck if site not in sites_data]
+    # Build (site, url, username, expected_label) jobs. label 1 = should be Found.
+    # A caller replaying a frozen corpus passes `jobs` instead: the corpus is
+    # the evaluation set, and regenerating usernames here would produce rows the
+    # corpus never captured.
+    if jobs is None:
+        jobs = []
+        for site, username in selfcheck.items():
+            if site not in sites_data:
+                continue
+            url = format_site_url(site, sites_data[site], username)
+            jobs.append((site, url, username, 1))
+            for _ in range(max(0, negatives)):
+                negative = _random_username(rng)
+                jobs.append(
+                    (site, format_site_url(site, sites_data[site], negative), negative, 0)
+                )
+        skipped = [site for site in selfcheck if site not in sites_data]
+    else:
+        jobs = list(jobs)
+        skipped = []
     if skipped and report_format != "json":
         console.print(f"[yellow]Skipping sites missing from sites.json: {', '.join(skipped)}[/yellow]")
     if not jobs:
@@ -97,10 +123,11 @@ async def run_selfcheck(
     connector = aiohttp.TCPConnector(limit=10)
     async with aiohttp.ClientSession(headers=DEFAULT_HEADERS, connector=connector) as session:
 
-        async def check(site: str, template: str, username: str, label: int) -> None:
-            url = format_site_url(site, template, username)
+        fetch_result = fetch
+
+        async def check(site: str, url: str, username: str, label: int) -> None:
             async with semaphore:
-                fetch = await fetch_url(session, url, config, rate_limiter, logger)
+                fetch = await fetch_result(session, url, config, rate_limiter, logger)
             if fetch.error:
                 rows.append({"site": site, "username": username, "label": label,
                              "status": "Error", "confidence": 0, "predicted": None,
@@ -144,6 +171,7 @@ async def run_selfcheck(
     overall = _metrics(tp, fp, fn, tn)
     errors = sum(1 for r in rows if r["status"] == "Error")
     result = {
+        "split": "corpus" if jobs_supplied else ("custom" if ground_truth_path else split),
         "overall": overall,
         "per_site": {s: _metrics(c["tp"], c["fp"], c["fn"], c["tn"]) for s, c in per_site.items()},
         "errors": errors,

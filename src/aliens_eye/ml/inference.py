@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
 
+from aliens_eye.core.detector import FOUND_THRESHOLD, ML_WEIGHT, NOT_FOUND_THRESHOLD
 from aliens_eye.core.features import FEATURE_SCHEMA, vectorize_features
 
 MODEL_RESOURCE = "model.json"
@@ -30,9 +31,9 @@ class MLModel:
     coef: list[float]
     intercept: float
     version: str = "unknown"
-    found_threshold: float = 0.6
-    not_found_threshold: float = 0.35
-    ml_weight: float = 0.4
+    found_threshold: float = FOUND_THRESHOLD
+    not_found_threshold: float = NOT_FOUND_THRESHOLD
+    ml_weight: float = ML_WEIGHT
 
     @classmethod
     def from_dict(cls, data: dict) -> MLModel:
@@ -45,9 +46,9 @@ class MLModel:
                 coef=[float(x) for x in data["coef"]],
                 intercept=float(data["intercept"]),
                 version=str(data.get("version", "unknown")),
-                found_threshold=float(thresholds.get("found", 0.6)),
-                not_found_threshold=float(thresholds.get("not_found", 0.35)),
-                ml_weight=float(data.get("ml_weight", 0.4)),
+                found_threshold=float(thresholds.get("found", FOUND_THRESHOLD)),
+                not_found_threshold=float(thresholds.get("not_found", NOT_FOUND_THRESHOLD)),
+                ml_weight=float(data.get("ml_weight", ML_WEIGHT)),
             )
         except (KeyError, TypeError, ValueError) as exc:
             raise ModelError(f"Malformed model file: {exc}") from exc

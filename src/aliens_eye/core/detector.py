@@ -12,8 +12,12 @@ class DetectionResult:
     probability: float | None
 
 
-# Blend weights and probability thresholds, calibrated by out-of-fold grid
-# search on the seed dataset and validated against the selfcheck set.
+# FALLBACK blend weight and probability thresholds, used only when no model is
+# loaded or when a model file omits these fields. A loaded model overrides all
+# three (see Detector.predict and MLModel.from_dict) -- the shipped
+# data/model.json carries its own out-of-fold grid-searched values, so these
+# constants do NOT describe the default runtime behaviour of the packaged tool.
+# tests/test_detector.py pins the shipped model's values against the docs.
 ML_WEIGHT = 0.4
 HEURISTIC_WEIGHT = 0.6
 HEURISTIC_SIGMOID_SCALE = 6.0
@@ -45,13 +49,24 @@ class Detector:
             self.model = None
             logger.debug("ML model unavailable, using heuristics only: %s", exc)
 
-    def predict(self, features: dict[str, float]) -> DetectionResult:
+    def judges(self, features: dict[str, float]) -> tuple[float, float, float | None]:
+        """Both judges, unblended: (heuristic_score, heuristic_prob, ml_prob).
+
+        ml_prob is None when no model is loaded. Exposed so an ablation can
+        weigh the two judges differently without reimplementing either -- see
+        aliens_eye.eval.ablate. Mutates features["heuristic_score"], which
+        the ML model consumes as an input feature.
+        """
         heuristic_score = self._heuristic_score(features)
         heuristic_prob = _sigmoid(heuristic_score / HEURISTIC_SIGMOID_SCALE)
         features["heuristic_score"] = heuristic_score
+        ml_prob = self.model.predict_proba(features) if self.model is not None else None
+        return heuristic_score, heuristic_prob, ml_prob
 
-        if self.model is not None:
-            ml_prob = self.model.predict_proba(features)
+    def predict(self, features: dict[str, float]) -> DetectionResult:
+        heuristic_score, heuristic_prob, ml_prob = self.judges(features)
+
+        if ml_prob is not None:
             ml_w = getattr(self.model, "ml_weight", ML_WEIGHT)
             probability = ml_w * ml_prob + (1.0 - ml_w) * heuristic_prob
             method = "ml+heuristic"

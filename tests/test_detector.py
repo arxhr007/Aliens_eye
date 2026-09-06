@@ -1,9 +1,21 @@
+import json
+from importlib import resources
+
 from aliens_eye.core.detector import (
     FOUND_THRESHOLD,
+    ML_WEIGHT,
     NOT_FOUND_THRESHOLD,
     Detector,
     _sigmoid,
 )
+
+# The blend weight and thresholds the packaged model actually runs with. These
+# are documented in README.md and WORKING.md; if the shipped model changes,
+# update both docs and this table in the same commit. The fallback constants in
+# core/detector.py are deliberately different and must not be confused for these.
+SHIPPED_MODEL_ML_WEIGHT = 0.6
+SHIPPED_MODEL_FOUND_THRESHOLD = 0.5559
+SHIPPED_MODEL_NOT_FOUND_THRESHOLD = 0.3224
 
 
 def make_found_features():
@@ -114,3 +126,47 @@ def test_sigmoid_bounds():
     assert _sigmoid(1000) == 1.0
     assert _sigmoid(-1000) < 1e-20
     assert abs(_sigmoid(0) - 0.5) < 1e-9
+
+
+def test_shipped_model_matches_documented_values():
+    """Guard the doc/model drift that had WORKING.md stating the wrong blend.
+
+    The shipped model overrides the module fallbacks at runtime, so the docs
+    must describe the model's values, not the constants.
+    """
+    text = (resources.files("aliens_eye.data") / "model.json").read_text("utf-8")
+    data = json.loads(text)
+    assert data["ml_weight"] == SHIPPED_MODEL_ML_WEIGHT
+    assert data["thresholds"]["found"] == SHIPPED_MODEL_FOUND_THRESHOLD
+    assert data["thresholds"]["not_found"] == SHIPPED_MODEL_NOT_FOUND_THRESHOLD
+
+
+def test_shipped_model_actually_overrides_fallbacks(logger):
+    """If these ever coincide, the override path stops being exercised."""
+    detector = Detector()
+    detector.load_model(logger)
+    assert detector.model.ml_weight == SHIPPED_MODEL_ML_WEIGHT != ML_WEIGHT
+    assert detector.model.found_threshold == SHIPPED_MODEL_FOUND_THRESHOLD != FOUND_THRESHOLD
+    assert (
+        detector.model.not_found_threshold
+        == SHIPPED_MODEL_NOT_FOUND_THRESHOLD
+        != NOT_FOUND_THRESHOLD
+    )
+
+
+def test_model_defaults_fall_back_to_detector_constants():
+    """A model file omitting the tuning fields must inherit the constants."""
+    from aliens_eye.core.features import FEATURE_SCHEMA
+    from aliens_eye.ml.inference import MLModel
+
+    n = len(FEATURE_SCHEMA)
+    model = MLModel.from_dict({
+        "feature_schema": list(FEATURE_SCHEMA),
+        "mean": [0.0] * n,
+        "scale": [1.0] * n,
+        "coef": [0.0] * n,
+        "intercept": 0.0,
+    })
+    assert model.ml_weight == ML_WEIGHT
+    assert model.found_threshold == FOUND_THRESHOLD
+    assert model.not_found_threshold == NOT_FOUND_THRESHOLD
