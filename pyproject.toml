@@ -26,6 +26,9 @@ classifiers = [
 ]
 dependencies = [
     "aiohttp>=3.8",
+    # Required, not optional: DEFAULT_HEADERS advertises br, and a server that
+    # honours it returns a body aiohttp raises on without a Brotli decoder.
+    "Brotli>=1.1",
     "selectolax>=0.3.21",
     "rich>=13.7",
     "aiohttp-socks>=0.8,<1.0",

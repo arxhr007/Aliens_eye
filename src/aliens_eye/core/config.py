@@ -10,10 +10,32 @@ DEFAULT_USER_AGENT = (
     "AppleWebKit/537.36 Chrome/115.0.0.0 Safari/537.36"
 )
 
+def _supported_encodings() -> str:
+    """Advertise only what this install can actually decode.
+
+    Claiming ``br`` without a Brotli decoder present is not a degraded response,
+    it is a hard failure: any server that honours it returns a body aiohttp
+    raises on ("can not decode content-encoding: brotli"), so the site is scanned
+    as an error rather than checked. Brotli is a declared dependency, but an
+    existing environment may predate that, so the header is built from what is
+    importable rather than assumed.
+    """
+    encodings = ["gzip", "deflate"]
+    try:  # pragma: no cover - exercised by whichever branch the env provides
+        import brotli  # noqa: F401
+    except ImportError:
+        try:
+            import brotlicffi  # noqa: F401
+        except ImportError:
+            return ", ".join(encodings)
+    encodings.append("br")
+    return ", ".join(encodings)
+
+
 DEFAULT_HEADERS = {
     "User-Agent": DEFAULT_USER_AGENT,
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Encoding": "gzip, deflate, br",
+    "Accept-Encoding": _supported_encodings(),
     "Accept-Language": "en-US,en;q=0.5",
     "Connection": "keep-alive",
     "DNT": "1",

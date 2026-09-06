@@ -98,3 +98,45 @@ def test_load_config_explicit_path(tmp_path, logger):
 
 def test_load_config_missing_returns_empty(tmp_path, logger):
     assert load_config(str(tmp_path / "nope.json"), logger) == {}
+
+
+def test_accept_encoding_only_advertises_decodable_encodings():
+    """Advertising br without a decoder is a hard failure, not a degradation.
+
+    Regression: DEFAULT_HEADERS hardcoded "gzip, deflate, br" while Brotli was
+    not a dependency, so every server that honoured br returned a body aiohttp
+    raised on. That was 852 of 978 capture errors across a 428-site run, with
+    173 sites failing completely.
+    """
+    from aliens_eye.core.config import DEFAULT_HEADERS
+
+    encodings = {e.strip() for e in DEFAULT_HEADERS["Accept-Encoding"].split(",")}
+    assert "gzip" in encodings and "deflate" in encodings
+
+    try:
+        import brotli  # noqa: F401
+        decoder = True
+    except ImportError:
+        try:
+            import brotlicffi  # noqa: F401
+            decoder = True
+        except ImportError:
+            decoder = False
+
+    assert ("br" in encodings) == decoder, (
+        "Accept-Encoding advertises br without an importable Brotli decoder"
+        if not decoder else
+        "Brotli is installed but br is not advertised"
+    )
+
+
+def test_brotli_is_a_declared_dependency():
+    """It is required, not an extra: the default headers depend on it."""
+    from pathlib import Path
+
+    import tomllib
+
+    root = Path(__file__).resolve().parents[1]
+    data = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+    deps = " ".join(data["project"]["dependencies"]).lower()
+    assert "brotli" in deps
