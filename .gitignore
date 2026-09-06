@@ -11,6 +11,6 @@ results/
 cache/
 config.json
 
-# Corpus response bodies hold third-party page content: metadata and labels
-# are versioned, raw bodies are shared on request (see paper/corpus/README.md).
-paper/corpus/*/bodies/
+# Evaluation artifacts: captured response corpora and archived metrics. These
+# hold third-party page content, so they stay local and are not published.
+paper/

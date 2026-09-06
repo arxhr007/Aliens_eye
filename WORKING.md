@@ -125,17 +125,20 @@ would miss and the run would report a false-positive rate over an empty negative
 class.
 
 ```bash
-aliens_eye corpus record --out paper/corpus/v1 --split all --negatives 4 --seed 1234
-aliens_eye corpus stats paper/corpus/v1
-aliens_eye selfcheck --split holdout --corpus paper/corpus/v1 --report json
+aliens_eye corpus record --out corpus/v1 --split all --negatives 4 --seed 1234
+aliens_eye corpus stats corpus/v1
+aliens_eye selfcheck --split holdout --corpus corpus/v1 --report json
 ```
+
+Captured corpora are local artifacts and are not committed: they hold third-party
+page content, and a full capture is tens of megabytes.
 
 Negatives are generated in two kinds, tagged per record: `random` (14-20 random
 alphanumerics) and `plausible` (ordinary word morphology, e.g. `quietfalcon84`).
 A pool of only random strings is an artificially easy negative class — separable
 on length and character distribution alone — and inflates every metric.
-Plausible negatives are not verified absent by construction; see
-`paper/corpus/README.md`.
+Plausible negatives are not verified absent by construction: on a large platform
+one may collide with a real account, so they carry label 0 on assumption.
 
 ### Ablation harness
 
@@ -155,10 +158,22 @@ The **Maybe rate** is reported alongside precision. Detection is tri-state, so a
 configuration can inflate precision by abstaining on everything hard; quoting
 precision without the abstention rate beside it would be misleading.
 
-See `paper/baselines/README.md` for current results. The short version: on corpus
-v1 the ML model alone significantly outperforms both a naive status check and the
-shipped blend, and the heuristic engine — which holds 40% of the shipped vote —
-is not distinguishable from `if status == 200`.
+What this measured, on a 428-site corpus with a site-disjoint 142-site holdout
+(696 rows): **no configuration is distinguishable from `if status == 200`.**
+Every judge — ML alone, heuristics alone, the shipped blend — lands between F1
+0.49 and 0.53 with overlapping confidence intervals, and so do Sherlock's 475
+hand-curated per-site rules.
+
+The difference that *is* real is the error profile rather than F1: ML alone runs
+at FPR 0.082 against the shipped blend's 0.270 and the heuristic engine's 0.527,
+bought by returning Maybe on roughly half of all rows. That is an argument for
+the tri-state output, not an accuracy claim.
+
+A caution worth keeping, because this repo learned it the hard way: an earlier
+run on a 43-site corpus showed ML alone beating the shipped blend by a
+statistically significant +0.126 F1. That corpus included sites the model had
+trained on. On a properly site-disjoint holdout the effect vanished (+0.013,
+not significant). The blend was left unchanged as a result.
 
 ### External baselines
 

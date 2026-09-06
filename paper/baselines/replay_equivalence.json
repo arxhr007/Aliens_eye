@@ -1,9 +1,0 @@
-{
-  "sampled": 24,
-  "live_fetch_failed": 2,
-  "compared": 22,
-  "identical": 12,
-  "page_drift": 10,
-  "harness_mismatch": 0,
-  "harness_mismatch_detail": []
-}
