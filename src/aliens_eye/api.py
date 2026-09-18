@@ -129,7 +129,11 @@ async def correlate(
     timeout: float = 10.0,
     allow_private_avatars: bool = False,
 ) -> dict[str, Any]:
-    """Cluster the report's Found/Maybe profiles that look like the same person.
+    """Cluster the report's Found profiles that look like the same person.
+
+    Returns ``clusters`` (multi-site groups with the reasons they linked) and
+    ``profiles`` -- every profile considered, with its avatar hash -- so callers
+    can apply their own, stricter linkage on top.
 
     Avatar URLs are scraped from the pages themselves, so they are fetched only
     when they resolve to public addresses. ``allow_private_avatars`` lifts that,
@@ -142,4 +146,5 @@ async def correlate(
         proxy=proxy,
         timeout=timeout,
         allow_private_avatars=allow_private_avatars,
+        include_profiles=True,
     )

@@ -258,6 +258,41 @@ class _UnionFind:
             self.parent[rb] = ra
 
 
+def _handle_link(a: Profile, b: Profile) -> bool:
+    """Whether @-mentions tie two profiles together.
+
+    Mentions of a handle that was *searched* carry no signal. Every profile in a
+    scan of one handle was found under it, and many sites echo it in page chrome
+    -- Twitter's description is "The latest posts from @handle". Counting that
+    let a single such page link itself to every other profile in the scan: a
+    live scan produced one 228-profile cluster, 227 of whose links ran through
+    Twitter alone.
+
+    So only two things count: both bios mentioning the same *third* handle, or a
+    bio mentioning the handle the *other* profile was found under when the two
+    were found under different handles.
+    """
+    own_a, own_b = a.variation.lower(), b.variation.lower()
+    searched = {own_a, own_b} - {""}
+    if (a.handles - searched) & (b.handles - searched):
+        return True
+    if own_a and own_b and own_a != own_b:
+        return own_a in b.handles or own_b in a.handles
+    return False
+
+
+def _is_brand(norm_name: str, site: str) -> bool:
+    """Whether a display name is just the site's own brand.
+
+    A page with no real profile often carries the service's name as og:title
+    ("Flickr" on flickr.albums), which is structured metadata but not an
+    identity. Matching two of those linked sibling pages of the same service.
+    """
+    name = norm_name.replace(" ", "")
+    site_key = "".join(_WORD_RE.findall((site or "").lower()))
+    return bool(name) and bool(site_key) and (site_key.startswith(name) or name.startswith(site_key))
+
+
 def _pair_reason(
     a: Profile, b: Profile, common_names: frozenset[str] = frozenset()
 ) -> str | None:
@@ -275,10 +310,13 @@ def _pair_reason(
         return "avatar"
     if a.links & b.links:
         return "shared-link"
-    if a.handles & b.handles or (a.variation and a.variation in b.handles) or (b.variation and b.variation in a.handles):
+    if _handle_link(a, b):
         return "handle"
     na, nb = _norm_name(a.name), _norm_name(b.name)
-    if na and na == nb and len(na) > 3 and na not in common_names:
+    if (
+        na and na == nb and len(na) > 3 and na not in common_names
+        and not _is_brand(na, a.site) and not _is_brand(nb, b.site)
+    ):
         return "name"
     if _jaccard(_tokens(a.bio), _tokens(b.bio)) >= BIO_MIN_JACCARD:
         return "bio"
@@ -336,18 +374,23 @@ async def correlate_report(
     proxy: str | None = None,
     timeout: float = 10.0,
     allow_private_avatars: bool = False,
+    include_profiles: bool = False,
 ) -> dict[str, Any]:
     """Full correlation pass over a report dict. Returns a ``correlation`` block.
 
     ``allow_private_avatars`` lifts the guard that stops scraped avatar URLs
     resolving to private or loopback addresses; only set it when scanning a
-    network you own.
+    network you own. ``include_profiles`` adds every considered profile, with its
+    avatar hash, not just those that landed in a multi-site cluster.
     """
     profiles = profiles_from_report(report)
     await hash_avatars(profiles, proxy=proxy, timeout=timeout, allow_private=allow_private_avatars)
     clusters = cluster_profiles(profiles)
-    return {
+    result: dict[str, Any] = {
         "avatar_hashing": pillow_available(),
         "profiles_considered": len(profiles),
         "clusters": clusters,
     }
+    if include_profiles:
+        result["profiles"] = [p.to_dict() for p in profiles]
+    return result

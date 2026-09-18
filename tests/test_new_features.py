@@ -355,3 +355,55 @@ def test_blocked_avatar_is_never_downloaded(monkeypatch):
     )
     asyncio.run(_download_and_hash(ExplodingSession(), profile, timeout=1.0))
     assert profile.avatar_hash is None
+
+
+# --- correlation: handle-mention chaining (regression) --------------------
+
+
+def test_mentioning_the_searched_handle_links_nothing():
+    """One page echoing @handle in its chrome linked itself to every profile.
+
+    Live scan: Twitter's description is "The latest posts from @handle", and a
+    single-handle scan produced a 228-profile cluster through that one page.
+    """
+    twitter = Profile("arx", "twitter", name="", bio="The latest posts from @arx",
+                      avatar="", url="", status="Found")
+    words = ["cats", "chess", "piano", "rust", "hiking", "coffee", "jazz", "vim", "linux", "ramen",
+             "surf", "birds", "golang", "poetry", "tennis", "maps", "space", "fonts", "tea", "yoga"]
+    # Distinct bios, so nothing but the handle mention could possibly link them.
+    others = [Profile("arx", f"site{i}", name="", bio=f"{word} enthusiast{i}", avatar="",
+                      url="", status="Found") for i, word in enumerate(words)]
+    assert cluster_profiles([twitter, *others]) == []
+
+
+def test_two_bios_mentioning_the_same_third_handle_still_link():
+    a = Profile("arx", "s1", name="", bio="work at @acmecorp", avatar="", url="", status="Found")
+    b = Profile("arx", "s2", name="", bio="engineer @acmecorp", avatar="", url="", status="Found")
+    [cluster] = cluster_profiles([a, b])
+    assert "handle" in cluster["reasons"]
+
+
+def test_mention_across_different_searched_handles_still_links():
+    """b, found under 'aaron.t', points at 'arx': real evidence of one owner."""
+    a = Profile("arx", "github", name="", bio="", avatar="", url="", status="Found")
+    b = Profile("aaron.t", "reddit", name="", bio="main account @arx", avatar="", url="", status="Found")
+    [cluster] = cluster_profiles([a, b])
+    assert "handle" in cluster["reasons"]
+
+
+def test_a_brand_title_is_not_a_shared_name():
+    """og:title 'Flickr' on flickr and flickr.albums is the service, not a person."""
+    profiles = [
+        Profile("arx", "flickr", name="Flickr", bio="", avatar="", url="", status="Found"),
+        Profile("arx", "flickr.albums", name="Flickr", bio="", avatar="", url="", status="Found"),
+    ]
+    assert cluster_profiles(profiles) == []
+
+
+def test_real_shared_names_still_link():
+    profiles = [
+        Profile("arx", "github", name="Aaron Thomas", bio="", avatar="", url="", status="Found"),
+        Profile("arx", "gitlab", name="Aaron Thomas", bio="", avatar="", url="", status="Found"),
+    ]
+    [cluster] = cluster_profiles(profiles)
+    assert cluster["reasons"] == ["name"]

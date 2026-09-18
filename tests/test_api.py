@@ -133,3 +133,22 @@ async def test_quiet_scan_does_not_silence_the_global_console(site_server):  # n
     after = get_console()
     assert after is before
     assert not after.quiet
+
+
+async def test_correlate_returns_every_profile_with_its_hash(monkeypatch):
+    """Callers need hashes for unclustered profiles too, to apply stricter linkage."""
+    import aliens_eye.core.correlate as correlate_mod
+
+    async def no_download(profiles, **kwargs):
+        for p in profiles:
+            p.avatar_hash = 0xFFFF000011112222
+
+    monkeypatch.setattr(correlate_mod, "hash_avatars", no_download)
+    report = {"variations": {"arx": {"sites": {
+        "github": {"status": "Found", "url": "https://github.com/arx",
+                   "ai_analysis": {"signals": {"profile": {"name": "", "bio": "", "avatar": "x"}}}},
+    }}}}
+    result = await api.correlate(report)
+    assert result["clusters"] == []
+    assert result["profiles"][0]["site"] == "github"
+    assert result["profiles"][0]["avatar_hash"] == "ffff000011112222"

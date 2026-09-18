@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.5.0 (2026-09-18)
+
+### Fixed
+- **`--correlate` merged almost everything into one "same person" cluster.** Correlation
+  linked two profiles when one bio @-mentioned the handle the other was found under. In a
+  scan of a single handle, every profile was found under that handle, and many sites echo it
+  in page chrome (Twitter: *"The latest posts from @handle"*). One such page therefore linked
+  itself to every other profile: a live scan produced a 228-profile cluster, 227 of whose
+  links ran through Twitter alone. Mentions of a searched handle no longer count. Two bios
+  mentioning the same *other* handle still link, as does a mention across two different
+  searched handles.
+- Display names that are just the site's brand (og:title "Flickr" on `flickr.albums`) no
+  longer link sibling pages of the same service.
+
+### Added
+- `aliens_eye.api.correlate()` also returns `profiles`: every profile considered, with its
+  avatar hash, so callers can apply their own linkage rules on top of the clusters.
+
 ## 2.4.0 (2026-09-18)
 
 ### Security
