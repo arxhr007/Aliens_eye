@@ -407,3 +407,42 @@ def test_real_shared_names_still_link():
     ]
     [cluster] = cluster_profiles(profiles)
     assert cluster["reasons"] == ["name"]
+
+
+# --- synchronous avatar guard (PDF export) ---------------------------------
+
+
+@pytest.mark.parametrize("url", [
+    "file:///etc/passwd",
+    "file://C:/Windows/win.ini",
+    "http://127.0.0.1/x.png",
+    "http://169.254.169.254/latest/meta-data/",
+    "http://[::1]/x.png",
+    "ftp://example.com/x.png",
+    "",
+])
+def test_sync_avatar_guard_blocks_local_and_private(url):
+    from aliens_eye.core.correlate import avatar_url_allowed
+
+    assert avatar_url_allowed(url) is False
+
+
+def test_sync_avatar_guard_allows_public():
+    from aliens_eye.core.correlate import avatar_url_allowed
+
+    assert avatar_url_allowed("https://8.8.8.8/a.png") is True
+
+
+def test_pdf_avatar_fetch_never_opens_a_blocked_url(monkeypatch):
+    """urllib speaks file://; a hostile og:image must never reach urlopen."""
+    import urllib.request
+
+    pytest.importorskip("reportlab")  # CI installs the [pdf] extra so this runs there
+    from aliens_eye.core import pdf_report
+
+    def explode(*a, **k):
+        raise AssertionError("urlopen was called for a blocked avatar URL")
+
+    monkeypatch.setattr(urllib.request, "urlopen", explode)
+    for url in ("file:///etc/passwd", "http://127.0.0.1/admin", "http://10.0.0.1/x"):
+        assert pdf_report._fetch_avatar(url) is None

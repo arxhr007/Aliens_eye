@@ -22,6 +22,28 @@ class FetchResult:
     redirect_count: int
 
 
+async def read_capped(response: aiohttp.ClientResponse, limit: int) -> bytes:
+    """The body up to ``limit`` bytes, or all of it if shorter.
+
+    ``StreamReader.read(n)`` returns *up to* n bytes -- whatever has arrived on
+    the socket so far -- not n bytes. A single call therefore yields a
+    random-length prefix: fetching one GitHub profile three times gave 100000,
+    100000 and 19497 bytes. The page's og: tags sit at ~21 KB, so on the short
+    reads the avatar, name and bio were silently missing, and every feature was
+    computed from a different slice of the page on each run. Loop until the cap
+    or EOF.
+    """
+    chunks: list[bytes] = []
+    size = 0
+    while size < limit:
+        chunk = await response.content.read(limit - size)
+        if not chunk:
+            break
+        chunks.append(chunk)
+        size += len(chunk)
+    return b"".join(chunks)
+
+
 def _should_retry(status: int) -> bool:
     return status in {408, 429, 500, 502, 503, 504}
 
@@ -67,7 +89,7 @@ async def fetch_url(
             async with session.get(
                 url, timeout=config.timeout, allow_redirects=True, proxy=http_proxy
             ) as response:
-                raw = await response.content.read(config.max_content_bytes)
+                raw = await read_capped(response, config.max_content_bytes)
                 encoding = response.charset or "utf-8"
                 content = raw.decode(encoding, errors="ignore")
                 response_time = time.monotonic() - start_time

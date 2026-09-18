@@ -2,7 +2,28 @@
 
 ## 2.5.0 (2026-09-18)
 
+### Security
+- **`--format pdf` fetched attacker-chosen URLs, including `file://`.** The PDF report
+  downloads each profile's avatar with urllib, which also opens local files. The avatar URL is
+  scraped from the target's own page, so a hostile `og:image` could point the report at a
+  local file or an internal address. The same public-address check that guards `--correlate`
+  now guards this path too.
+
 ### Fixed
+- **Every page was parsed from a random-length prefix.** The HTTP reader called
+  `StreamReader.read(n)`, which returns *up to* n bytes -- whatever has arrived on the socket
+  -- not n bytes. Fetching one GitHub profile three times yielded 100000, 100000 and 19497
+  bytes. On short reads the page's `og:` tags (at ~21 KB) were missing, so display name, bio
+  and avatar silently vanished, and every detection feature was computed from a different
+  slice of the page on each run. Pages are now read to the size cap or to the end. Avatar
+  downloads in `--correlate` had the same bug, so images were hashed from partial data.
+- **Detection model retrained on full pages.** The old model had been trained on those
+  truncated prefixes; fed complete pages it got worse (holdout F1 0.543 -> 0.521, false-positive
+  rate 25% -> 29%). The new model is trained on 1,455 samples from 286 platforms -- four times
+  the old training set -- with the blend re-tuned to 0.9 ML / 0.1 heuristic. On 142 platforms
+  it never saw, **false "Found" results drop by two thirds** (false-positive rate 25% -> 9%,
+  precision 0.46 -> 0.65), at the cost of recall (0.67 -> 0.51). F1 is unchanged within noise.
+  Expect noticeably fewer false leads, and some real accounts moving to Maybe or Not Found.
 - **`--correlate` merged almost everything into one "same person" cluster.** Correlation
   linked two profiles when one bio @-mentioned the handle the other was found under. In a
   scan of a single handle, every profile was found under that handle, and many sites echo it
@@ -13,6 +34,11 @@
   searched handles.
 - Display names that are just the site's brand (og:title "Flickr" on `flickr.albums`) no
   longer link sibling pages of the same service.
+
+### Corrections
+- Results measured before this release, on truncated pages, should be read with that in
+  mind. An earlier claim that ~45% of pages changed within hours compared one random
+  truncation with another and is withdrawn.
 
 ### Added
 - `aliens_eye.api.correlate()` also returns `profiles`: every profile considered, with its

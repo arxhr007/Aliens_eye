@@ -29,7 +29,11 @@ _MAX_AVATARS = 40
 
 
 def _fetch_avatar(url: str, timeout: float = 6.0) -> io.BytesIO | None:
-    if not url:
+    # Avatar URLs are scraped from the target's page, so the target chooses
+    # them. urllib also accepts file://, so the guard matters doubly here.
+    from aliens_eye.core.correlate import avatar_url_allowed
+
+    if not url or not avatar_url_allowed(url):
         return None
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 aliens-eye"})

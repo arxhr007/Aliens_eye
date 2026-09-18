@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import ipaddress
 import re
+import socket
 from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import urlparse
@@ -21,6 +22,7 @@ from urllib.parse import urlparse
 import aiohttp
 
 from .config import DEFAULT_HEADERS, ScannerConfig
+from .http import read_capped
 from .scanner import build_connector
 
 _URL_RE = re.compile(r"https?://[^\s\"'<>)]+", re.IGNORECASE)
@@ -171,11 +173,8 @@ async def is_fetchable_avatar(url: str, allow_private: bool = False) -> bool:
     is resolved and rejected unless every answer is a public one. ``allow_private``
     exists for scanning a lab network on purpose.
     """
-    parsed = urlparse(url)
-    if parsed.scheme.lower() not in ALLOWED_AVATAR_SCHEMES:
-        return False
-    host = parsed.hostname
-    if not host:
+    host = _fetchable_host(url)
+    if host is None:
         return False
     if allow_private:
         return True
@@ -183,6 +182,40 @@ async def is_fetchable_avatar(url: str, allow_private: bool = False) -> bool:
         infos = await asyncio.get_event_loop().getaddrinfo(host, None)
     except (OSError, UnicodeError):
         return False
+    return _all_public(infos)
+
+
+def avatar_url_allowed(url: str, allow_private: bool = False) -> bool:
+    """Blocking twin of :func:`is_fetchable_avatar`, for synchronous callers.
+
+    The PDF exporter downloads the same scraped avatar URLs with urllib, which
+    also speaks ``file://`` -- so without this check a hostile og:image could
+    point a report at a local file as easily as at an intranet host.
+    """
+    host = _fetchable_host(url)
+    if host is None:
+        return False
+    if allow_private:
+        return True
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except (OSError, UnicodeError):
+        return False
+    return _all_public(infos)
+
+
+def _fetchable_host(url: str) -> str | None:
+    try:
+        parsed = urlparse(url)
+    except ValueError:
+        return None
+    if parsed.scheme.lower() not in ALLOWED_AVATAR_SCHEMES:
+        return None
+    return parsed.hostname or None
+
+
+def _all_public(infos) -> bool:
+    """True only if every resolved address is a public one."""
     if not infos:
         return False
     for info in infos:
@@ -209,7 +242,9 @@ async def _download_and_hash(
         async with session.get(profile.avatar, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
             if resp.status != 200:
                 return
-            data = await resp.content.read(2_000_000)  # cap at 2 MB
+            # read_capped, not content.read(n): a single read returns whatever has
+            # arrived, so the image was hashed from a random-length prefix.
+            data = await read_capped(resp, 2_000_000)  # cap at 2 MB
     except Exception:
         return
     profile.avatar_hash = _dhash(data)

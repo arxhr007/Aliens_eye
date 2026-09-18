@@ -79,7 +79,7 @@ only fallbacks for when no model loads or a model file omits the fields.
 
 | | ml weight | Found > | Not Found < |
 |---|---|---|---|
-| Shipped `data/model.json` (default runtime) | **0.6** | **0.5559** | **0.3224** |
+| Shipped `data/model.json` (default runtime) | **0.9** | **0.6202** | **0.3597** |
 | Fallback constants (heuristic-only / fields absent) | 0.4 | 0.6 | 0.35 |
 
 Confidence is scaled by distance from the threshold. If the model file is
@@ -158,22 +158,29 @@ The **Maybe rate** is reported alongside precision. Detection is tri-state, so a
 configuration can inflate precision by abstaining on everything hard; quoting
 precision without the abstention rate beside it would be misleading.
 
-What this measured, on a 428-site corpus with a site-disjoint 142-site holdout
-(696 rows): **no configuration is distinguishable from `if status == 200`.**
-Every judge — ML alone, heuristics alone, the shipped blend — lands between F1
-0.49 and 0.53 with overlapping confidence intervals, and so do Sherlock's 475
-hand-curated per-site rules.
+What this measured, on a site-disjoint holdout of 142 platforms: **no
+configuration is distinguishable from `if status == 200` on F1.** Every judge --
+ML alone, heuristics alone, the shipped blend -- lands in the same band with
+overlapping confidence intervals, and so do Sherlock's hand-curated per-site
+rules.
 
-The difference that *is* real is the error profile rather than F1: ML alone runs
-at FPR 0.082 against the shipped blend's 0.270 and the heuristic engine's 0.527,
-bought by returning Maybe on roughly half of all rows. That is an argument for
-the tri-state output, not an accuracy claim.
+What *does* differ is the error profile. The 2.5.0 model, trained on full pages
+(see below), runs at FPR 0.089 against 0.251 for the model it replaced -- 47
+false "Found" results on 530 holdout negatives instead of 133 -- at the cost of
+recall (0.51 against 0.67). Both differences are significant under a paired
+bootstrap; F1 is not.
+
+**Everything measured before 2.5.0 was on truncated pages.** The HTTP reader
+parsed only the first network chunk of each page -- a random-length prefix --
+so pre-2.5.0 corpora, results and the old model all reflect that. In
+particular, an earlier finding that ~45% of pages "changed within hours" compared
+one random truncation with another and should not be relied on.
 
 A caution worth keeping, because this repo learned it the hard way: an earlier
 run on a 43-site corpus showed ML alone beating the shipped blend by a
 statistically significant +0.126 F1. That corpus included sites the model had
 trained on. On a properly site-disjoint holdout the effect vanished (+0.013,
-not significant). The blend was left unchanged as a result.
+not significant).
 
 ### External baselines
 
@@ -215,9 +222,12 @@ optimistically high. `train collect --split holdout` is refused unless
 - `aliens_eye selfcheck --split holdout` measures live accuracy on sites the
   model never trained on.
 
-> **Known limitation.** The shipped model reports `cv_f1 = 0.5622` over 368
-> samples (97 positive / 271 negative) drawn from 43 sites. That is a small,
-> celebrity-skewed sample and the figure should be read as preliminary.
+> **Accuracy, measured honestly.** The shipped model was trained on 1,455 samples
+> from the train split (286 platforms) and evaluated on the site-disjoint holdout
+> (142 platforms, 700 rows): precision 0.65, recall 0.51, FPR 0.089, F1 0.57. Before
+> 2.5.0 it was trained on truncated pages -- see the 2.5.0 changelog -- and ran at
+> FPR 0.25. F1 is not distinguishable from an HTTP-status baseline on held-out
+> platforms; the gain is in precision, i.e. far fewer false leads.
 
 ## Fingerprints
 

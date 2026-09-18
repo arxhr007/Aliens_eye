@@ -180,9 +180,9 @@ Two judges then vote:
 1. **Heuristic engine** — weighted scoring over the features
 2. **ML model** — logistic regression trained on labeled scans of real (and deliberately fake) accounts, shipped with the package and running in pure Python (no sklearn needed at runtime)
 
-The blended probability maps to **Found / Maybe / Not Found** with a confidence percentage. The loaded model supplies both the blend weight and the thresholds — the shipped model uses `0.6 * ml + 0.4 * heuristic`, Found above `0.556`, Not Found below `0.322`. If a model file is missing or invalid, the scanner silently falls back to heuristics with the defaults in `core/detector.py` (`0.4` ML weight, `0.6` / `0.35` thresholds). See [WORKING.md](WORKING.md) for the full table.
+The blended probability maps to **Found / Maybe / Not Found** with a confidence percentage. The loaded model supplies both the blend weight and the thresholds — the shipped model uses `0.9 * ml + 0.1 * heuristic`, Found above `0.620`, Not Found below `0.360`. If a model file is missing or invalid, the scanner silently falls back to heuristics with the defaults in `core/detector.py` (`0.4` ML weight, `0.6` / `0.35` thresholds). See [WORKING.md](WORKING.md) for the full table.
 
-> **Detection accuracy is preliminary.** The shipped model was fit on 368 samples from 43 platforms (`cv_f1 = 0.5622`), with ground-truth accounts skewed toward high-profile users. Treat Found/Maybe as leads to verify, not as findings.
+> **Treat Found/Maybe as leads to verify, not as findings.** The shipped model was fit on 1,455 samples from 286 platforms and evaluated on 142 platforms it never saw: precision 0.65, recall 0.51, false-positive rate 9% (F1 0.57). It favours fewer false leads over catching every account, and on held-out platforms no configuration -- including this one -- is statistically distinguishable from a plain HTTP-status check on F1.
 
 ### Retraining the model
 

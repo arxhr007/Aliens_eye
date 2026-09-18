@@ -13,9 +13,9 @@ from aliens_eye.core.detector import (
 # are documented in README.md and WORKING.md; if the shipped model changes,
 # update both docs and this table in the same commit. The fallback constants in
 # core/detector.py are deliberately different and must not be confused for these.
-SHIPPED_MODEL_ML_WEIGHT = 0.6
-SHIPPED_MODEL_FOUND_THRESHOLD = 0.5559
-SHIPPED_MODEL_NOT_FOUND_THRESHOLD = 0.3224
+SHIPPED_MODEL_ML_WEIGHT = 0.9
+SHIPPED_MODEL_FOUND_THRESHOLD = 0.6202
+SHIPPED_MODEL_NOT_FOUND_THRESHOLD = 0.3597
 
 
 def make_found_features():
