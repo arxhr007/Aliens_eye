@@ -207,6 +207,30 @@ Ground truth is split **site-disjoint** into `data/selfcheck.json` (train, 30
 sites) and `data/eval_holdout.json` (holdout, 13 sites). Scoring `--split train`
 measures fit, not generalization, and will read high.
 
+## Using it as a library
+
+`aliens_eye.api` is the stable surface for building other tools on Aliens Eye. It
+returns plain dicts shaped like the JSON report and prints nothing by default.
+
+```python
+import asyncio
+from aliens_eye import api
+
+async def main():
+    sites = api.load_sites(exclude_nsfw=True)
+    report = await api.scan(
+        "someone",
+        sites=sites,
+        on_result=lambda user, r: print(r["site"], r["status"]),  # optional progress hook
+    )
+    correlation = await api.correlate(report)
+    print(len(correlation["clusters"]), "clusters")
+
+asyncio.run(main())
+```
+
+Everything outside `aliens_eye.api` is internal and may change between minor releases.
+
 ## Configuration
 
 Aliens Eye merges a JSON config file with CLI flags (CLI wins). Search order without `--config`: `./config.json`, then the platform config dir (e.g. `~/.config/aliens_eye/config.json` on Linux, `%LOCALAPPDATA%\aliens_eye` on Windows).

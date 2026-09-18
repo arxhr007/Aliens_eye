@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.4.0 (2026-09-18)
+
+### Security
+- **`--correlate` fetched attacker-chosen URLs (SSRF).** Avatar URLs are scraped from the
+  target's own page (`og:image`, JSON-LD, favicon, per-site selectors), so whoever controls
+  that page chooses them, and they were requested with no validation. A hostile profile could
+  point its avatar at a cloud metadata endpoint, an intranet host, or a service on the
+  analyst's own loopback. Avatar URLs are now limited to `http`/`https` and must resolve to
+  public addresses. Upgrade if you use `--correlate`.
+
+### Added
+- **`aliens_eye.api`**, a stable programmatic API (`scan`, `correlate`, `load_sites`) for
+  building other tools on Aliens Eye. It returns plain dicts shaped like the JSON report,
+  prints nothing by default, and never writes into the caller's working directory.
+- `UsernameScanner` accepts an `on_result(username, result)` progress hook (sync or async)
+  and an injectable `console`.
+
+### Fixed
+- Sites whose response headers exceed 8190 bytes (e.g. trakt.tv) failed on every request
+  with `Got more than 8190 bytes when reading`. The limit is now 64 KB.
+- `--watch nan` and `--watch inf` were accepted: NaN slips past a `<= 0` check because every
+  comparison with it is false. Durations must now be positive and finite.
+
+### Changed
+- The MCP server now uses `aliens_eye.api`, and routes console output to stderr for the
+  whole process, not just during scans.
+
 ## 2.3.0 (2026-09-06)
 
 Evaluation and reproducibility release. No change to detection behaviour: the shipped

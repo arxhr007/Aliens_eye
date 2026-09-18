@@ -163,11 +163,17 @@ class UsernameScanner:
         browser_fallback: BrowserFallback | None = None,
         checkpoint=None,
         fetch=fetch_url,
+        on_result=None,
+        console=None,
     ) -> None:
         # ``fetch`` is the single seam between the scanner and the network.
         # Swapping it for aliens_eye.corpus.replay.ReplayFetcher runs the whole
         # pipeline off a frozen corpus with every downstream stage unchanged.
         self.fetch = fetch
+        # Optional ``on_result(username, result)`` progress hook, called once per
+        # site as it completes. May be sync or async. Used by callers that are not
+        # a terminal -- a web UI streaming progress, for instance.
+        self.on_result = on_result
         self.sites_data = sites_data
         self.config = config
         self.extractor = extractor
@@ -176,7 +182,9 @@ class UsernameScanner:
         self.logger = logger
         self.browser_fallback = browser_fallback
         self.checkpoint = checkpoint
-        self.console = get_console()
+        # Injectable, like ScanView's, so a library caller can silence one scan
+        # without touching the process-wide console.
+        self.console = console or get_console()
 
         self.results_dir = config.output_dir
         self.results_dir.mkdir(parents=True, exist_ok=True)
@@ -295,6 +303,13 @@ class UsernameScanner:
                     await self.checkpoint.record(username, site, result)
                 except Exception as exc:  # noqa: BLE001 - checkpoint is best-effort
                     self.logger.debug("Checkpoint write failed for %s: %s", site, exc)
+            if self.on_result is not None:
+                try:
+                    outcome = self.on_result(username, result)
+                    if asyncio.iscoroutine(outcome):
+                        await outcome
+                except Exception as exc:  # noqa: BLE001 - a progress hook must never kill a scan
+                    self.logger.debug("on_result hook failed for %s: %s", site, exc)
             found = sum(1 for r in results if r["status"] == "Found")
             view.advance(found)
             queue.task_done()

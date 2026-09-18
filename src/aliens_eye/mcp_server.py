@@ -16,34 +16,16 @@ from typing import Any
 
 
 async def _run_scan(username: str, level: str, sites: str | None, no_ml: bool) -> dict[str, Any]:
-    from aliens_eye.core.analyzer import FeatureExtractor
-    from aliens_eye.core.config import ScannerConfig
-    from aliens_eye.core.detector import Detector
-    from aliens_eye.core.exporter import ResultsExporter
-    from aliens_eye.core.fingerprints import FingerprintStore
-    from aliens_eye.core.scanner import UsernameScanner, load_sites_data
-    from aliens_eye.utils.console import set_plain
-    from aliens_eye.utils.logger import setup_logger
+    from aliens_eye import api
 
-    set_plain(True, stderr=True)
-    logger = setup_logger(False)
-    config = ScannerConfig()
-    sites_data = load_sites_data(Path(sites) if sites else None)
-    detector = Detector()
-    if not no_ml:
-        detector.load_model(logger)
-    extractor = FeatureExtractor()
-    fingerprints = FingerprintStore(config.fingerprints_path, config.max_fingerprints_per_label)
-    fingerprints.load(logger)
-    scanner = UsernameScanner(
-        sites_data=sites_data, config=config, extractor=extractor,
-        detector=detector, fingerprints=fingerprints, logger=logger,
+    # stdio carries the MCP protocol, so nothing may reach stdout.
+    return await api.scan(
+        username,
+        level,
+        sites=api.load_sites(path=Path(sites) if sites else None),
+        use_ml=not no_ml,
+        quiet=True,
     )
-    try:
-        all_results = await scanner.scan_with_variations(username, level)
-    finally:
-        fingerprints.save()
-    return ResultsExporter(config.output_dir).report_dict(username, level, all_results)
 
 
 async def serve(args) -> None:
@@ -56,6 +38,12 @@ async def serve(args) -> None:
             "[yellow]The MCP server needs the mcp package: pip install \"aliens-eye\\[serve]\"[/yellow]"
         )
         return
+
+    from aliens_eye.utils.console import set_plain
+
+    # stdout carries the MCP protocol for the life of the process; route any
+    # stray console output to stderr so nothing can corrupt the stream.
+    set_plain(True, stderr=True)
 
     sites = getattr(args, "sites", None)
     no_ml = getattr(args, "no_ml", False)
@@ -73,9 +61,9 @@ async def serve(args) -> None:
     @mcp.tool()
     async def correlate(report: dict[str, Any]) -> dict[str, Any]:
         """Cluster the profiles in a scan report that look like the same person."""
-        from aliens_eye.core.correlate import correlate_report
+        from aliens_eye import api
 
-        return await correlate_report(report)
+        return await api.correlate(report)
 
     @mcp.tool()
     def read_report(path: str) -> dict[str, Any]:
