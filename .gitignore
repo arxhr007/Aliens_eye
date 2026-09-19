@@ -9,9 +9,9 @@ venv/
 .ruff_cache/
 results/
 cache/
-config.json
 .pip-cache/
 .pip-tmp/
+config.json
 
 # Evaluation artifacts: captured response corpora and archived metrics. These
 # hold third-party page content, so they stay local and are not published.
