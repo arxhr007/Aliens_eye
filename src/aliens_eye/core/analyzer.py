@@ -5,7 +5,7 @@ from importlib import resources
 from typing import Any
 from urllib.parse import urljoin, urlparse
 
-from selectolax.parser import HTMLParser
+from selectolax.lexbor import LexborHTMLParser as HTMLParser
 
 from .config import (
     AUTH_PATTERNS,
