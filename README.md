@@ -229,6 +229,16 @@ async def main():
 asyncio.run(main())
 ```
 
+It can also read a profile link back into a site and username, and fetch a page
+whose address came from somewhere you don't control:
+
+```python
+api.match_profile_url("https://www.instagram.com/_someone_/")
+# [ProfileMatch(site='instagram', username='_someone_')]
+
+page = await api.fetch_page("https://example.com/")   # public http(s) addresses only
+```
+
 Everything outside `aliens_eye.api` is internal and may change between minor releases.
 
 ## Configuration

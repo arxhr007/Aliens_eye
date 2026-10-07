@@ -12,17 +12,14 @@ correlation still runs on name/bio/link signals alone.
 from __future__ import annotations
 
 import asyncio
-import ipaddress
 import re
-import socket
 from dataclasses import dataclass, field
 from typing import Any
-from urllib.parse import urlparse
 
 import aiohttp
 
+from . import netguard
 from .config import DEFAULT_HEADERS, ScannerConfig
-from .http import read_capped
 from .scanner import build_connector
 
 _URL_RE = re.compile(r"https?://[^\s\"'<>)]+", re.IGNORECASE)
@@ -157,75 +154,21 @@ def pillow_available() -> bool:
         return False
 
 
-ALLOWED_AVATAR_SCHEMES = {"http", "https"}
-
-
 async def is_fetchable_avatar(url: str, allow_private: bool = False) -> bool:
     """Whether an avatar URL is safe for this process to fetch.
 
     Avatar URLs are scraped from the target page (og:image, JSON-LD, a favicon
     link, or a per-site CSS selector), so they are chosen by whoever controls
-    that page. Fetching them unchecked turns a scan into a request generator
-    aimed wherever the target likes -- cloud metadata endpoints, an intranet
-    host, a service bound to loopback on the analyst's own machine.
-
-    Investigators run this against hostile targets by definition, so the address
-    is resolved and rejected unless every answer is a public one. ``allow_private``
-    exists for scanning a lab network on purpose.
+    that page. See ``core.netguard`` for what is checked and why; note that this
+    answers for the URL itself, and a fetch must still validate every redirect
+    hop, which :func:`_download_and_hash` does through ``guarded_get``.
     """
-    host = _fetchable_host(url)
-    if host is None:
-        return False
-    if allow_private:
-        return True
-    try:
-        infos = await asyncio.get_event_loop().getaddrinfo(host, None)
-    except (OSError, UnicodeError):
-        return False
-    return _all_public(infos)
+    return await netguard.is_public_url(url, allow_private)
 
 
 def avatar_url_allowed(url: str, allow_private: bool = False) -> bool:
-    """Blocking twin of :func:`is_fetchable_avatar`, for synchronous callers.
-
-    The PDF exporter downloads the same scraped avatar URLs with urllib, which
-    also speaks ``file://`` -- so without this check a hostile og:image could
-    point a report at a local file as easily as at an intranet host.
-    """
-    host = _fetchable_host(url)
-    if host is None:
-        return False
-    if allow_private:
-        return True
-    try:
-        infos = socket.getaddrinfo(host, None)
-    except (OSError, UnicodeError):
-        return False
-    return _all_public(infos)
-
-
-def _fetchable_host(url: str) -> str | None:
-    try:
-        parsed = urlparse(url)
-    except ValueError:
-        return None
-    if parsed.scheme.lower() not in ALLOWED_AVATAR_SCHEMES:
-        return None
-    return parsed.hostname or None
-
-
-def _all_public(infos) -> bool:
-    """True only if every resolved address is a public one."""
-    if not infos:
-        return False
-    for info in infos:
-        try:
-            address = ipaddress.ip_address(info[4][0])
-        except ValueError:
-            return False
-        if not address.is_global or address.is_private or address.is_loopback:
-            return False
-    return True
+    """Blocking twin of :func:`is_fetchable_avatar`, for synchronous callers."""
+    return netguard.is_public_url_sync(url, allow_private)
 
 
 async def _download_and_hash(
@@ -236,18 +179,18 @@ async def _download_and_hash(
 ) -> None:
     if not profile.avatar:
         return
-    if not await is_fetchable_avatar(profile.avatar, allow_private):
-        return
     try:
-        async with session.get(profile.avatar, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
-            if resp.status != 200:
-                return
-            # read_capped, not content.read(n): a single read returns whatever has
-            # arrived, so the image was hashed from a random-length prefix.
-            data = await read_capped(resp, 2_000_000)  # cap at 2 MB
-    except Exception:
+        # guarded_get validates the URL and every redirect hop: a public avatar
+        # URL that answers 302 to an internal address must not be followed.
+        response = await netguard.guarded_get(
+            session, profile.avatar, timeout=timeout, max_bytes=2_000_000,
+            allow_private=allow_private,
+        )
+    except Exception:  # noqa: BLE001 - avatar hashing is best-effort
         return
-    profile.avatar_hash = _dhash(data)
+    if response.status != 200:
+        return
+    profile.avatar_hash = _dhash(response.body)
 
 
 async def hash_avatars(
@@ -264,7 +207,9 @@ async def hash_avatars(
         return
 
     limit = min(20, len(targets))
-    connector = build_connector(ScannerConfig(proxy=proxy), limit)
+    # The resolver pins the check to the address actually connected to.
+    resolver = None if allow_private else netguard.PublicOnlyResolver()
+    connector = build_connector(ScannerConfig(proxy=proxy), limit, resolver)
     sem = asyncio.Semaphore(limit)
     async with aiohttp.ClientSession(headers=DEFAULT_HEADERS, connector=connector) as session:
 

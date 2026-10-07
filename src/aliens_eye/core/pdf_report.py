@@ -8,7 +8,6 @@ is not installed; the exporter catches that and prints an install hint.
 from __future__ import annotations
 
 import io
-import urllib.request
 from pathlib import Path
 from typing import Any
 
@@ -30,20 +29,13 @@ _MAX_AVATARS = 40
 
 def _fetch_avatar(url: str, timeout: float = 6.0) -> io.BytesIO | None:
     # Avatar URLs are scraped from the target's page, so the target chooses
-    # them. urllib also accepts file://, so the guard matters doubly here.
-    from aliens_eye.core.correlate import avatar_url_allowed
+    # them. The guarded opener speaks http(s) only and validates every redirect.
+    from aliens_eye.core.netguard import guarded_urlopen_bytes
 
-    if not url or not avatar_url_allowed(url):
+    if not url:
         return None
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 aliens-eye"})
-        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 - user-provided profile URL
-            if resp.status != 200:
-                return None
-            data = resp.read(2_000_000)
-        return io.BytesIO(data)
-    except Exception:
-        return None
+    data = guarded_urlopen_bytes(url, timeout=timeout)
+    return io.BytesIO(data) if data is not None else None
 
 
 def write_pdf(path: str | Path, results_data: dict[str, Any]) -> None:

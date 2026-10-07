@@ -18,7 +18,19 @@ from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Any
 
-__all__ = ["LEVELS", "ResultHook", "correlate", "load_sites", "scan"]
+__all__ = [
+    "LEVELS",
+    "ProfileMatch",
+    "ResultHook",
+    "correlate",
+    "fetch_page",
+    "load_sites",
+    "match_profile_url",
+    "profile_url",
+    "scan",
+]
+
+from aliens_eye.core.urlmatch import ProfileMatch
 
 LEVELS = ("basic", "intermediate", "advanced")
 
@@ -148,3 +160,74 @@ async def correlate(
         allow_private_avatars=allow_private_avatars,
         include_profiles=True,
     )
+
+
+def match_profile_url(url: str, sites: dict[str, str] | None = None) -> list[ProfileMatch]:
+    """Which catalogue profiles a URL could be, most specific first.
+
+    ``match_profile_url("https://www.instagram.com/_arx_/")`` gives
+    ``[ProfileMatch(site="instagram", username="_arx_")]``. A URL that is not a
+    profile on a known site -- a repository, a navigation page, an unknown host
+    -- gives ``[]``.
+    """
+    from aliens_eye.core.urlmatch import matcher_for
+
+    return matcher_for(sites if sites is not None else load_sites()).match(url)
+
+
+def profile_url(site: str, username: str, sites: dict[str, str] | None = None) -> str:
+    """The profile URL for ``username`` on ``site``. Raises KeyError for an unknown site."""
+    from aliens_eye.core.scanner import format_site_url
+
+    catalogue = sites if sites is not None else load_sites()
+    return format_site_url(site, catalogue[site], username)
+
+
+async def fetch_page(
+    url: str,
+    *,
+    proxy: str | None = None,
+    timeout: float = 20.0,
+    max_bytes: int = 1_000_000,
+    allow_private: bool = False,
+) -> dict[str, Any]:
+    """Fetch one page whose address came from somewhere you do not control.
+
+    For reading a profile or personal site to see what it links to. Only http(s)
+    is fetched, and only from public addresses: the URL and every redirect hop
+    are validated, and the connection itself is pinned to a public address, so a
+    link cannot steer the request at an internal service. ``allow_private`` lifts
+    that for a network you own. Through a ``proxy`` the proxy does the resolving,
+    and the pinning does not apply.
+
+    Never raises for a bad or unreachable URL: returns ``{"url", "final_url",
+    "status", "html", "error"}`` with ``error`` set and ``html`` empty. A refusal
+    says why: "host does not resolve", "host resolves to a non-public address" or
+    "not an http(s) address".
+    """
+    from aliens_eye.core import netguard
+    from aliens_eye.core.config import ScannerConfig
+    from aliens_eye.core.scanner import build_session
+
+    result: dict[str, Any] = {"url": url, "final_url": url, "status": 0, "html": "", "error": None}
+    http_proxy = proxy if proxy and proxy.lower().startswith(("http://", "https://")) else None
+    resolver = None if (allow_private or proxy) else netguard.PublicOnlyResolver()
+    try:
+        async with build_session(ScannerConfig(proxy=proxy), 2, resolver=resolver) as session:
+            response = await netguard.guarded_get(
+                session, url, timeout=timeout, max_bytes=max_bytes,
+                allow_private=allow_private, proxy=http_proxy,
+            )
+    except netguard.GuardError as exc:
+        result["error"] = str(exc)
+        return result
+    except Exception as exc:  # noqa: BLE001 - reported to the caller, never raised
+        result["error"] = f"{type(exc).__name__}: {exc}"[:200]
+        return result
+    result["final_url"] = response.final_url
+    result["status"] = response.status
+    try:
+        result["html"] = response.body.decode(response.charset or "utf-8", errors="ignore")
+    except LookupError:  # a charset name Python does not know
+        result["html"] = response.body.decode("utf-8", errors="ignore")
+    return result

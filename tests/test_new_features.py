@@ -339,21 +339,31 @@ def test_allow_private_opt_out_skips_the_check():
     assert _fetchable("http://127.0.0.1/x.png", allow_private=True) is True
 
 
-def test_blocked_avatar_is_never_downloaded(monkeypatch):
-    """The guard must run before any request is issued."""
+def test_blocked_avatar_is_never_downloaded():
+    """The guard must run before any request is issued.
+
+    The session records calls rather than raising: the download swallows
+    exceptions by design, so a session that raised could never fail this test.
+    """
     import asyncio
 
     from aliens_eye.core.correlate import Profile, _download_and_hash
 
-    class ExplodingSession:
-        def get(self, *a, **k):
-            raise AssertionError("a blocked avatar URL was fetched anyway")
+    class RecordingSession:
+        def __init__(self):
+            self.calls = []
 
+        def get(self, url, **kwargs):
+            self.calls.append(url)
+            raise RuntimeError("no network in this test")
+
+    session = RecordingSession()
     profile = Profile(
         variation="u", site="s", url="https://s/u", name="", bio="", status="Found",
         avatar="http://169.254.169.254/latest/meta-data/",
     )
-    asyncio.run(_download_and_hash(ExplodingSession(), profile, timeout=1.0))
+    asyncio.run(_download_and_hash(session, profile, timeout=1.0))
+    assert session.calls == []
     assert profile.avatar_hash is None
 
 
@@ -434,15 +444,15 @@ def test_sync_avatar_guard_allows_public():
 
 
 def test_pdf_avatar_fetch_never_opens_a_blocked_url(monkeypatch):
-    """urllib speaks file://; a hostile og:image must never reach urlopen."""
+    """A hostile og:image must never reach the network or the filesystem."""
     import urllib.request
 
     pytest.importorskip("reportlab")  # CI installs the [pdf] extra so this runs there
     from aliens_eye.core import pdf_report
 
-    def explode(*a, **k):
-        raise AssertionError("urlopen was called for a blocked avatar URL")
-
-    monkeypatch.setattr(urllib.request, "urlopen", explode)
+    opened = []
+    monkeypatch.setattr(urllib.request.OpenerDirector, "open",
+                        lambda self, req, *a, **k: opened.append(req.full_url))
     for url in ("file:///etc/passwd", "http://127.0.0.1/admin", "http://10.0.0.1/x"):
         assert pdf_report._fetch_avatar(url) is None
+    assert opened == []

@@ -154,12 +154,21 @@ def _looks_like_bot_wall(signals: dict[str, Any]) -> bool:
     return any(keyword in haystack for keyword in _BOT_WALL_KEYWORDS)
 
 
-def build_connector(config: ScannerConfig, limit: int) -> aiohttp.BaseConnector:
-    """TCP connector, or a SOCKS proxy connector when a socks:// proxy is set."""
+def build_connector(
+    config: ScannerConfig, limit: int, resolver=None
+) -> aiohttp.BaseConnector:
+    """TCP connector, or a SOCKS proxy connector when a socks:// proxy is set.
+
+    ``resolver`` is for fetches of URLs taken from scanned pages; see
+    ``core.netguard.PublicOnlyResolver``. It has no effect through a SOCKS
+    proxy, where the proxy does the resolving.
+    """
     if config.proxy and config.proxy.lower().startswith(("socks4://", "socks5://")):
         from aiohttp_socks import ProxyConnector
 
         return ProxyConnector.from_url(config.proxy, limit=limit)
+    if resolver is not None:
+        return aiohttp.TCPConnector(limit=limit, resolver=resolver)
     return aiohttp.TCPConnector(limit=limit)
 
 
@@ -167,6 +176,7 @@ def build_session(
     config: ScannerConfig,
     limit: int,
     headers: dict[str, str] | None = None,
+    resolver=None,
 ) -> aiohttp.ClientSession:
     """Session for fetching site pages, with the header-size limit raised.
 
@@ -177,7 +187,7 @@ def build_session(
     """
     return aiohttp.ClientSession(
         headers=DEFAULT_HEADERS if headers is None else headers,
-        connector=build_connector(config, limit),
+        connector=build_connector(config, limit, resolver),
         max_line_size=MAX_HEADER_SIZE,
         max_field_size=MAX_HEADER_SIZE,
     )

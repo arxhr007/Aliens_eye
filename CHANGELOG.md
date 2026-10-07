@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.6.0 (2026-10-07)
+
+### Security
+- **The address check on scraped URLs could be bypassed with a redirect.** Since 2.4.0,
+  avatar URLs taken from scanned pages were only fetched if they pointed at a public
+  address. The check covered the URL itself, and the HTTP client then followed redirects
+  unchecked, so a public URL answering `302 Location: http://127.0.0.1/...` was still
+  followed. This affected `--correlate` and `--format pdf`. Redirects are now followed one
+  hop at a time with every hop validated, and `--correlate` pins the connection to the
+  address that was checked, which also closes a DNS-rebinding race.
+
+### Added
+- `aliens_eye.api.match_profile_url(url)`: which site and username a profile link belongs
+  to, for any site in the catalogue. `https://www.instagram.com/_someone_/` gives
+  `("instagram", "_someone_")`; a repository, a navigation page or an unknown host gives
+  nothing.
+- `aliens_eye.api.fetch_page(url)`: fetch one page whose address came from somewhere you do
+  not control, with the checks above.
+- `aliens_eye.api.profile_url(site, username)`.
+
+### Changed
+- `--recurse-depth` now understands profile links for every site in the catalogue. It used
+  to recognise 19 hard-coded domains and take the first path segment, which missed
+  `linkedin.com/in/<user>` and `<user>.tumblr.com` and misread `github.com/<user>/<repo>`.
+
 ## 2.5.1 (2026-10-07)
 
 ### Fixed
