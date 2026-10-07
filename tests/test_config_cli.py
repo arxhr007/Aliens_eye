@@ -172,3 +172,17 @@ def test_package_version_matches_pyproject():
     from aliens_eye import __version__
 
     assert __version__ == _declared_version()
+
+
+def test_selectolax_has_an_upper_bound():
+    """Regression: with an unbounded ``selectolax>=0.3.21`` every fresh install
+    broke the day selectolax 1.0 removed the backend this package imported."""
+    [requirement] = [dep for dep in _declared_dependencies() if dep.startswith("selectolax")]
+    assert "<" in requirement
+
+
+def test_analyzer_uses_a_parser_backend_that_still_exists():
+    """The Modest backend (selectolax.parser) is gone in 1.0; Lexbor is in both."""
+    import aliens_eye.core.analyzer as analyzer
+
+    assert analyzer.HTMLParser.__module__.startswith("selectolax.lexbor")

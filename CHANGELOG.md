@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.5.1 (2026-10-07)
+
+### Fixed
+- **Fresh installs crashed on start.** selectolax 1.0.0 (released 2026-10-03) removed the
+  HTML parser backend Aliens Eye imported, and the dependency had no upper bound, so every
+  new `pip install aliens-eye` since then failed with `ImportError: Modest backend is
+  deprecated since selectolax 1.0`. The analyzer now uses selectolax's Lexbor backend, which
+  works on both old and new versions, and the dependency is capped at `<2`. Checked on 706
+  recorded pages: no detection result changes. Thanks to @cristianchiriac (#23).
+
+  If you hit this, upgrade: `pip install -U aliens-eye`.
+- **Bot-check and error pages reported as Found.** Pages such as Cloudflare's "Checking your
+  browser" return HTTP 200 and mention users or profiles, so they could be scored as a found
+  account. A result whose title or meta tags mark it as a challenge, verification or error
+  page is now capped at Maybe. Thanks to @BBmmo-code (#19).
+
+### Added
+- 18 Chinese platforms whose profile URL carries the username, including CSDN, SegmentFault,
+  cnblogs, V2EX, LOFTER and Jianshu. Thanks to @BBmmo-code (#19). Two more from that
+  contribution, leetcode.cn and hupu, were left out because they answer "found" for
+  usernames that do not exist.
+
 ## 2.5.0 (2026-09-18)
 
 ### Security

@@ -141,3 +141,66 @@ async def test_build_connector_http_proxy_uses_tcp():
     connector = build_connector(config, 5)
     assert isinstance(connector, aiohttp.TCPConnector)
     await connector.close()
+
+
+# --- bot-wall cap ---------------------------------------------------------
+
+from aliens_eye.core.scanner import _looks_like_bot_wall  # noqa: E402
+
+
+@pytest.mark.parametrize("title", [
+    "Just a moment...",
+    "Checking your browser",
+    "Attention Required! | Cloudflare",
+    "Access Denied",
+    "500 Internal Server Error",
+    "Verify you are human",
+])
+def test_challenge_and_error_titles_are_bot_walls(title):
+    assert _looks_like_bot_wall({"title": title, "meta_samples": []})
+
+
+def test_challenge_text_in_meta_tags_counts():
+    assert _looks_like_bot_wall({"title": "example.com", "meta_samples": ["Please complete the CAPTCHA"]})
+
+
+@pytest.mark.parametrize("signals", [
+    {"title": "torvalds (Linus Torvalds) - Profile", "meta_samples": ["followers and posts"]},
+    {"title": "", "meta_samples": []},
+    {"title": None},
+    {},
+])
+def test_ordinary_pages_are_not_bot_walls(signals):
+    assert not _looks_like_bot_wall(signals)
+
+
+async def test_a_challenge_page_is_capped_at_maybe(found_html, tmp_path, logger):
+    """A 200 page with profile wording but a challenge title must not be Found.
+
+    Seen live: pcgamer served "Checking your browser" for every username, real
+    or made up, and each one was reported as a found account.
+    """
+    app = web.Application()
+    challenge = found_html.replace(
+        "<title>torvalds (Linus Torvalds) - Profile</title>",
+        "<title>Checking your browser</title>",
+    )
+    assert challenge != found_html
+
+    async def page(request):
+        return web.Response(text=challenge, content_type="text/html")
+
+    app.router.add_get("/u/{username}", page)
+    server = TestServer(app)
+    await server.start_server()
+    try:
+        sites = {"walled": f"http://{server.host}:{server.port}/u/{{}}"}
+        [result] = await make_scanner(sites, tmp_path, logger).scan_all_sites("torvalds")
+    finally:
+        await server.close()
+
+    assert result["status"] == "Maybe"
+    assert result["confidence"] <= 55
+    # The suffix is only added when the uncapped verdict was Found, so this also
+    # proves the cap is what changed the result.
+    assert result["ai_analysis"]["method"].endswith("-botwall-capped")

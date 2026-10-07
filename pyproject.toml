@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aliens-eye"
-version = "2.5.0"
+version = "2.5.1"
 description = "AI-powered OSINT username scanner across 800+ social media and web platforms"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -29,7 +29,11 @@ dependencies = [
     # Required, not optional: DEFAULT_HEADERS advertises br, and a server that
     # honours it returns a body aiohttp raises on without a Brotli decoder.
     "Brotli>=1.1",
-    "selectolax>=0.3.21",
+    # Capped at the next major: selectolax 1.0 removed the parser backend this
+    # package imported, and with no upper bound every fresh install broke the
+    # day it was published. The analyzer now uses the Lexbor backend, which
+    # exists from 0.3 through 1.x.
+    "selectolax>=0.3.21,<2",
     "rich>=13.7",
     "aiohttp-socks>=0.8,<1.0",
     "platformdirs>=4.0",

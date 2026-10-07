@@ -120,8 +120,9 @@ def format_site_url(site_name: str, url_template: str, username: str) -> str:
     return url
 
 
-# 反爬/人机验证/报错页的标题或 meta 里常出现的特征词。命中说明是风控拦截页、
-# Cloudflare/验证码/安全验证/拒绝访问/服务宕机等，不是真实用户主页。
+# Phrases that show up in the title or meta tags of anti-bot, verification and
+# error pages: Cloudflare interstitials, CAPTCHAs, access-denied and outage
+# pages. A match means the response is that kind of page, not a user profile.
 _BOT_WALL_KEYWORDS = (
     "just a moment",
     "checking your browser",
@@ -146,7 +147,7 @@ _BOT_WALL_KEYWORDS = (
 
 
 def _looks_like_bot_wall(signals: dict[str, Any]) -> bool:
-    """判断该响应是否是反爬/验证/报错类页面，而非真实用户主页。"""
+    """Whether a response is an anti-bot, verification or error page, not a profile."""
     title = str(signals.get("title", "") or "").lower()
     meta = " ".join(str(m) for m in (signals.get("meta_samples") or [])).lower()
     haystack = f"{title} {meta}"
@@ -428,8 +429,9 @@ class UsernameScanner:
                     confidence,
                 )
 
-            # 反爬/人机验证/报错页绝不算作真实命中：这类页面常返回 200 且带
-            # user/profile 字样，易被误判为 Found。统一降级为 Maybe 以减少假阳性。
+            # A challenge or error page is never a real hit. These pages often
+            # return 200 and mention "user" or "profile", which reads as Found,
+            # so they are capped at Maybe.
             if status_text == "Found" and _looks_like_bot_wall(bundle.signals):
                 status_text = "Maybe"
                 confidence = min(confidence, 55)
