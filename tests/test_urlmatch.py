@@ -179,3 +179,14 @@ async def test_fetch_page_does_not_follow_a_redirect_inward(page_server, monkeyp
 async def test_fetch_page_never_raises_on_bad_urls(url):
     result = await api.fetch_page(url)
     assert result["error"] and result["html"] == ""
+
+
+def test_youtube_is_checked_by_handle():
+    """youtube.com/<name> exists only for older channels; every channel has an @handle."""
+    from aliens_eye import api
+
+    assert api.profile_url("youtube", "mkbhd") == "https://www.youtube.com/@mkbhd"
+    assert api.match_profile_url("https://www.youtube.com/@mkbhd") == [("youtube", "mkbhd")]
+    assert api.match_profile_url("https://youtube.com/@MKBHD/videos") == []     # a tab, not the profile
+    assert api.match_profile_url("https://www.youtube.com/c/mkbhd") == [("youtube channel", "mkbhd")]
+    assert api.match_profile_url("https://www.youtube.com/watch?v=abc") == []

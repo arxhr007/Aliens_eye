@@ -233,7 +233,7 @@
     "devrant": "https://devrant.com/users/{}",
     "youpic": "https://youpic.com/photographer/{}/",
     "slashdot": "https://slashdot.org/~{}",
-    "youtube": "https://youtube.com/{}",
+    "youtube": "https://www.youtube.com/@{}",
     "reddit": "https://www.reddit.com/user/{}",
     "geocaching": "https://www.geocaching.com/p/default.aspx?u={}",
     "eintracht": "https://community.eintracht.de/fans/{}",
