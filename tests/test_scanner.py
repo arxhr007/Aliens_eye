@@ -230,3 +230,26 @@ async def test_a_cancelled_scan_leaves_no_workers_behind(tmp_path, logger):
         assert left == []
     finally:
         await server.close()
+
+
+async def test_one_site_that_never_answers_cannot_hold_up_the_scan(site_server, tmp_path, logger):
+    """A real scan sat on its last request for half an hour. Whatever the cause
+    inside one site's check, the scan moves on after a bounded wait."""
+    import asyncio
+
+    from aliens_eye.core.http import fetch_url
+
+    scanner = make_scanner(server_sites(site_server), tmp_path, logger)
+    scanner.config.timeout = 0.2
+    scanner.config.backoff_cap = 0.0
+
+    async def fetch(session, url, config, rate_limiter, log):
+        if "/beta/" in url:
+            await asyncio.sleep(3600)      # ignores every timeout the HTTP layer has
+        return await fetch_url(session, url, config, rate_limiter, log)
+
+    scanner.fetch = fetch
+    results = await asyncio.wait_for(scanner.scan_all_sites("torvalds"), 10)
+    by_site = {r["site"]: r for r in results}
+    assert by_site["alpha"]["status"] == "Found"
+    assert by_site["beta"]["status"] == "Timeout" and by_site["beta"]["code"] == 408

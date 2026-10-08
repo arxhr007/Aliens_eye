@@ -329,9 +329,24 @@ class UsernameScanner:
             except asyncio.CancelledError:
                 break
             try:
-                result = await self._scan_site(
-                    site, tmpl, username, session, rate_limiter
+                result = await asyncio.wait_for(
+                    self._scan_site(site, tmpl, username, session, rate_limiter),
+                    self._site_deadline(),
                 )
+                results.append(result)
+            except asyncio.TimeoutError:
+                url = self._format_url(site, tmpl, username)
+                self.logger.debug("Gave up on %s after %.0fs", site, self._site_deadline())
+                result = {
+                    "site": site,
+                    "url": url,
+                    "final_url": url,
+                    "status": "Timeout",
+                    "code": 408,
+                    "response_time": 0.0,
+                    "confidence": 0,
+                    "ai_analysis": {"error": "no answer within the per-site deadline"},
+                }
                 results.append(result)
             except Exception as exc:
                 url = self._format_url(site, tmpl, username)
@@ -362,6 +377,20 @@ class UsernameScanner:
             found = sum(1 for r in results if r["status"] == "Found")
             view.advance(found)
             queue.task_done()
+
+    def _site_deadline(self) -> float:
+        """Longest one site's check may take, whatever goes wrong inside it.
+
+        Every attempt has its own timeout and every wait between attempts is
+        capped, so a healthy check ends well inside this. It exists for the
+        cases those bounds miss: a scan is only as fast as its slowest site, and
+        one that never returns holds the whole scan open.
+        """
+        config = self.config
+        budget = (config.retries + 1) * (config.timeout + config.backoff_cap + config.jitter)
+        if config.use_playwright and self.browser_fallback is not None:
+            budget += 60.0
+        return budget * 1.5 + 1.0
 
     async def _scan_site(
         self,

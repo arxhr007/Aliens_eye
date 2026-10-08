@@ -8,6 +8,9 @@
   for an hour (and the wait was applied twice). The header is the server's to set, so it is
   now honoured only up to the retry backoff cap (8 seconds); a site asking for longer is
   reported as an error and not asked again.
+- Every site's check now has an overall deadline (about 80 seconds with default settings),
+  after which it is reported as `Timeout`. A scan is only as fast as its slowest site, and
+  a check that never returned kept the whole scan open.
 - Cancelling a scan from code that uses the API (for example with a timeout) left its
   worker tasks running.
 
