@@ -297,10 +297,15 @@ class UsernameScanner:
                     )
                     for _ in range(conn_limit)
                 ]
-                await queue.join()
-                for worker in workers:
-                    worker.cancel()
-                await asyncio.gather(*workers, return_exceptions=True)
+                try:
+                    await queue.join()
+                finally:
+                    # Also when the scan itself is cancelled (a caller's timeout):
+                    # otherwise the workers outlive it, blocked on requests and a
+                    # queue that nothing will ever drain.
+                    for worker in workers:
+                        worker.cancel()
+                    await asyncio.gather(*workers, return_exceptions=True)
         finally:
             view.stop()
 

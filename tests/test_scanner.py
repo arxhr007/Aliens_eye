@@ -204,3 +204,29 @@ async def test_a_challenge_page_is_capped_at_maybe(found_html, tmp_path, logger)
     # The suffix is only added when the uncapped verdict was Found, so this also
     # proves the cap is what changed the result.
     assert result["ai_analysis"]["method"].endswith("-botwall-capped")
+
+
+async def test_a_cancelled_scan_leaves_no_workers_behind(tmp_path, logger):
+    """Regression: cancelling a scan (a caller's timeout) left its workers pending forever."""
+    import asyncio
+
+    app = web.Application()
+
+    async def stall(request):
+        await asyncio.sleep(30)
+        return web.Response(text="late")
+
+    app.router.add_get("/slow/{username}", stall)
+    server = TestServer(app)
+    await server.start_server()
+    try:
+        base = f"http://{server.host}:{server.port}"
+        scanner = make_scanner({f"s{i}": base + "/slow/{}" for i in range(4)}, tmp_path, logger)
+        before = asyncio.all_tasks()
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(scanner.scan_all_sites("torvalds"), 0.3)
+        await asyncio.sleep(0.05)
+        left = [t for t in asyncio.all_tasks() - before if "_worker" in repr(t.get_coro())]
+        assert left == []
+    finally:
+        await server.close()

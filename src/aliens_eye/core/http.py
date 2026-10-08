@@ -49,13 +49,21 @@ def _should_retry(status: int) -> bool:
 
 
 def _parse_retry_after(headers: dict[str, str]) -> float | None:
+    """Seconds the server asked us to wait, when it gave a usable number.
+
+    The date form is treated as absent, as are zero, negative and NaN values.
+    Infinity is kept: it is a (very) long wait, which the caller refuses.
+    """
     value = headers.get("Retry-After")
     if not value:
         return None
     try:
-        return float(value)
+        seconds = float(value)
     except ValueError:
         return None
+    if seconds != seconds or seconds <= 0:
+        return None
+    return seconds
 
 
 async def fetch_url(
@@ -129,12 +137,22 @@ async def fetch_url(
         except Exception as exc:
             error_message = str(exc)
 
+        if retry_after and retry_after > config.backoff_cap:
+            # The header is the server's to set, so obeying it lets one site stall
+            # a whole scan: "Retry-After: 3600" held a scan of 858 sites at its
+            # last request for an hour. Asking again sooner than the site said
+            # would only be refused again, so this site is done.
+            break
+
         if attempt < config.retries:
             backoff = min(config.backoff_base * (2 ** attempt), config.backoff_cap)
             backoff += random.uniform(0.0, config.jitter)
             if retry_after:
                 backoff = max(backoff, retry_after)
             await asyncio.sleep(backoff)
+            # That sleep was the wait the site asked for. Left set, the rate
+            # limiter would sleep for it a second time before the next attempt.
+            retry_after = None
 
     logger.debug("Fetch failed for %s: %s", url, error_message)
     return FetchResult(

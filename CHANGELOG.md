@@ -1,6 +1,15 @@
 # Changelog
 
-## 2.6.0 (2026-10-07)
+## 2.6.0 (2026-10-08)
+
+### Fixed
+- **One site could stall a whole scan.** A site answering `429` or `503` with a long
+  `Retry-After` was obeyed in full, so `Retry-After: 3600` held the scan at that request
+  for an hour (and the wait was applied twice). The header is the server's to set, so it is
+  now honoured only up to the retry backoff cap (8 seconds); a site asking for longer is
+  reported as an error and not asked again.
+- Cancelling a scan from code that uses the API (for example with a timeout) left its
+  worker tasks running.
 
 ### Security
 - **The address check on scraped URLs could be bypassed with a redirect.** Since 2.4.0,

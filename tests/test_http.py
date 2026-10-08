@@ -73,3 +73,55 @@ async def test_fetch_still_honours_the_size_cap(dribble_server, logger):
             config, DomainRateLimiter(), logger,
         )
     assert len(result.content.encode()) == 10_000
+
+
+# --- Retry-After: the server does not get to decide how long a scan sleeps ----------------
+#
+# Found in a real scan that sat at 1715 of 2574 checks for over ten minutes: one
+# site answered 429 with a long Retry-After, and the scanner slept for all of it.
+
+
+@pytest.fixture
+async def busy_server():
+    app = web.Application()
+    hits = []
+
+    async def busy(request):
+        hits.append(asyncio.get_running_loop().time())
+        return web.Response(status=429, text="slow down",
+                            headers={"Retry-After": request.query["wait"]})
+
+    app.router.add_get("/busy", busy)
+    server = TestServer(app)
+    await server.start_server()
+    server.hits = hits
+    yield server
+    await server.close()
+
+
+async def fetch_busy(server, logger, wait, **config):
+    cfg = ScannerConfig(rate_limit_delay=0.0, jitter=0.0, **config)
+    url = f"http://{server.host}:{server.port}/busy?wait={wait}"
+    async with aiohttp.ClientSession() as session:
+        return await asyncio.wait_for(fetch_url(session, url, cfg, DomainRateLimiter(), logger), 5)
+
+
+@pytest.mark.parametrize("wait", ["3600", "86400", "inf", "1e308"])
+async def test_a_long_retry_after_does_not_stall_the_scan(busy_server, logger, wait):
+    result = await fetch_busy(busy_server, logger, wait, retries=2, backoff_base=0.0)
+    assert result.status == 429 and result.error
+    # Asking again sooner than the site said would only be refused again.
+    assert len(busy_server.hits) == 1
+
+
+@pytest.mark.parametrize("wait", ["-5", "nan", "soon", "Wed, 21 Oct 2026 07:28:00 GMT"])
+async def test_a_meaningless_retry_after_is_ignored(busy_server, logger, wait):
+    result = await fetch_busy(busy_server, logger, wait, retries=1, backoff_base=0.0)
+    assert result.status == 429
+    assert len(busy_server.hits) == 2      # retried on the normal backoff
+
+
+async def test_a_short_retry_after_is_honoured_once_not_twice(busy_server, logger):
+    await fetch_busy(busy_server, logger, "0.4", retries=1, backoff_base=0.0)
+    first, second = busy_server.hits
+    assert 0.35 <= second - first < 0.7
