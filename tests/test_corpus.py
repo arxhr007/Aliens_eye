@@ -473,3 +473,109 @@ def test_manifest_counts_survive_incremental_flushing(tmp_path, monkeypatch, fou
     assert manifest["records"] == 24
     assert len(manifest["sites"]) == 12, "manifest must describe the whole corpus"
     assert ReplayFetcher(root).stats()["records"] == 24
+
+
+# --- the control row: what a site shows for a user who doesn't exist ------------------
+
+
+def shell(username):
+    """A page that looks like a profile whoever you ask for."""
+    return (f"<html><head><title>{username} - Profile</title>"
+            f'<meta name="description" content="{username} profile picture, followers and posts"></head>'
+            f'<body class="user-profile"><div class="profile-header"><img src="a.png"><img src="b.png">'
+            f'<img src="c.png"><img src="d.png"><img src="e.png"><img src="f.png"></div>'
+            f"<p>Follow {username}. Posts and activity timeline.</p></body></html>")
+
+
+def make_control_corpus(tmp_path, monkeypatch, found_html, not_found_html):
+    """`honest` tells users apart; `shell` shows everyone the same page."""
+    from aliens_eye.corpus import record as record_mod
+
+    rows = [   # site, username, label, kind, (status, body)
+        ("honest", "torvalds", 1, None, (200, found_html)),
+        ("honest", "a1b2c3d4e5f6g7h8", 0, "random", (404, not_found_html)),
+        ("honest", "quietharbor", 0, "plausible", (404, not_found_html)),
+        ("shell", "realperson", 1, None, (200, shell("realperson"))),
+        ("shell", "z9y8x7w6v5u4t3s2", 0, "random", (200, shell("z9y8x7w6v5u4t3s2"))),
+        ("shell", "rapidotter", 0, "plausible", (200, shell("rapidotter"))),
+    ]
+    url = "https://{}.example/u/{}".format
+    network = FakeNetwork({url(site, name): page for site, name, _, _, page in rows})
+    monkeypatch.setattr(record_mod, "fetch_url", network)
+    store = CorpusStore(tmp_path / "corpus")
+    store.init()
+    recorder = RecordingFetcher(store, tool_version="test")
+    for site, name, label, kind, _ in rows:
+        recorder.register(url(site, name), site, name, label, {"negative_kind": kind} if kind else {})
+
+    async def drive():
+        for site, name, *_ in rows:
+            await recorder(None, url(site, name), ScannerConfig(), None, _NullLogger())
+
+    asyncio.run(drive())
+    store.write_manifest({"tool_version": "test", "records": recorder.flush()})
+    return tmp_path / "corpus"
+
+
+def test_a_corpus_offers_one_recorded_missing_user_per_site(tmp_path, monkeypatch, found_html, not_found_html):
+    replay = ReplayFetcher(make_control_corpus(tmp_path, monkeypatch, found_html, not_found_html))
+    assert replay.control_for("honest") == ("a1b2c3d4e5f6g7h8", "https://honest.example/u/a1b2c3d4e5f6g7h8")
+    assert replay.control_for("shell") == ("z9y8x7w6v5u4t3s2", "https://shell.example/u/z9y8x7w6v5u4t3s2")
+    assert replay.control_for("nowhere") is None
+
+
+def test_control_rows_can_be_left_out_of_the_test_set(tmp_path, monkeypatch, found_html, not_found_html):
+    """A row compared with itself always agrees; it must not count as a result."""
+    replay = ReplayFetcher(make_control_corpus(tmp_path, monkeypatch, found_html, not_found_html))
+    assert len(replay.eval_jobs()) == 6
+    kept = replay.eval_jobs(exclude_controls=True)
+    assert sorted(j[2] for j in kept) == ["quietharbor", "rapidotter", "realperson", "torvalds"]
+
+
+def run_check(root, **kw):
+    from aliens_eye.selfcheck import run_selfcheck
+
+    replay = ReplayFetcher(root)
+    detector = Detector()
+    detector.load_model(_NullLogger())
+    jobs = replay.eval_jobs(exclude_controls=not kw.get("detector_only", False))
+    return asyncio.run(run_selfcheck(
+        {}, detector, ScannerConfig(), _NullLogger(), report_format="json", fetch=replay, jobs=jobs, **kw,
+    ))
+
+
+def test_selfcheck_scores_what_a_scan_reports(tmp_path, monkeypatch, found_html, not_found_html, capsys):
+    """The shell site is Found for everyone to the detector, and for no one to a scan."""
+    root = make_control_corpus(tmp_path, monkeypatch, found_html, not_found_html)
+    alone = run_check(root, detector_only=True)
+    full = run_check(root)
+    capsys.readouterr()
+    assert alone["overall"]["fp"] == 2            # both made-up users on the shell site
+    assert full["overall"]["fp"] == 0
+    assert alone["per_site"]["shell"]["recall"] == 1.0
+    assert full["per_site"]["shell"]["recall"] == 0.0    # the real one can't be told apart either
+    assert full["per_site"]["honest"]["recall"] == 1.0   # and the honest site loses nothing
+
+
+def test_scanner_uses_the_recorded_control_when_replaying(tmp_path, monkeypatch, found_html, not_found_html):
+    """Strict replay raises on an unknown URL; the scanner must not invent one."""
+    from aliens_eye.core.analyzer import FeatureExtractor
+    from aliens_eye.core.scanner import UsernameScanner
+
+    replay = ReplayFetcher(make_control_corpus(tmp_path, monkeypatch, found_html, not_found_html), strict=True)
+    config = ScannerConfig(output_dir=tmp_path / "out", fingerprints_path=tmp_path / "fp.json")
+    detector = Detector()
+    detector.load_model(_NullLogger())
+    scanner = UsernameScanner(
+        sites_data={"shell": "https://shell.example/u/{}", "honest": "https://honest.example/u/{}"},
+        config=config, extractor=FeatureExtractor(), detector=detector,
+        fingerprints=FingerprintStore(config.fingerprints_path, read_only=True),
+        logger=_NullLogger(), fetch=replay,
+    )
+    by_site = {}
+    for name, site in (("realperson", "shell"), ("torvalds", "honest")):
+        scanner.sites_data = {site: f"https://{site}.example/u/{{}}"}
+        by_site[site] = asyncio.run(scanner.scan_all_sites(name))[0]
+    assert by_site["shell"]["status"] == "Maybe"
+    assert by_site["honest"]["status"] == "Found"
+    assert replay.misses == []

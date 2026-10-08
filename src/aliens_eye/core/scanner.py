@@ -14,6 +14,7 @@ from aliens_eye.utils.console import ScanView, get_console
 from .analyzer import FeatureExtractor
 from .browser import BrowserFallback
 from .config import DEFAULT_HEADERS, MAX_HEADER_SIZE, ScannerConfig
+from .control import PageShape, control_username, http_overrule, page_shape, same_page
 from .detector import Detector
 from .fingerprints import FingerprintStore, build_fingerprint
 from .http import fetch_url
@@ -193,6 +194,22 @@ def build_session(
     )
 
 
+async def overrule_found(status_code: int, signals: dict[str, Any], same_as_missing_user=None):
+    """Whether a page scored Found should be reported as something else.
+
+    Returns ``(status, reason)`` or None. The checks run cheapest first, and
+    ``same_as_missing_user`` (an async callable, or None to skip it) is only
+    awaited when nothing else has settled the matter, since it costs a request.
+    Shared by the scanner and the self-check so that both report the same thing.
+    """
+    overruled = http_overrule(status_code)
+    if overruled is None and _looks_like_bot_wall(signals):
+        overruled = ("Maybe", "botwall-capped")
+    if overruled is None and same_as_missing_user is not None and await same_as_missing_user():
+        overruled = ("Maybe", "same-as-missing-user")
+    return overruled
+
+
 class UsernameScanner:
     """Coordinates async scanning across all platforms."""
 
@@ -229,6 +246,10 @@ class UsernameScanner:
         # Injectable, like ScanView's, so a library caller can silence one scan
         # without touching the process-wide console.
         self.console = console or get_console()
+
+        # What each site shows for a username that does not exist, fetched the
+        # first time that site reports Found. None: it could not be fetched.
+        self._controls: dict[str, PageShape | None] = {}
 
         self.results_dir = config.output_dir
         self.results_dir.mkdir(parents=True, exist_ok=True)
@@ -388,9 +409,47 @@ class UsernameScanner:
         """
         config = self.config
         budget = (config.retries + 1) * (config.timeout + config.backoff_cap + config.jitter)
+        if config.control_check:
+            budget *= 2     # a Found is followed by one more request to the same site
         if config.use_playwright and self.browser_fallback is not None:
             budget += 60.0
         return budget * 1.5 + 1.0
+
+    async def _same_as_missing_user(
+        self,
+        site_name: str,
+        url_template: str,
+        username: str,
+        fetch,
+        session: aiohttp.ClientSession,
+        rate_limiter: DomainRateLimiter,
+    ) -> bool:
+        """Whether this page is what the site shows for a user who doesn't exist.
+
+        Sites that answer every profile address with the same page (a JavaScript
+        shell, a soft "not found", a redirect to search) cannot be read for
+        existence from that page. See ``core.control``.
+        """
+        if site_name not in self._controls:
+            shape = None
+            # A replayed corpus cannot be asked for a new username; it offers one
+            # it recorded instead.
+            recorded = getattr(self.fetch, "control_for", None)
+            name, url = control_username(), None
+            if recorded is not None:
+                name, url = recorded(site_name) or (name, None)
+            url = url or self._format_url(site_name, url_template, name)
+            try:
+                control = await self.fetch(session, url, self.config, rate_limiter, self.logger)
+                if not control.error:
+                    shape = page_shape(control.content, control.final_url, name)
+            except Exception as exc:  # noqa: BLE001 - no control means no second opinion, not a failed scan
+                self.logger.debug("Control fetch failed for %s: %s", site_name, exc)
+            self._controls[site_name] = shape
+        control_shape = self._controls[site_name]
+        if control_shape is None:
+            return False
+        return same_page(page_shape(fetch.content, fetch.final_url, username), control_shape)
 
     async def _scan_site(
         self,
@@ -473,13 +532,23 @@ class UsernameScanner:
                     confidence,
                 )
 
-            # A challenge or error page is never a real hit. These pages often
-            # return 200 and mention "user" or "profile", which reads as Found,
-            # so they are capped at Maybe.
-            if status_text == "Found" and _looks_like_bot_wall(bundle.signals):
-                status_text = "Maybe"
-                confidence = min(confidence, 55)
-                ai_analysis["method"] = f"{ai_analysis['method']}-botwall-capped"
+            # "Found" claims an account exists, and the score alone cannot carry
+            # that: a page is scored on how profile-like it looks, and error
+            # pages, challenge pages and empty JavaScript shells can look the part.
+            if status_text == "Found":
+                async def same_as_missing_user() -> bool:
+                    return await self._same_as_missing_user(
+                        site_name, url_template, username, fetch, session, rate_limiter
+                    )
+
+                overruled = await overrule_found(
+                    fetch.status, bundle.signals,
+                    same_as_missing_user if self.config.control_check else None,
+                )
+                if overruled is not None:
+                    status_text, reason = overruled
+                    confidence = 90 if status_text == "Not Found" else min(confidence, 55)
+                    ai_analysis["method"] = f"{ai_analysis['method']}-{reason}"
 
             if status_text in {"Found", "Not Found"} and confidence >= 85:
                 label = "found" if status_text == "Found" else "not_found"

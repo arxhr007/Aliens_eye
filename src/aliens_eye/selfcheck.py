@@ -25,10 +25,11 @@ from rich.text import Text
 
 from aliens_eye.core.analyzer import FeatureExtractor
 from aliens_eye.core.config import ScannerConfig
+from aliens_eye.core.control import PageShape, control_username, page_shape, same_page
 from aliens_eye.core.detector import Detector
 from aliens_eye.core.http import fetch_url
 from aliens_eye.core.rate_limit import DomainRateLimiter
-from aliens_eye.core.scanner import build_session, format_site_url
+from aliens_eye.core.scanner import build_session, format_site_url, overrule_found
 from aliens_eye.utils.console import get_console
 
 
@@ -81,8 +82,15 @@ async def run_selfcheck(
     ground_truth_path: Path | None = None,
     fetch=fetch_url,
     jobs: list[tuple[str, str, str, int]] | None = None,
+    detector_only: bool = False,
 ) -> dict[str, Any]:
-    """Run the self-check. Returns a metrics dict; renders a report unless report_format='json'."""
+    """Run the self-check. Returns a metrics dict; renders a report unless report_format='json'.
+
+    By default a row is scored the way a scan reports it: the detector's verdict,
+    then the checks that can overrule a Found (an HTTP error, a challenge page,
+    the same page as a user who doesn't exist). ``detector_only`` scores the
+    detector's verdict alone, which is what model training compares.
+    """
     console = get_console()
     jobs_supplied = jobs is not None
     selfcheck = load_selfcheck_data(split, ground_truth_path)
@@ -119,9 +127,27 @@ async def run_selfcheck(
 
     rows: list[dict] = []
     semaphore = asyncio.Semaphore(min(10, len(jobs)))
+    controls: dict[str, asyncio.Task] = {}
     async with build_session(config, 10) as session:
 
         fetch_result = fetch
+
+        async def fetch_control(site: str) -> PageShape | None:
+            """What ``site`` shows for a username that does not exist."""
+            recorded = getattr(fetch_result, "control_for", None)
+            name, url = control_username(), None
+            if recorded is not None:
+                name, url = recorded(site) or (name, None)
+            if url is None:
+                if site not in sites_data:
+                    return None
+                url = format_site_url(site, sites_data[site], name)
+            try:
+                async with semaphore:
+                    page = await fetch_result(session, url, config, rate_limiter, logger)
+            except Exception:  # noqa: BLE001 - no control means no second opinion
+                return None
+            return None if page.error else page_shape(page.content, page.final_url, name)
 
         async def check(site: str, url: str, username: str, label: int) -> None:
             async with semaphore:
@@ -138,10 +164,26 @@ async def run_selfcheck(
             bundle.features["fingerprint_match_found"] = 0.0
             bundle.features["fingerprint_match_not_found"] = 0.0
             detection = detector.predict(bundle.features)
+            status, note = detection.status, detection.method
+            if status == "Found" and not detector_only:
+                async def same_as_missing_user() -> bool:
+                    if site not in controls:     # one fetch per site, shared by its rows
+                        controls[site] = asyncio.ensure_future(fetch_control(site))
+                    control = await controls[site]
+                    return control is not None and same_page(
+                        page_shape(fetch.content, fetch.final_url, username), control
+                    )
+
+                overruled = await overrule_found(
+                    fetch.status, bundle.signals,
+                    same_as_missing_user if config.control_check else None,
+                )
+                if overruled is not None:
+                    status, note = overruled[0], f"{note}-{overruled[1]}"
             rows.append({"site": site, "username": username, "label": label,
-                         "status": detection.status, "confidence": detection.confidence,
-                         "predicted": 1 if detection.status == "Found" else 0,
-                         "note": detection.method})
+                         "status": status, "confidence": detection.confidence,
+                         "predicted": 1 if status == "Found" else 0,
+                         "note": note})
 
         await asyncio.gather(*(check(*j) for j in jobs))
 

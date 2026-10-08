@@ -63,7 +63,26 @@ class ReplayFetcher:
     def labels_by_url(self) -> dict[str, int | None]:
         return {url: record.label for url, record in self.records.items()}
 
-    def eval_jobs(self, sites: set[str] | None = None) -> list[tuple[str, str, str, int]]:
+    def control_for(self, site: str) -> tuple[str, str] | None:
+        """``(username, url)`` of a recorded page for a user who doesn't exist on ``site``.
+
+        Live, the scanner invents a username and asks the site. A corpus can
+        only answer for what it recorded, so one random-string negative per site
+        stands in. Those rows are then no longer fair test rows (each would be
+        compared with itself); ``eval_jobs(exclude_controls=True)`` leaves them out.
+        """
+        if not hasattr(self, "_control_rows"):
+            rows: dict[str, tuple[str, str]] = {}
+            for record in sorted(self.records.values(), key=lambda r: (r.site, r.username)):
+                if (record.label == 0 and not record.error and record.site not in rows
+                        and (record.notes or {}).get("negative_kind") == "random"):
+                    rows[record.site] = (record.username, record.url)
+            self._control_rows = rows
+        return self._control_rows.get(site)
+
+    def eval_jobs(
+        self, sites: set[str] | None = None, exclude_controls: bool = False
+    ) -> list[tuple[str, str, str, int]]:
         """The labelled evaluation set held by this corpus.
 
         Returns ``(site, url, username, label)`` for every labelled record, in a
@@ -76,6 +95,7 @@ class ReplayFetcher:
             (r.site, r.url, r.username, int(r.label))
             for r in self.records.values()
             if r.label is not None and (sites is None or r.site in sites)
+            and not (exclude_controls and (self.control_for(r.site) or ("", ""))[1] == r.url)
         ]
         return sorted(jobs, key=lambda j: (j[0], j[3], j[2]))
 

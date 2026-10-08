@@ -1,5 +1,55 @@
 # Changelog
 
+## 2.7.0 (2026-10-08)
+
+### Fixed
+- **Usernames that don't exist were reported as Found** (#22, reported with rendered-page
+  evidence by @vollegrewar). A made-up username came back Found on 11 of 19 sites tried,
+  up to 95% confidence. The detector scores how profile-like a page looks, and three kinds
+  of page look the part without being one. A Found now has to survive a check for each:
+  - **The site's own answer.** HTTP `404` or `410` is reported as Not Found whatever the
+    score (chatujme.cz answered 404 and was Found at 84%). Any other error code, such as a
+    `403` block page or a `500`, is Maybe at most.
+  - **The same page for everyone.** JavaScript apps, soft "no such user" pages and
+    redirects to search answer every profile address alike. For each Found, the site is now
+    also asked for a username that cannot exist; when both answers are the same page, the
+    result is Maybe. One extra request per Found, cached per site, so a full scan takes the
+    same time (54 seconds before and after for 858 sites).
+  - Bot-check pages, as since 2.5.1.
+
+  Measured on recorded pages from 135 sites the model never trained on, same rows before
+  and after:
+
+  | | 2.6.0 | 2.7.0 | change (95% interval) |
+  |---|---|---|---|
+  | Missing usernames reported Found | 33 of 399 (8.3%) | 4 of 399 (1.0%) | -7.3 points (-11.7 to -3.5) |
+  | Real accounts reported Found | 93 of 172 (54%) | 85 of 172 (49%) | -4.7 points (-8.8 to -1.2) |
+  | Precision | 0.74 | 0.96 | |
+
+  The accounts no longer reported Found are ones whose page is identical to a missing
+  user's: nothing in the response told them apart, so they are a Maybe. Of the 4 false
+  hits left, 2 are real accounts: test names meant not to exist that do, on chess.com and
+  Discogs. The other 2 are one site whose pages differ slightly on every load.
+  The threshold was chosen on the 286 training sites, where the same change takes false
+  hits from 7.3% to 0.9%.
+
+  Live, a scan of all sites for a username used on one of them went from 54 Found to 3.
+
+### Added
+- `--no-control-check` (and `control_check` in a config file) skips the second request.
+- `aliens_eye selfcheck` now scores what a scan reports, with the checks above;
+  `--detector-only` scores the detector's verdict alone, as before.
+
+### Removed
+- Four sites whose address can never identify an account by username: `pubmed` (a search
+  page), `pornmd` (a search aggregator), `literotica` and `empornium` (the address takes a
+  numeric id). 854 sites remain.
+
+### Not changed
+- The other suggestions in #22: rendering every page in a browser, and searching sites
+  that have no profile address. `wikipedia` and `giphy` keep their addresses: with the
+  check above, a username that doesn't exist is no longer Found on either.
+
 ## 2.6.0 (2026-10-08)
 
 ### Fixed

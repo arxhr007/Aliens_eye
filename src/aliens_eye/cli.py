@@ -100,6 +100,12 @@ def build_parser() -> ArgumentParser:
         action="store_true",
         help="Enable Playwright fallback for Maybe results (requires aliens-eye[browser])",
     )
+    parser.add_argument(
+        "--no-control-check",
+        action="store_true",
+        help="Report Found without first checking that the site shows something else "
+             "for a username that doesn't exist (saves one request per Found; more false hits)",
+    )
     parser.add_argument("--proxy", type=str, help="Proxy URL (http://, socks4://, or socks5://)")
     parser.add_argument(
         "--tor", action="store_true", help=f"Route traffic through Tor ({TOR_PROXY})"
@@ -195,6 +201,11 @@ def build_selfcheck_parser() -> ArgumentParser:
         "--allow-corpus-misses", action="store_true",
         help="With --corpus, score URLs absent from the corpus as fetch errors "
              "instead of failing loudly",
+    )
+    parser.add_argument(
+        "--detector-only", action="store_true",
+        help="Score the detector's verdict alone, without the checks a scan applies to "
+             "every Found (HTTP errors, challenge pages, the same page as a missing user)",
     )
     return parser
 
@@ -532,6 +543,7 @@ def apply_config(config: ScannerConfig, data: dict) -> dict:
         "fingerprints_path": "fingerprints_path",
         "output_dir": "output_dir",
         "use_playwright": "use_playwright",
+        "control_check": "control_check",
         "max_fingerprints_per_label": "max_fingerprints_per_label",
         "proxy": "proxy",
         "use_ml": "use_ml",
@@ -575,6 +587,8 @@ def apply_cli_overrides(config: ScannerConfig, args) -> None:
         config.output_dir = Path(args.output)
     if args.playwright:
         config.use_playwright = True
+    if getattr(args, "no_control_check", False):
+        config.control_check = False
     if args.tor:
         config.proxy = TOR_PROXY
     elif args.proxy:
@@ -926,7 +940,10 @@ async def run_selfcheck_command(args) -> None:
                     args.split, Path(args.ground_truth) if args.ground_truth else None
                 )
             )
-        jobs = replay.eval_jobs(sites)
+        # A scan asks each site what it shows for a made-up username. The corpus
+        # answers with one recorded negative per site, which then cannot also be
+        # a test row: it would be compared with itself.
+        jobs = replay.eval_jobs(sites, exclude_controls=not args.detector_only)
         if not jobs:
             console.print(
                 f"[red]Corpus at {args.corpus} holds no labelled records for split "
@@ -948,6 +965,7 @@ async def run_selfcheck_command(args) -> None:
         ground_truth_path=Path(args.ground_truth) if args.ground_truth else None,
         fetch=fetch,
         jobs=jobs,
+        detector_only=args.detector_only,
     )
 
 

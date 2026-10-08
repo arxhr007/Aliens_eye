@@ -23,6 +23,9 @@ async def site_server(found_html, not_found_html):
     app = web.Application()
 
     async def alpha(request):
+        # A site that knows its users: anyone else gets its "no such user" page.
+        if request.match_info["username"] not in {"torvalds", "ghost"}:
+            return web.Response(text=not_found_html, status=404, content_type="text/html")
         return web.Response(text=found_html, content_type="text/html")
 
     async def beta(request):

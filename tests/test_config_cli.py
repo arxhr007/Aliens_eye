@@ -186,3 +186,15 @@ def test_analyzer_uses_a_parser_backend_that_still_exists():
     import aliens_eye.core.analyzer as analyzer
 
     assert analyzer.HTMLParser.__module__.startswith("selectolax.lexbor")
+
+
+def test_control_check_is_on_by_default_and_can_be_turned_off():
+    from aliens_eye.cli import apply_cli_overrides, build_parser
+    from aliens_eye.core.config import ScannerConfig
+
+    config = ScannerConfig()
+    assert config.control_check is True
+    apply_cli_overrides(config, build_parser().parse_args(["someone"]))
+    assert config.control_check is True
+    apply_cli_overrides(config, build_parser().parse_args(["someone", "--no-control-check"]))
+    assert config.control_check is False

@@ -36,6 +36,7 @@
 - **MCP server** — expose scanning to LLM agents (`aliens_eye serve`, optional extra)
 - **Proxy & Tor support** — `--proxy socks5://...` or just `--tor`
 - **Site filtering** — `--site github,reddit`, `--exclude-site`, `--no-nsfw`, plus drop-in `sites.d/` plugin site maps
+- **A second opinion on every Found** — the site is also asked for a username that cannot exist; if it shows the same page, the hit is downgraded to Maybe
 - **Calibrated self-check** — `aliens_eye selfcheck` reports precision / recall / F1 / FPR per site
 - **Reproducible evaluation** — record a frozen response corpus once, then replay it for identical metrics run to run (`aliens_eye corpus record` / `selfcheck --corpus`)
 - **Ablations and baselines** — `aliens_eye eval ablate` scores detector configurations with bootstrap confidence intervals; `eval external` compares against Sherlock / Maigret / WhatsMyName rules on the same stored responses
@@ -182,7 +183,13 @@ Two judges then vote:
 
 The blended probability maps to **Found / Maybe / Not Found** with a confidence percentage. The loaded model supplies both the blend weight and the thresholds — the shipped model uses `0.9 * ml + 0.1 * heuristic`, Found above `0.620`, Not Found below `0.360`. If a model file is missing or invalid, the scanner silently falls back to heuristics with the defaults in `core/detector.py` (`0.4` ML weight, `0.6` / `0.35` thresholds). See [WORKING.md](WORKING.md) for the full table.
 
-> **Treat Found/Maybe as leads to verify, not as findings.** The shipped model was fit on 1,455 samples from 286 platforms and evaluated on 142 platforms it never saw: precision 0.65, recall 0.51, false-positive rate 9% (F1 0.57). It favours fewer false leads over catching every account, and on held-out platforms no configuration -- including this one -- is statistically distinguishable from a plain HTTP-status check on F1.
+A **Found** then has to survive three checks, because a page is scored on how profile-like it looks and error pages, challenge pages and empty JavaScript shells can look the part:
+
+- an HTTP `404`/`410` is reported as Not Found, and any other error code as Maybe at most;
+- a bot-check or error page is capped at Maybe;
+- the site is asked for a username that cannot exist, and if it answers with the same page, the result is capped at Maybe (`--no-control-check` skips this; it costs one extra request per Found).
+
+> **Treat Found/Maybe as leads to verify, not as findings.** The shipped model was fit on 1,455 samples from 286 platforms. On 135 platforms it never saw, a scan reports Found for 1.0% of usernames that don't exist there (4 of 399) and for 49% of accounts that do (85 of 172): precision 0.96, F1 0.65. Before 2.7.0 those figures were 8.3% and 54%. It favours fewer false leads over catching every account: a real account on a site that shows everyone the same page is a Maybe, since nothing in the response tells it apart. On F1 it is still not statistically distinguishable from a plain HTTP-status check (difference -0.02 to +0.10, 95% interval); what it buys is the false-positive rate, 1% against 30%.
 
 ### Retraining the model
 

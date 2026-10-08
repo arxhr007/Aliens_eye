@@ -191,6 +191,10 @@ class ScannerConfig:
     fingerprints_path: Path = field(default_factory=default_fingerprints_path)
     output_dir: Path = Path("results")
     use_playwright: bool = False
+    # For every Found, also ask the site for a username that cannot exist, and
+    # downgrade to Maybe when both answers are the same page. One extra request
+    # per site that reports Found.
+    control_check: bool = True
     max_fingerprints_per_label: int = 50
     proxy: str | None = None
     include_sites: list[str] | None = None
