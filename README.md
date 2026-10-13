@@ -78,6 +78,14 @@ cd Aliens_eye
 pip install -e .
 ```
 
+Or with [OTinstaller](https://github.com/OSINTVerseHQ/OTinstaller), a third-party tool manager for Linux that installs the PyPI release into its own virtualenv (please report problems with it [on its tracker](https://github.com/OSINTVerseHQ/OTinstaller/issues)):
+
+```bash
+pipx install otinstaller
+otinstaller install aliens-eye
+otinstaller run aliens-eye -- username
+```
+
 ## Usage
 
 ```bash
