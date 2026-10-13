@@ -82,6 +82,7 @@ Or with [OTinstaller](https://github.com/OSINTVerseHQ/OTinstaller), a third-part
 
 ```bash
 pipx install otinstaller
+otinstaller init
 otinstaller install aliens-eye
 otinstaller run aliens-eye -- username
 ```
