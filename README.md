@@ -22,6 +22,34 @@
 <!-- TODO: record a demo GIF (e.g. with vhs or asciinema) and drop it at docs/demo.gif -->
 <!-- <p align="center"><img src="docs/demo.gif" width="700"></p> -->
 
+---
+
+## 💙 Sponsored by Swiftproxy
+
+<p align="center">
+  <a href="https://www.swiftproxy.net/?ref=Alienseye">
+    <img
+      src="https://raw.githubusercontent.com/arxhr007/Aliens_eye/refs/heads/main/photos/SwiftProxy%20alien%20eyes.png"
+      alt="Sponsored by Swiftproxy"
+      width="100%"
+    />
+  </a>
+</p>
+
+Power your web scraping and data collection with **[Swiftproxy](https://www.swiftproxy.net/?ref=Alienseye)** — a residential proxy provider offering rotating and static residential proxies for reliable, efficient data access.
+
+- **90M+ residential IPs** across 220+ locations
+- **Protocols:** HTTP(S) and SOCKS5
+- **Flexible sessions:** Rotating and sticky
+- **Pricing:** Plans starting at $0.7/GB
+- **Discount:** Get an additional 10% off with code `PROXY90`
+- **Free trials available**
+
+[**Explore Swiftproxy →**](https://www.swiftproxy.net/?ref=Alienseye)
+
+
+---
+
 ## Highlights
 
 - **840+ platforms** scanned asynchronously in seconds
