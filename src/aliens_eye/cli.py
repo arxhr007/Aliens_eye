@@ -459,6 +459,32 @@ def prompt_scan_level() -> str:
     return {"1": "basic", "2": "intermediate", "3": "advanced"}[choice]
 
 
+def confirm_scan_cost(level: str, username: str, n_sites: int, console) -> bool:
+    """Ask before a level that makes tens of thousands of requests.
+
+    Only Advanced is big enough to need it (123 variations of the username). A
+    level the user typed as a flag is not asked about: they chose it knowingly.
+    """
+    from aliens_eye.core.variations import generate_username_variations, scan_cost
+
+    if level != "advanced":
+        return True
+    cost = scan_cost(len(generate_username_variations(username, level)), n_sites)
+    return Confirm.ask(
+        f"Advanced will make {cost.describe()}. Continue?",
+        default=False,
+        console=console,
+    )
+
+
+def choose_scan_level(username: str, n_sites: int, console) -> str:
+    """Ask for a level, and ask again if the user backs out of an expensive one."""
+    while True:
+        level = prompt_scan_level()
+        if confirm_scan_cost(level, username, n_sites, console):
+            return level
+
+
 def apply_scan_profile(config: ScannerConfig, profile: str, args) -> None:
     presets = {
         "quick": {
@@ -729,7 +755,8 @@ async def run_scan(args) -> None:
     if scan_level not in {"basic", "intermediate", "advanced"}:
         scan_level = None
     if not scan_level:
-        scan_level = prompt_scan_level() if interactive else "basic"
+        # Chosen from the menu, so it may have been picked without knowing the cost.
+        scan_level = choose_scan_level(usernames[0], len(sites_data), console) if interactive else "basic"
 
     formats_value = args.format if args.format is not None else defaults.get("output_formats")
     formats = parse_formats_value(formats_value)

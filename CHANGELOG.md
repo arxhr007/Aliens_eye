@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.7.1 (2026-10-19)
+
+### Added
+- **The Advanced level now says what it will do before it starts.** It checks 123
+  variations of the username, which on all sites is about 105,000 requests and close to two
+  hours. Picking it from the menu now asks for confirmation first (the default is No, and
+  declining returns to the menu). A level given as `-l advanced` is not asked about. Every
+  level with more than one variation also prints its request count and a rough time under
+  the scan banner. The time assumes about 16 sites a second, measured on a default scan.
+  Prompted by a report of a very long scan on a small laptop (#26).
+
+  Memory, for the record, measured on 2.7.0: a default scan peaks at about 350 MB, and 12
+  variations of all 854 sites at about 415 MB.
+
 ## 2.7.0 (2026-10-08)
 
 ### Fixed

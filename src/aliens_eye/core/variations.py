@@ -1,4 +1,5 @@
 import re
+from dataclasses import dataclass
 
 
 def usernames_from_email(email: str) -> list[str]:
@@ -119,3 +120,37 @@ def generate_username_variations(username: str, level: str) -> list[str]:
             variations.append(f"{username}.{suffix}")
 
     return list(dict.fromkeys(variations))
+
+
+# Measured on the published 2.7.0: 854 sites take about 54 seconds at the default
+# concurrency, so about 16 sites a second. Rough, and slower through a proxy or Tor.
+SITES_PER_SECOND = 16.0
+
+
+@dataclass(frozen=True)
+class ScanCost:
+    variations: int
+    sites: int
+
+    @property
+    def requests(self) -> int:
+        return self.variations * self.sites
+
+    @property
+    def minutes(self) -> float:
+        return self.requests / SITES_PER_SECOND / 60
+
+    def describe(self) -> str:
+        minutes = self.minutes
+        if minutes >= 90:
+            taken = f"about {minutes / 60:.1f} hours"
+        elif minutes >= 2:
+            taken = f"about {round(minutes)} minutes"
+        else:
+            taken = "about a minute"
+        return f"{self.requests:,} requests, {taken} at default settings"
+
+
+def scan_cost(variations: int, sites: int) -> ScanCost:
+    """What a scan will ask of the network, for telling the user before it starts."""
+    return ScanCost(variations, sites)

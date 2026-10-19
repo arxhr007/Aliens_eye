@@ -19,7 +19,7 @@ from .detector import Detector
 from .fingerprints import FingerprintStore, build_fingerprint
 from .http import fetch_url
 from .rate_limit import DomainRateLimiter
-from .variations import generate_username_variations
+from .variations import generate_username_variations, scan_cost
 
 
 @dataclass
@@ -268,6 +268,8 @@ class UsernameScanner:
             preview = ", ".join(variations[:5])
             more = f" and {len(variations) - 5} more..." if len(variations) > 5 else ""
             self.console.print(f"[dim]Variations: {preview}{more}[/dim]")
+            cost = scan_cost(len(variations), len(self.sites_data))
+            self.console.print(f"[dim]This will make {cost.describe()}.[/dim]")
 
         if not base_username.isascii():
             self.console.print(
