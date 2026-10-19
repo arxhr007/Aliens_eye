@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.7.2 (2026-10-19)
+
+### Fixed
+- **The browser fallback could start dozens of Chromium processes and keep pages open
+  forever** (#26, a Mac that ran out of memory with the fallback switched on). The fallback
+  (`--playwright`, or "fallback" in the interactive settings) re-checks every "Maybe" result
+  in a real browser. Two bugs in it:
+  - The browser was started on first use, and the check for "already started" ran before the
+    lock that guards it. With 50 scan workers asking at once, each one launched its own
+    Chromium, and only the last was ever closed.
+  - A page that timed out, failed to load, or was cancelled by the scan's deadline was never
+    closed, so a scan accumulated hundreds of open pages.
+
+  The browser now starts once, every page is closed whatever happens, the browser context is
+  replaced every 40 pages so its memory is returned, and a browser that fails halfway through
+  starting is shut down. Checked against a real Chromium: 20 simultaneous fetches, half to a
+  page that never finishes loading, now use one browser (4 processes), 341 MB at most, and
+  leave no page open and no process running after the scan. The old code, given only 8
+  simultaneous fetches, passed 1.5 GB in seconds.
+
+  Scans without the fallback were never affected.
+
 ## 2.7.1 (2026-10-19)
 
 ### Added
