@@ -794,7 +794,7 @@ async def run_scan(args) -> None:
 
         checkpoint = Checkpoint(args.resume)
 
-    exporter = ResultsExporter(config.output_dir)
+    exporter = ResultsExporter(config.output_dir, only_found=config.only_found)
     scanner = UsernameScanner(
         sites_data=sites_data,
         config=config,
@@ -865,6 +865,17 @@ async def run_scan(args) -> None:
                 username, scan_level, all_results, formats,
                 correlation=correlation, domains=domains,
             )
+
+            if config.json_stdout:
+                # One line per username (JSON Lines), so a single username is one JSON
+                # document for json.load or jq. ASCII-escaped, so a console in a
+                # legacy code page cannot choke on it. Everything else goes to stderr.
+                report = exporter.report_dict(username, scan_level, all_results)
+                if correlation is not None:
+                    report["correlation"] = correlation
+                if domains is not None:
+                    report["domains"] = domains
+                print(json.dumps(report, separators=(",", ":")), flush=True)
 
             files_list = ", ".join(str(path) for path in written)
             console.print(f"\n[green]Results saved to:[/green] [blue]{files_list}[/blue]")

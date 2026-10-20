@@ -24,10 +24,19 @@ def _md_cell(value: Any) -> str:
     return str(value or "").replace("|", "\\|").replace("\n", " ").replace("\r", " ").strip()
 
 
+_REPORTED_STATUSES = {"Found", "Maybe"}
+
+
 class ResultsExporter:
     """Save scan results in JSON, CSV, HTML, or Markdown formats."""
 
-    def __init__(self, output_dir: Path) -> None:
+    # With only_found, reports list just the Found and Maybe sites. The counts in
+    # them still cover every site scanned, so a short list isn't mistaken for a
+    # short scan.
+    only_found: bool = False
+
+    def __init__(self, output_dir: Path, only_found: bool = False) -> None:
+        self.only_found = only_found
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.console = get_console()
@@ -157,9 +166,12 @@ class ResultsExporter:
                         "ai_analysis": r.get("ai_analysis", {}),
                     }
                     for r in results
+                    if not self.only_found or r["status"] in _REPORTED_STATUSES
                 },
             }
 
+        if self.only_found:
+            scan_summary["only_found"] = True
         scan_summary["total_found"] = sum(found_counts.values())
         scan_summary["total_high_confidence"] = sum(high_confidence_matches.values())
         scan_summary["best_variations"] = sorted(
@@ -191,6 +203,8 @@ class ResultsExporter:
             writer.writeheader()
             for variation, results in all_results.items():
                 for item in results:
+                    if self.only_found and item["status"] not in _REPORTED_STATUSES:
+                        continue
                     writer.writerow(
                         {
                             "base_username": base_username,

@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.7.3 (2026-10-20)
+
+### Fixed
+- **`--json-stdout` printed nothing.** It silenced the banner but a scan never wrote its
+  JSON, so `aliens_eye username --json-stdout | jq` got an empty stream. It now writes the
+  report to stdout as one JSON line per username (JSON Lines), so a single username is one
+  document that `json.load` or `jq` reads directly. The banner, progress bar and summary go
+  to stderr, and the output is ASCII-escaped so a console in a legacy code page cannot choke
+  on a name with accents. Files are still written to the output folder as before.
+- **`--only-found` did nothing.** The flag was read and then ignored. Reports now list just
+  the Found and Maybe sites; the counts in them (`sites_scanned`, `not_found`, ...) still
+  cover every site scanned, and the report is marked `"only_found": true`. It applies to the
+  JSON on stdout and to the saved files, including CSV.
+
+### Added
+- A README section and one line under the startup banner about the author's other project,
+  [lxask](https://github.com/arxhr007/lxask). `ALIENS_EYE_NO_PROMO=1` hides the line. It is
+  never printed with `--json-stdout`, by the library API or by the MCP server.
+
 ## 2.7.2 (2026-10-19)
 
 ### Fixed

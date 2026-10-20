@@ -155,6 +155,12 @@ aliens_eye username --profile quick
 # Plain output for scripts and CI (no colors/progress)
 aliens_eye username --plain
 
+# The report as JSON on stdout, one line per username; the banner, progress and summary go to stderr
+aliens_eye username --json-stdout | jq '.variations[].sites | to_entries[] | select(.value.status == "Found") | .value.url'
+
+# Only Found/Maybe sites in the report (the counts still cover every site scanned)
+aliens_eye username --json-stdout --only-found
+
 # View results from a previous scan
 aliens_eye -r results/username_advanced_20260611_120000.json
 
