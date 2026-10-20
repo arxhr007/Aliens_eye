@@ -24,6 +24,16 @@
 
 ---
 
+## 🐧 New from the author: lxask
+
+**[lxask](https://github.com/arxhr007/lxask)** is a Linux command assistant that runs entirely on your own machine:
+describe what you want in plain English and it suggests the command. No API key, no cloud, about 1 GB on disk, no GPU.
+If you find Aliens Eye useful, a ⭐ on [lxask](https://github.com/arxhr007/lxask) helps a lot.
+
+To hide the one-line mention of it under the Aliens Eye banner, set `ALIENS_EYE_NO_PROMO=1`.
+
+---
+
 ## 💙 Sponsored by Swiftproxy
 
 <p align="center">

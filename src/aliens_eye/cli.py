@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import sys
 from argparse import ArgumentParser
 from pathlib import Path
@@ -30,6 +31,11 @@ from aliens_eye.utils.console import get_console, set_plain
 from aliens_eye.utils.logger import setup_logger
 
 TOR_PROXY = "socks5://127.0.0.1:9050"
+
+def _promo_enabled() -> bool:
+    """The line about the author's other project, unless ALIENS_EYE_NO_PROMO is set."""
+    return os.environ.get("ALIENS_EYE_NO_PROMO", "").strip().lower() not in {"1", "true", "yes", "on"}
+
 
 def display_banner(site_count: int) -> None:
     console = get_console()
@@ -62,7 +68,13 @@ def display_banner(site_count: int) -> None:
 [green]by [yellow]arxhr007  [dim]v{__version__}[/dim]"""
     console.print(banner)
     console.print("[yellow]AI-OSINT USERNAME SCANNER[/yellow]")
-    console.print("[red]NOTE: For educational purposes only!\n[/red]")
+    console.print("[red]NOTE: For educational purposes only![/red]")
+    if _promo_enabled():
+        console.print(
+            "[dim]New from the author: lxask, a Linux command assistant that runs offline "
+            "-> https://github.com/arxhr007/lxask[/dim]"
+        )
+    console.print()
 
 
 def build_parser() -> ArgumentParser:

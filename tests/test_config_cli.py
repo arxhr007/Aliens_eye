@@ -283,3 +283,56 @@ def test_accepting_an_expensive_level_keeps_it(monkeypatch):
     monkeypatch.setattr(cli, "prompt_scan_level", lambda: "advanced")
     monkeypatch.setattr(cli.Confirm, "ask", lambda *a, **k: True)
     assert cli.choose_scan_level("someone", 854, console=None) == "advanced"
+
+
+# --- the author's other project, shown under the banner ---------------------------------
+
+
+def banner_text(monkeypatch, env=None):
+    import io
+
+    from rich.console import Console
+
+    from aliens_eye import cli
+
+    buffer = io.StringIO()
+    monkeypatch.setattr(cli, "get_console", lambda: Console(file=buffer, width=120, force_terminal=False))
+    monkeypatch.delenv("ALIENS_EYE_NO_PROMO", raising=False)
+    for key, value in (env or {}).items():
+        monkeypatch.setenv(key, value)
+    cli.display_banner(854)
+    return buffer.getvalue()
+
+
+def test_the_banner_mentions_the_authors_new_project(monkeypatch):
+    text = banner_text(monkeypatch)
+    assert "https://github.com/arxhr007/lxask" in text
+    assert "Aliens Eye" not in text.split("lxask")[0].splitlines()[-1]     # one line, not woven into the art
+
+
+def test_the_mention_can_be_turned_off(monkeypatch):
+    for value in ("1", "true", "yes"):
+        assert "lxask" not in banner_text(monkeypatch, {"ALIENS_EYE_NO_PROMO": value})
+
+
+def test_an_empty_or_zero_setting_does_not_turn_it_off(monkeypatch):
+    for value in ("", "0", "false"):
+        assert "lxask" in banner_text(monkeypatch, {"ALIENS_EYE_NO_PROMO": value})
+
+
+def test_json_stdout_stays_clean():
+    """The banner is skipped for --json-stdout, so nothing but JSON reaches stdout."""
+    import inspect
+
+    from aliens_eye import cli
+
+    source = inspect.getsource(cli)
+    assert "if not config.json_stdout:\n        display_banner(" in source
+
+
+def test_the_library_api_and_mcp_server_never_print_it():
+    import pathlib
+
+    root = pathlib.Path(__file__).resolve().parents[1] / "src" / "aliens_eye"
+    for name in ("api.py", "mcp_server.py"):
+        assert "lxask" not in (root / name).read_text("utf-8")
