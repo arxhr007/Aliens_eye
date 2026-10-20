@@ -17,7 +17,7 @@ from .config import DEFAULT_HEADERS, MAX_HEADER_SIZE, ScannerConfig
 from .control import PageShape, control_username, http_overrule, page_shape, same_page
 from .detector import Detector
 from .fingerprints import FingerprintStore, build_fingerprint
-from .http import fetch_url
+from .http import KEEPALIVE_SECONDS, describe_error, fetch_url
 from .rate_limit import DomainRateLimiter
 from .variations import generate_username_variations, scan_cost
 
@@ -163,14 +163,20 @@ def build_connector(
     ``resolver`` is for fetches of URLs taken from scanned pages; see
     ``core.netguard.PublicOnlyResolver``. It has no effect through a SOCKS
     proxy, where the proxy does the resolving.
+
+    ``keepalive_timeout`` is kept short on purpose; see ``KEEPALIVE_SECONDS``.
     """
     if config.proxy and config.proxy.lower().startswith(("socks4://", "socks5://")):
         from aiohttp_socks import ProxyConnector
 
-        return ProxyConnector.from_url(config.proxy, limit=limit)
+        return ProxyConnector.from_url(
+            config.proxy, limit=limit, keepalive_timeout=KEEPALIVE_SECONDS
+        )
     if resolver is not None:
-        return aiohttp.TCPConnector(limit=limit, resolver=resolver)
-    return aiohttp.TCPConnector(limit=limit)
+        return aiohttp.TCPConnector(
+            limit=limit, resolver=resolver, keepalive_timeout=KEEPALIVE_SECONDS
+        )
+    return aiohttp.TCPConnector(limit=limit, keepalive_timeout=KEEPALIVE_SECONDS)
 
 
 def build_session(
@@ -250,6 +256,11 @@ class UsernameScanner:
         # What each site shows for a username that does not exist, fetched the
         # first time that site reports Found. None: it could not be fetched.
         self._controls: dict[str, PageShape | None] = {}
+
+        # One warning per scan for a browser fallback that will not start.
+        # Hundreds of Maybes each fail the same way, and at debug level the
+        # whole scan looked healthy while none of them were re-checked (#26).
+        self._fallback_warned = False
 
         self.results_dir = config.output_dir
         self.results_dir.mkdir(parents=True, exist_ok=True)
@@ -580,7 +591,19 @@ class UsernameScanner:
         try:
             content, final_url = await self.browser_fallback.fetch(url)
         except Exception as exc:
-            self.logger.debug("Playwright fallback failed for %s: %s", site_name, exc)
+            if not self._fallback_warned:
+                self._fallback_warned = True
+                self.logger.warning(
+                    "Browser fallback failed for %s (%s); Maybe results are "
+                    "not re-checked in a browser (further failures are logged "
+                    "at debug)",
+                    site_name,
+                    describe_error(exc),
+                )
+            else:
+                self.logger.debug(
+                    "Playwright fallback failed for %s: %s", site_name, exc
+                )
             return status_text, confidence, ai_analysis
 
         bundle = self.extractor.extract(

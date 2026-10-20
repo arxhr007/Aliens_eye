@@ -199,3 +199,69 @@ async def test_a_browser_that_fails_halfway_through_starting_is_shut_down(world,
     with pytest.raises(RuntimeError):
         await fallback.fetch("https://example.test/a")
     assert len(world.browsers) == 1 and world.browsers[0].closed
+
+
+async def test_a_start_cancelled_by_the_scan_stops_its_driver(world, monkeypatch):
+    """The scan's per-site deadline cancels a check wherever it happens to be.
+
+    Playwright spawns its driver before start() returns it, so a start
+    interrupted in the middle leaves that driver running with nothing holding
+    it -- file descriptors the scan never gets back (#26).
+    """
+    starters = []
+
+    class SlowStarter:
+        def __init__(self):
+            self.stopped = False
+            starters.append(self)
+
+        async def start(self):
+            await asyncio.sleep(3600)       # cancelled while waiting in here
+
+        async def __aexit__(self, *args):
+            self.stopped = True
+
+    monkeypatch.setattr(sys.modules["playwright.async_api"], "async_playwright", SlowStarter)
+    fallback = BrowserFallback(timeout=5, user_agent="test")
+    task = asyncio.create_task(fallback.fetch("https://example.test/slow"))
+    await asyncio.sleep(0.1)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert starters and starters[0].stopped
+
+
+async def test_a_driver_that_cannot_start_is_stopped_and_can_be_retried(world, monkeypatch):
+    """Errno 24 at spawn -- the failure in the issue's follow-up log.
+
+    The half-started Playwright must be stopped, and because no context was
+    ever set the next Maybe must be able to try again from scratch.
+    """
+    starters, attempts = [], []
+
+    class FlakyStarter:
+        def __init__(self):
+            self.stopped = False
+            starters.append(self)
+
+        async def start(self):
+            attempts.append(1)
+            if len(attempts) == 1:
+                raise OSError(24, "Too many open files")
+            return FakePlaywright(world)
+
+        async def __aexit__(self, *args):
+            self.stopped = True
+
+    monkeypatch.setattr(sys.modules["playwright.async_api"], "async_playwright", FlakyStarter)
+    fallback = BrowserFallback(timeout=5, user_agent="test")
+
+    with pytest.raises(OSError):
+        await fallback.fetch("https://example.test/a")
+    assert starters[0].stopped
+    assert fallback._context is None
+
+    content, final_url = await fallback.fetch("https://example.test/b")
+    assert content == "<html>ok</html>"
+    assert len(starters) == 2 and len(world.browsers) == 1
+    await fallback.close()

@@ -1,6 +1,7 @@
 """Body reading: the whole page, not whatever happened to arrive first."""
 
 import asyncio
+import errno
 
 import aiohttp
 import pytest
@@ -8,7 +9,7 @@ from aiohttp import web
 from aiohttp.test_utils import TestServer
 
 from aliens_eye.core.config import ScannerConfig
-from aliens_eye.core.http import fetch_url
+from aliens_eye.core.http import describe_error, fetch_url
 from aliens_eye.core.rate_limit import DomainRateLimiter
 
 HEAD = "<html><head><title>t</title>" + "<!-- padding -->" * 3000  # ~48 KB of head
@@ -125,3 +126,29 @@ async def test_a_short_retry_after_is_honoured_once_not_twice(busy_server, logge
     await fetch_busy(busy_server, logger, "0.4", retries=1, backoff_base=0.0)
     first, second = busy_server.hits
     assert 0.35 <= second - first < 0.7
+
+
+# --- Errno 24: the process ran out of file descriptors, the site did not fail ----------
+
+
+class ExhaustedSession:
+    """A session whose very first socket fails the way a full process does."""
+
+    def get(self, *args, **kwargs):
+        raise OSError(errno.EMFILE, "Too many open files")
+
+
+async def test_running_out_of_file_descriptors_names_the_fix(logger):
+    """A scan of 854 sites passed macOS's 256 descriptors; the error that
+    followed said only "Too many open files", like the site had failed (#26)."""
+    config = ScannerConfig(retries=0, rate_limit_delay=0.0)
+    result = await fetch_url(
+        ExhaustedSession(), "https://example.test/a", config, DomainRateLimiter(), logger
+    )
+    assert result.error and "file-descriptor" in result.error
+    assert "ulimit" in result.error
+
+
+def test_a_ordinary_error_is_reported_verbatim():
+    assert describe_error(aiohttp.ClientError("boom")) == "boom"
+    assert describe_error(ConnectionResetError("peer reset")) == "peer reset"

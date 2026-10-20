@@ -1,4 +1,5 @@
 import asyncio
+import errno
 import random
 import time
 from dataclasses import dataclass
@@ -8,6 +9,14 @@ import aiohttp
 
 from .config import ScannerConfig
 from .rate_limit import DomainRateLimiter
+
+# How long a finished request's socket may sit idle in the pool. aiohttp's
+# default is 75s, and the pool holds one idle connection per site for that
+# long: a scan of 854 sites then had hundreds open at once, past macOS's
+# default of 256 file descriptors, and every socket and subprocess spawn after
+# that failed with Errno 24 (#26). The ``limit`` of the connector does not
+# bound these -- it counts only the connections currently in use.
+KEEPALIVE_SECONDS = 10.0
 
 
 @dataclass
@@ -64,6 +73,21 @@ def _parse_retry_after(headers: dict[str, str]) -> float | None:
     if seconds != seconds or seconds <= 0:
         return None
     return seconds
+
+
+def describe_error(exc: BaseException) -> str:
+    """A fetch failure as text, naming the fix when there is an obvious one.
+
+    Errno 24 means the process-wide file-descriptor limit was hit. It reaches
+    us from aiohttp's socket and from the browser fallback's driver spawn alike,
+    and as "Too many open files" alone it reads like the site failed (#26).
+    """
+    if isinstance(exc, OSError) and exc.errno in (errno.EMFILE, errno.ENFILE):
+        return (
+            f"{exc.strerror or exc} (the process hit its file-descriptor limit; "
+            "macOS starts programs at 256 -- raise it with e.g. `ulimit -n 4096`)"
+        )
+    return str(exc)
 
 
 async def fetch_url(
@@ -133,7 +157,11 @@ async def fetch_url(
             last_status = exc.status or last_status
             retry_after = _parse_retry_after(last_headers)
         except aiohttp.ClientError as exc:
-            error_message = str(exc)
+            # ClientOSError is one of these: a refused or exhausted socket
+            # arrives here, errno included.
+            error_message = describe_error(exc)
+        except OSError as exc:
+            error_message = describe_error(exc)
         except Exception as exc:
             error_message = str(exc)
 

@@ -146,6 +146,66 @@ async def test_build_connector_http_proxy_uses_tcp():
     await connector.close()
 
 
+async def test_idle_sockets_are_reaped_within_seconds():
+    """aiohttp pools one idle connection per site, uncounted by ``limit``.
+
+    Held for its default 75s, a scan of 854 sites had hundreds of these open
+    at once -- past macOS's default of 256 file descriptors, after which every
+    socket and the browser fallback's driver spawn failed with Errno 24 (#26).
+    """
+    connector = build_connector(ScannerConfig(), 5)
+    try:
+        assert connector._keepalive_timeout <= 15
+    finally:
+        await connector.close()
+
+
+# --- a browser fallback that will not start ---------------------------------------------
+
+
+class BrokenFallback:
+    def __init__(self):
+        self.calls = 0
+
+    async def fetch(self, url):
+        self.calls += 1
+        raise OSError(24, "Too many open files")
+
+
+class RecordingLogger:
+    """Keeps every record: the test counts them."""
+
+    def __init__(self):
+        self.records = []
+
+    def warning(self, msg, *args):
+        self.records.append(("WARNING", msg % args if args else msg))
+
+    def debug(self, msg, *args):
+        self.records.append(("DEBUG", msg % args if args else msg))
+
+
+async def test_a_fallback_that_will_not_start_is_warned_about_once(site_server, tmp_path, logger):
+    """Every Maybe failed the same way, at debug level, and the scan looked
+    healthy while none of them were re-checked in a browser (#26)."""
+    scanner = make_scanner(server_sites(site_server), tmp_path, logger)
+    scanner.browser_fallback = BrokenFallback()
+    recorder = RecordingLogger()
+    scanner.logger = recorder
+
+    for _ in range(3):
+        outcome = await scanner._playwright_fallback(
+            "alpha", "someone", "http://example.test/a", None, {"method": "x"}, "Maybe", 40
+        )
+        assert outcome == ("Maybe", 40, {"method": "x"})   # unchanged, as promised
+
+    warnings = [msg for level, msg in recorder.records if level == "WARNING"]
+    assert len(warnings) == 1
+    assert "file-descriptor" in warnings[0]
+    assert sum(1 for level, _ in recorder.records if level == "DEBUG") == 2
+    assert scanner.browser_fallback.calls == 3             # it is still retried
+
+
 # --- bot-wall cap ---------------------------------------------------------
 
 from aliens_eye.core.scanner import _looks_like_bot_wall  # noqa: E402

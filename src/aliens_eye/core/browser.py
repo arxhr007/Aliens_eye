@@ -6,6 +6,22 @@ RECYCLE_AFTER_PAGES = 40
 CLOSE_TIMEOUT = 5.0
 
 
+async def _stop_starter(starter) -> None:
+    """Stop a Playwright whose ``start()`` never returned it.
+
+    ``async_playwright().start()`` spawns the driver before it returns, so a
+    start that fails or is cancelled part-way through leaves that driver
+    running. The context manager's own exit is the only handle on it. What it
+    raises does not matter here: the exception being propagated is already on
+    its way out, and a Playwright that never got far enough to stop simply
+    had nothing running.
+    """
+    try:
+        await starter.__aexit__()
+    except Exception:  # noqa: BLE001 - best effort cleanup on the way out
+        pass
+
+
 class BrowserFallback:
     """Playwright-based fallback for hard pages.
 
@@ -27,12 +43,19 @@ class BrowserFallback:
         except ImportError as exc:
             raise RuntimeError("Playwright is not installed") from exc
 
-        self._playwright = await async_playwright().start()
+        starter = async_playwright()
         try:
+            # Every await of the start is inside the guard, including the
+            # first: the scan's per-site deadline cancels a check wherever it
+            # happens to be, and a Playwright whose start() never returned
+            # keeps its driver process and pipes open with nothing holding
+            # them. Each orphan is file descriptors the scan never gets back.
+            self._playwright = await starter.start()
             self._browser = await self._playwright.chromium.launch(headless=True)
             self._context = await self._browser.new_context(user_agent=self.user_agent)
         except BaseException:
             await self.close()      # never leave a half-started browser running
+            await _stop_starter(starter)
             raise
         self._pages_in_context = 0
 

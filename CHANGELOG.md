@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.7.4 (2026-10-20)
+
+### Fixed
+- **A scan could run the process out of file descriptors** (#26, the follow-up log:
+  `Task exception was never retrieved ... OSError: [Errno 24] Too many open files`).
+  Three things added up:
+  - aiohttp holds each finished request's socket in a pool for 75 seconds (its default),
+    one per site, while the connector's `limit` counts only the connections in use.
+    Scanning 854 sites therefore left several hundred idle sockets open at once -- past
+    macOS's default of 256 file descriptors, after which every socket, and every attempt
+    to spawn the Playwright driver, failed with Errno 24. Idle sockets are now reaped
+    after 10 seconds, and the CLI raises the soft limit to 4096 at startup where the OS
+    allows it.
+  - Errno 24 in a fetch read only "Too many open files", like the site had failed. It now
+    says the process hit its file-descriptor limit and names `ulimit -n`.
+  - A browser fallback that could not start was logged at debug level, so the scan looked
+    healthy while none of its "Maybe" results were re-checked in a browser. The first
+    failure is now warned about once per scan.
+- **A start of Playwright interrupted by the scan's per-site deadline left its driver
+  process and pipes running**, held by nothing: leaked file descriptors, and the
+  fire-and-forgotten `Connection.run()` task that printed "Task exception was never
+  retrieved". A start that fails or is cancelled now stops the driver it already spawned.
+
 ## 2.7.3 (2026-10-20)
 
 ### Fixed

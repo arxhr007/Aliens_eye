@@ -28,6 +28,7 @@ from aliens_eye.core.scanner import (
     load_sites_data,
 )
 from aliens_eye.utils.console import get_console, set_plain
+from aliens_eye.utils.fdlimit import raise_fd_limit
 from aliens_eye.utils.logger import setup_logger
 
 TOR_PROXY = "socks5://127.0.0.1:9050"
@@ -1418,6 +1419,7 @@ def main() -> None:
     if sys.platform == "win32":
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
         sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+    raise_fd_limit()    # macOS hands out 256; one scan can pass that (#26)
     argv = sys.argv[1:]
     console = get_console()
     try:
