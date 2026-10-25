@@ -26,6 +26,16 @@
 
 ## 🐧 New from the author: lxask
 
+<p align="center">
+  <a href="https://github.com/arxhr007/lxask">
+    <img
+      src="https://raw.githubusercontent.com/arxhr007/Aliens_eye/main/photos/lxask-banner.png"
+      alt="lxask: offline Linux command assistant. Click to open the repository."
+      width="720"
+    />
+  </a>
+</p>
+
 **[lxask](https://github.com/arxhr007/lxask)** is a Linux command assistant that runs entirely on your own machine:
 describe what you want in plain English and it suggests the command. No API key, no cloud, about 1 GB on disk, no GPU.
 If you find Aliens Eye useful, a ⭐ on [lxask](https://github.com/arxhr007/lxask) helps a lot.
