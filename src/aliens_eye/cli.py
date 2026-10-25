@@ -11,7 +11,10 @@ from pathlib import Path
 from typing import Any
 
 from platformdirs import user_config_dir
+from rich import box
+from rich.panel import Panel
 from rich.prompt import Confirm, FloatPrompt, IntPrompt, Prompt
+from rich.text import Text
 
 from aliens_eye import __version__
 from aliens_eye.core.analyzer import FeatureExtractor
@@ -36,6 +39,32 @@ TOR_PROXY = "socks5://127.0.0.1:9050"
 def _promo_enabled() -> bool:
     """The line about the author's other project, unless ALIENS_EYE_NO_PROMO is set."""
     return os.environ.get("ALIENS_EYE_NO_PROMO", "").strip().lower() not in {"1", "true", "yes", "on"}
+
+
+PROMO_GOLD = "bold #FFD700"
+PROMO_URL = "https://github.com/arxhr007/lxask"
+
+
+def _promo_panel(console) -> Panel:
+    """The note about the author's other project: a bright gold box with a star.
+
+    The link has its own line, so a narrow terminal never splits it. A console
+    that cannot show emoji (an ASCII-only pipe, an old Windows console) gets a
+    plain asterisk instead of an encoding error.
+    """
+    unicode_ok = str(getattr(console, "encoding", "") or "").lower().startswith("utf")
+    # Old Windows consoles (conhost without virtual terminal support) draw boxes
+    # but have no emoji glyphs, so they get an asterisk.
+    star = "⭐" if unicode_ok and not getattr(console, "legacy_windows", False) else "*"
+    text = Text(no_wrap=True)
+    text.append(f"{star} New from the author: lxask, a Linux command assistant that runs offline\n", PROMO_GOLD)
+    text.append(f"   -> {PROMO_URL}", PROMO_GOLD)
+    return Panel.fit(
+        text,
+        box=box.ROUNDED,        # rich draws an ASCII box itself where it must
+        border_style=PROMO_GOLD,
+        padding=(0, 1),
+    )
 
 
 def display_banner(site_count: int) -> None:
@@ -71,10 +100,7 @@ def display_banner(site_count: int) -> None:
     console.print("[yellow]AI-OSINT USERNAME SCANNER[/yellow]")
     console.print("[red]NOTE: For educational purposes only![/red]")
     if _promo_enabled():
-        console.print(
-            "[dim]New from the author: lxask, a Linux command assistant that runs offline "
-            "-> https://github.com/arxhr007/lxask[/dim]"
-        )
+        console.print(_promo_panel(console))
     console.print()
 
 

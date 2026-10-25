@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.7.5 (2026-10-25)
+
+### Changed
+- The note about [lxask](https://github.com/arxhr007/lxask) under the startup banner is now a
+  bright gold box with a star, and the link has its own line so a narrow terminal never splits
+  it. A console that cannot show emoji (an ASCII-only pipe, an old Windows console) gets an
+  asterisk instead of the star. `ALIENS_EYE_NO_PROMO=1` still hides it, and it is still never
+  printed with `--json-stdout`, by the library API or by the MCP server.
+
 ## 2.7.4 (2026-10-20)
 
 ### Fixed
