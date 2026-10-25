@@ -6,7 +6,7 @@
        height="300">
 </div>
 
-<h1 align="center">AI-OSINT Username Scanner</h1>
+<h1 align="center">AI-MMA Username Scanner</h1>
 
 <h3 align="center">Advanced AI-Powered Social Media Username Finder</h3>
 <h4 align="center">Scan 840+ platforms with ML-blended detection</h4>
