@@ -327,7 +327,7 @@ The package lives under `src/aliens_eye/`: `core/` (scanner, detector, analyzer,
 
 ## Contributing
 
-Issues and PRs welcome — adding sites to `src/aliens_eye/data/sites.json`, expanding the ground-truth set in `selfcheck.json`, or improving the model all directly improve detection. Run `pytest` and `ruff check src tests` before submitting.
+Issues and PRs welcome — adding sites to `src/aliens_eye/data/sites.json`, expanding the ground-truth set in `selfcheck.json`, or improving the model all directly improve detection. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks, and how detection changes are measured, and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community standards.
 
 ## Disclaimer
 
