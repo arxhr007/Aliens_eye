@@ -1,6 +1,7 @@
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 
 @dataclass
@@ -10,6 +11,7 @@ class DetectionResult:
     score: float
     method: str
     probability: float | None
+    diagnostics: dict[str, Any] = field(default_factory=dict)
 
 
 # FALLBACK blend weight and probability thresholds, used only when no model is
@@ -83,6 +85,14 @@ class Detector:
             score=heuristic_score,
             method=method,
             probability=round(probability, 4),
+            diagnostics={
+                "heuristic_probability": heuristic_prob,
+                "ml_probability": ml_prob,
+                "ml_weight": ml_w if ml_prob is not None else 0.0,
+                "found_threshold": found_thr,
+                "not_found_threshold": not_found_thr,
+                "model_version": getattr(self.model, "version", None),
+            },
         )
 
     def _heuristic_score(self, features: dict[str, float]) -> float:

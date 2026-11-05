@@ -226,7 +226,7 @@ class FeatureExtractor:
 
     def _extract_profile(
         self, tree: HTMLParser, url: str, site_name: str, title_text: str
-    ) -> dict[str, str]:
+    ) -> dict[str, Any]:
         """Best-effort display name / bio / avatar for a profile page.
 
         Generic and provider-agnostic: OpenGraph tags, then JSON-LD Person,
@@ -240,28 +240,48 @@ class FeatureExtractor:
         name = self._meta_content(tree, 'meta[property="og:title"]')
         bio = self._meta_content(tree, 'meta[property="og:description"]')
         avatar = self._meta_content(tree, 'meta[property="og:image"]')
+        sources = {
+            "name": "opengraph" if name else "missing",
+            "bio": "opengraph" if bio else "missing",
+            "avatar": "opengraph" if avatar else "missing",
+        }
 
         if not (name and avatar):
             ld_name, ld_image = self._json_ld_person_fields(tree)
+            if not name and ld_name:
+                sources["name"] = "json_ld"
+            if not avatar and ld_image:
+                sources["avatar"] = "json_ld"
             name = name or ld_name
             avatar = avatar or ld_image
 
         if not bio:
             bio = self._meta_content(tree, 'meta[name="description"]')
+            if bio:
+                sources["bio"] = "meta_description"
         if not avatar:
             icon = tree.css_first('link[rel="apple-touch-icon"]')
             if icon:
                 avatar = icon.attributes.get("href") or ""
+                if avatar:
+                    sources["avatar"] = "icon"
 
         overrides = _load_site_profiles().get(site_name)
         if isinstance(overrides, dict):
-            name = self._select_text(tree, overrides.get("name")) or name
-            bio = self._select_text(tree, overrides.get("bio")) or bio
-            avatar = self._select_attr(tree, overrides.get("avatar")) or avatar
+            selected_name = self._select_text(tree, overrides.get("name"))
+            selected_bio = self._select_text(tree, overrides.get("bio"))
+            selected_avatar = self._select_attr(tree, overrides.get("avatar"))
+            for key, selected in (("name", selected_name), ("bio", selected_bio), ("avatar", selected_avatar)):
+                if selected:
+                    sources[key] = "site_selector"
+            name = selected_name or name
+            bio = selected_bio or bio
+            avatar = selected_avatar or avatar
 
         structured_name = (name or "").strip()
         if not name:
             name = title_text
+            sources["name"] = "title" if name else "missing"
 
         if avatar:
             avatar = urljoin(url, avatar)
@@ -271,6 +291,7 @@ class FeatureExtractor:
             "bio": (bio or "").strip()[:500],
             "avatar": (avatar or "").strip(),
             "name_from_profile": bool(structured_name),
+            "field_sources": sources,
         }
 
     @staticmethod

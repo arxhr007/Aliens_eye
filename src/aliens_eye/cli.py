@@ -164,6 +164,7 @@ def build_parser() -> ArgumentParser:
     parser.add_argument("--model", type=str, help="Path to a custom ML model JSON")
     parser.add_argument("--sites", type=str, help="Path to a custom sites JSON")
     parser.add_argument("--plain", action="store_true", help="Plain output (no colors/progress)")
+    parser.add_argument("--explain", action="store_true", help="Explain recorded verdict evidence (also with --read)")
     parser.add_argument(
         "--profile",
         choices=["quick", "full", "aggressive"],
@@ -172,9 +173,17 @@ def build_parser() -> ArgumentParser:
     parser.add_argument(
         "--watch",
         type=str,
-        help="Re-scan on an interval and alert on changes (e.g. 30m, 6h, 1d)",
+        help="Re-scan on an interval (e.g. 30m, 6h, 1d); first observations establish a baseline, failures are not absence",
     )
     parser.add_argument("--notify", type=str, help="Webhook URL to POST watch-mode changes to")
+    parser.add_argument(
+        "--watch-confirmations", type=int,
+        help="Consecutive absence/profile observations needed before alerting (default: 2; minimum: 1)",
+    )
+    parser.add_argument(
+        "--watch-profile", type=str,
+        help="Opt-in profile change alerts: name,bio,avatar (avatar compares URLs, not image contents)",
+    )
     parser.add_argument(
         "--correlate",
         action="store_true",
@@ -613,6 +622,7 @@ def apply_config(config: ScannerConfig, data: dict) -> dict:
         "proxy": "proxy",
         "use_ml": "use_ml",
         "exclude_nsfw": "exclude_nsfw",
+        "explain": "explain",
     }
     path_fields = {"fingerprints_path", "output_dir"}
 
@@ -675,6 +685,8 @@ def apply_cli_overrides(config: ScannerConfig, args) -> None:
         config.plain_output = True
     if args.plain:
         config.plain_output = True
+    if getattr(args, "explain", False):
+        config.explain = True
 
 
 def prepare_sites(config: ScannerConfig, logger, sites_dir: str | None = None) -> dict:
@@ -746,6 +758,11 @@ def customize_config_interactive(config: ScannerConfig, formats: list[str], args
 
 
 async def run_scan(args) -> None:
+    from aliens_eye.core.watch import validate_watch_options
+
+    if args.json_stdout:
+        set_plain(True, stderr=True)
+    interval, confirmations, profile_fields = validate_watch_options(args)
     logger = setup_logger(args.verbose)
     config_data = load_config(args.config, logger)
     config = ScannerConfig()
@@ -759,7 +776,7 @@ async def run_scan(args) -> None:
 
     exporter_dir = config.output_dir
     if args.read:
-        ResultsExporter(exporter_dir).display_results_from_file(args.read)
+        ResultsExporter(exporter_dir, explain=config.explain).display_results_from_file(args.read)
         return
 
     sites_data = prepare_sites(config, logger, sites_dir=args.sites_dir)
@@ -821,7 +838,7 @@ async def run_scan(args) -> None:
 
         checkpoint = Checkpoint(args.resume)
 
-    exporter = ResultsExporter(config.output_dir, only_found=config.only_found)
+    exporter = ResultsExporter(config.output_dir, only_found=config.only_found, explain=config.explain)
     scanner = UsernameScanner(
         sites_data=sites_data,
         config=config,
@@ -837,11 +854,6 @@ async def run_scan(args) -> None:
         from aliens_eye.core import watch as watch_mod
 
         try:
-            interval = watch_mod.parse_duration(args.watch)
-        except ValueError as exc:
-            logger.error("Invalid --watch interval: %s", exc)
-            return
-        try:
             await watch_mod.run_watch(
                 scanner=scanner,
                 exporter=exporter,
@@ -853,6 +865,9 @@ async def run_scan(args) -> None:
                 console=console,
                 output_dir=config.output_dir,
                 notify_url=args.notify,
+                confirmations=confirmations,
+                profile_fields=profile_fields,
+                json_stdout=config.json_stdout,
             )
         finally:
             fingerprints.save()
@@ -1401,7 +1416,7 @@ def run_diff_command(args) -> None:
 
     from rich.table import Table
 
-    if not (delta["new"] or delta["gone"] or delta["changed"]):
+    if not any(delta.values()):
         console.print("[dim]No differences between the two reports.[/dim]")
         return
 
@@ -1412,7 +1427,7 @@ def run_diff_command(args) -> None:
     for item in delta["new"]:
         table.add_row("[green]+ NEW[/green]", item["key"], item.get("url", ""))
     for item in delta["gone"]:
-        table.add_row("[red]- GONE[/red]", item["key"], item.get("url", ""))
+        table.add_row("[red]- NO LONGER FOUND[/red]", Text(item["key"]), Text(item.get("url", "")))
     for item in delta["changed"]:
         before, after = item["before"], item["after"]
         detail = (
@@ -1420,6 +1435,9 @@ def run_diff_command(args) -> None:
             f"{after['status']} ({after['confidence']}%)"
         )
         table.add_row("[yellow]~ CHANGED[/yellow]", item["key"], detail)
+    for item in delta["profile_changes"]:
+        detail = Text(f"{item['field']}: {item['before']} -> {item['after']} ({item['source']})")
+        table.add_row("[yellow]~ PROFILE[/yellow]", Text(item["key"]), detail)
     console.print(table)
 
 
@@ -1447,7 +1465,6 @@ def main() -> None:
         sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
     raise_fd_limit()    # macOS hands out 256; one scan can pass that (#26)
     argv = sys.argv[1:]
-    console = get_console()
     try:
         if argv and argv[0] == "selfcheck":
             args = build_selfcheck_parser().parse_args(argv[1:])
@@ -1477,10 +1494,10 @@ def main() -> None:
             args = build_parser().parse_args(argv)
             asyncio.run(run_scan(args))
     except KeyboardInterrupt:
-        console.print("\n[red]Interrupted by user.[/red]")
+        get_console().print("\n[red]Interrupted by user.[/red]")
         sys.exit(0)
     except Exception as exc:
-        console.print(f"[red]Unexpected error: {exc}[/red]")
+        get_console().print(Text(f"Unexpected error: {exc}", style="red"))
         sys.exit(1)
 
 

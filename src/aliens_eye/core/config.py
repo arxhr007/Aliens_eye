@@ -206,3 +206,4 @@ class ScannerConfig:
     plain_output: bool = False
     only_found: bool = False
     json_stdout: bool = False
+    explain: bool = False

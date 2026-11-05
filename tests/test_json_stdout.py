@@ -13,6 +13,11 @@ from aiohttp.test_utils import TestServer
 from aliens_eye import cli
 
 
+@pytest.fixture(autouse=True)
+def isolated_fingerprints(tmp_path, monkeypatch):
+    monkeypatch.setattr("aliens_eye.core.config.user_cache_dir", lambda _: str(tmp_path / "cache"))
+
+
 @pytest.fixture
 async def fake_sites(tmp_path, found_html, not_found_html):
     """alpha knows only `torvalds`; beta is a site that answers 404 for everyone."""
@@ -86,6 +91,15 @@ async def test_the_output_is_ascii_safe(fake_sites, tmp_path, capsys):
 async def test_files_are_still_written_alongside(fake_sites, tmp_path, capsys):
     await run(fake_sites, tmp_path / "out", "--json-stdout", "torvalds")
     assert len(list((tmp_path / "out").glob("*.json"))) == 1
+
+
+async def test_explain_keeps_stdout_clean(fake_sites, tmp_path, capsys):
+    await run(fake_sites, tmp_path / "out", "--json-stdout", "--explain", "torvalds")
+    lines, err = stdout_lines(capsys)
+    assert len(lines) == 1
+    report = json.loads(lines[0])
+    assert report["variations"]["torvalds"]["sites"]["alpha"]["ai_analysis"]["explanation"]["schema_version"] == 1
+    assert "Confidence is a display score" in err
 
 
 async def test_a_normal_scan_prints_no_json(fake_sites, tmp_path, capsys):

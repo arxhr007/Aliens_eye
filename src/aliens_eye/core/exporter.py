@@ -7,8 +7,11 @@ from typing import Any
 
 from rich.panel import Panel
 from rich.prompt import Prompt
+from rich.text import Text
 
-from aliens_eye.utils.console import build_results_table, get_console
+from aliens_eye.core.explain import explanation_lines
+from aliens_eye.core.report import ReportError, load_report
+from aliens_eye.utils.console import build_results_table, get_console, render_explanations
 
 KNOWN_FORMATS = {
     "json", "csv", "html", "md", "markdown",
@@ -34,9 +37,11 @@ class ResultsExporter:
     # them still cover every site scanned, so a short list isn't mistaken for a
     # short scan.
     only_found: bool = False
+    explain: bool = False
 
-    def __init__(self, output_dir: Path, only_found: bool = False) -> None:
+    def __init__(self, output_dir: Path, only_found: bool = False, explain: bool = False) -> None:
         self.only_found = only_found
+        self.explain = explain
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.console = get_console()
@@ -237,13 +242,15 @@ class ResultsExporter:
                 name = _esc(profile.get("name", "")) if is_hit else ""
                 bio = _esc(profile.get("bio", "")) if is_hit else ""
                 url = info.get("url", "")
+                explanation = "<br>".join(_esc(line) for line in explanation_lines(info))
                 rows.append(
                     f"<tr><td>{_esc(variation)}</td><td>{_esc(site)}</td>"
                     f"<td>{_esc(info.get('status',''))}</td>"
                     f"<td>{_esc(str(info.get('confidence',0)))}</td>"
                     f"<td>{_esc(str(info.get('code',0)))}</td>"
                     f"<td><a href='{_esc(url, quote=True)}'>{_esc(url)}</a></td>"
-                    f"<td>{avatar_cell}</td><td>{name}</td><td>{bio}</td></tr>"
+                    f"<td>{avatar_cell}</td><td>{name}</td><td>{bio}</td>"
+                    f"<td><details><summary>Evidence</summary>{explanation}</details></td></tr>"
                 )
 
         html = f"""
@@ -282,6 +289,7 @@ th {{ background-color: #f2f2f2; text-align: left; }}
 <th>Avatar</th>
 <th>Name</th>
 <th>Bio</th>
+<th>Evidence</th>
 </tr>
 </thead>
 <tbody>
@@ -346,6 +354,11 @@ th {{ background-color: #f2f2f2; text-align: left; }}
                     f"| {site} | {status} | {site_info.get('confidence', 0)}% | "
                     f"{site_info.get('code', 0)} | {name} | {bio} | {site_info.get('url', '')} |"
                 )
+            lines.append("")
+            lines.extend(["### Recorded evidence", ""])
+            for site, site_info in sites:
+                lines.append(f"- {_md_cell(_esc(site))} ({_md_cell(_esc(site_info.get('status', 'Unknown')))}):")
+                lines.extend(f"  - {_md_cell(_esc(line))}" for line in explanation_lines(site_info))
             lines.append("")
 
         path.write_text("\n".join(lines), encoding="utf-8")
@@ -445,13 +458,9 @@ th {{ background-color: #f2f2f2; text-align: left; }}
 
     def display_results_from_file(self, file_path: str) -> None:
         try:
-            with open(file_path, encoding="utf-8") as handle:
-                data = json.load(handle)
-        except FileNotFoundError:
-            self.console.print(f"[red]File not found: {file_path}[/red]")
-            return
-        except json.JSONDecodeError:
-            self.console.print(f"[red]Invalid JSON file: {file_path}[/red]")
+            data = load_report(file_path)
+        except ReportError as exc:
+            self.console.print(Text(str(exc), style="red"))
             return
 
         if "scan_summary" not in data or "variations" not in data:
@@ -476,6 +485,10 @@ th {{ background-color: #f2f2f2; text-align: left; }}
                 self.console.print(f"  [yellow]{username}[/yellow]: [green]{count} profiles found[/green]")
 
         names = list(data["variations"].keys())
+        if self.explain:
+            for username, variation_data in data["variations"].items():
+                self._display_variation_results(username, variation_data)
+            return
         self.console.print("\n[blue]Available variations:[/blue]")
         for i, username in enumerate(names, 1):
             self.console.print(f"  {i}. [yellow]{username}[/yellow]")
@@ -511,6 +524,7 @@ th {{ background-color: #f2f2f2; text-align: left; }}
                 "code": info.get("code", 0),
                 "url": info.get("url", ""),
                 "response_time": info.get("response_time", 0),
+                "ai_analysis": info.get("ai_analysis", {}),
             }
             for site, info in variation_data.get("sites", {}).items()
         ]
@@ -521,3 +535,5 @@ th {{ background-color: #f2f2f2; text-align: left; }}
             )
         )
         self.console.print(build_results_table(rows))
+        if self.explain:
+            render_explanations(self.console, rows)

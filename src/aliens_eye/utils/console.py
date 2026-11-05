@@ -142,3 +142,11 @@ def build_results_table(results: list[dict[str, Any]], title: str | None = None)
             f"{r.get('response_time', 0):.2f}s",
         )
     return table
+
+
+def render_explanations(console: Console, results: list[dict[str, Any]]) -> None:
+    from aliens_eye.core.explain import explanation_lines
+
+    for result in results:
+        title = Text(f"{result.get('site', '')}: {result.get('status', 'Unknown')}")
+        console.print(Panel(Text("\n".join(explanation_lines(result))), title=title))

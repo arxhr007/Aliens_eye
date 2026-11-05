@@ -1,20 +1,26 @@
 """Watch / monitor mode: re-scan on an interval and alert on changes.
 
-Reuses the existing scanner and exporter. Each cycle runs a full scan, saves a
-timestamped report, and diffs the set of Found accounts against the previous
-cycle (seeded from the most recent report on disk, if any).
+Reuses the existing scanner and exporter. Each cycle runs a fresh scan and saves
+a timestamped report. Scoped state confirms absence and optional profile changes;
+failures do not erase the last stable observation.
 """
 
 from __future__ import annotations
 
 import asyncio
+import json
 import math
+from contextlib import ExitStack
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import aiohttp
+from rich.text import Text
 
-from .report import ReportError, found_keys, load_report
+from .report import PROFILE_FIELDS, ReportError, found_keys, load_report, observation
+from .watch_state import MonitorState, WatchStore, scope_key
 
 _UNITS = {"s": 1.0, "m": 60.0, "h": 3600.0, "d": 86400.0}
 
@@ -74,9 +80,42 @@ def _baseline(output_dir: Path, username: str, level: str) -> set[str]:
 async def _notify(webhook_url: str, payload: dict[str, Any], logger) -> None:
     try:
         async with aiohttp.ClientSession() as session:
-            await session.post(webhook_url, json=payload, timeout=15)
+            async with session.post(webhook_url, json=payload, timeout=15, allow_redirects=False) as response:
+                if not 200 <= response.status < 300:
+                    logger.warning("Webhook notify failed: HTTP %s (delivery is best-effort).", response.status)
     except Exception as exc:  # noqa: BLE001 - notification is best-effort
-        logger.warning("Webhook notify failed: %s", exc)
+        logger.warning("Webhook notify failed: %s (delivery is best-effort).", type(exc).__name__)
+
+
+def parse_profile_fields(value: str | None) -> tuple[str, ...]:
+    if value is None:
+        return ()
+    fields = [field.strip().lower() for field in value.split(",")]
+    if not fields or any(field not in PROFILE_FIELDS for field in fields) or len(fields) != len(set(fields)):
+        raise ValueError("--watch-profile must contain name, bio, or avatar without duplicates")
+    return tuple(field for field in PROFILE_FIELDS if field in fields)
+
+
+def validate_watch_options(args) -> tuple[float | None, int, tuple[str, ...]]:
+    confirmations = getattr(args, "watch_confirmations", None)
+    profile = getattr(args, "watch_profile", None)
+    if not args.watch:
+        if confirmations is not None or profile is not None:
+            raise ValueError("--watch-confirmations and --watch-profile require --watch")
+        return None, 2, ()
+    if args.resume:
+        raise ValueError("--watch cannot be combined with --resume; each cycle needs fresh results")
+    if args.read:
+        raise ValueError("--watch cannot be combined with --read")
+    interval = parse_duration(args.watch)
+    confirmations = 2 if confirmations is None else confirmations
+    fields = parse_profile_fields(profile)
+    MonitorState(confirmations, fields)
+    if args.notify:
+        parsed = urlsplit(args.notify)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+            raise ValueError("--notify requires an HTTP(S) URL")
+    return interval, confirmations, fields
 
 
 async def run_watch(
@@ -90,42 +129,82 @@ async def run_watch(
     console,
     output_dir: Path,
     notify_url: str | None = None,
+    confirmations: int = 2,
+    profile_fields: tuple[str, ...] = (),
+    json_stdout: bool = False,
 ) -> None:
     """Re-scan the given usernames every ``interval`` seconds until interrupted."""
-    previous: dict[str, set[str]] = {
-        username: _baseline(output_dir, username, scan_level) for username in usernames
-    }
+    MonitorState(confirmations, profile_fields)
+    if not math.isfinite(interval) or interval <= 0:
+        raise ValueError("watch interval must be positive and finite")
+    if getattr(scanner, "checkpoint", None) is not None:
+        raise ValueError("watch cannot reuse a resume checkpoint")
+    usernames = list(dict.fromkeys(usernames))
+    if not usernames or any(not isinstance(name, str) or len(name.strip()) < 2 for name in usernames):
+        raise ValueError("watch usernames must be at least 2 characters")
     console.print(
         f"[blue]Watch mode:[/blue] re-scanning every [yellow]{interval:.0f}s[/yellow] "
-        f"(Ctrl-C to stop)"
+        f"(Ctrl-C to stop). First conclusive observations establish a baseline; "
+        f"absence/profile changes need {confirmations} consecutive observations. "
+        "Notifications are best-effort."
     )
 
-    cycle = 0
-    while True:
-        cycle += 1
-        console.print(f"\n[dim]--- watch cycle {cycle} ---[/dim]")
+    with ExitStack() as stack:
+        stores, states = {}, {}
         for username in usernames:
-            if not username or len(username) < 2:
-                continue
-            all_results = await scanner.scan_with_variations(username, scan_level)
-            exporter.save_results(username, scan_level, all_results, formats)
+            scope = scope_key(scanner, username, scan_level, confirmations, profile_fields)
+            store = stack.enter_context(WatchStore(output_dir, scope))
+            stores[username] = store
+            states[username] = store.load(confirmations, profile_fields)
 
-            current = found_set(all_results)
-            delta = diff_found(previous.get(username, set()), current)
-            previous[username] = current
+        cycle = 0
+        while True:
+            cycle += 1
+            scanner.reset_cycle()
+            console.print(f"\n[dim]--- watch cycle {cycle} ---[/dim]")
+            for username in usernames:
+                all_results = await scanner.scan_with_variations(username, scan_level)
+                observed_at = datetime.now(timezone.utc).isoformat()
+                current = {
+                    f"{variation}:{item['site']}": observation(item)
+                    for variation, results in all_results.items() for item in results
+                }
+                delta = states[username].observe(current, observed_at)
+                exporter.save_results(username, scan_level, all_results, formats)
+                stores[username].save(states[username])
+                if json_stdout:
+                    print(json.dumps(exporter.report_dict(username, scan_level, all_results), separators=(",", ":")), flush=True)
 
-            if delta["new"] or delta["gone"]:
                 for key in delta["new"]:
-                    console.print(f"[bold green]+ NEW:[/bold green] {key}")
+                    console.print(Text(f"+ NEW POSITIVE OBSERVATION: {key}", style="green"))
                 for key in delta["gone"]:
-                    console.print(f"[bold red]- GONE:[/bold red] {key}")
-                if notify_url:
+                    console.print(Text(
+                        f"- {key}: profile no longer observed after repeated HTTP 404/410 responses.",
+                        style="red",
+                    ))
+                for change in delta["profile_changes"]:
+                    console.print(Text(
+                        f"~ {change['key']} {change['type']}: {change['before']} -> {change['after']}",
+                        style="yellow",
+                    ))
+                if delta["unavailable"]:
+                    console.print(Text(
+                        f"{len(delta['unavailable'])} unavailable/not-observed result(s) for {username}; "
+                        "no absence inferred.", style="yellow",
+                    ))
+                changed = bool(delta["new"] or delta["gone"] or delta["profile_changes"])
+                if not changed:
+                    console.print(Text(f"No confirmed change for {username}.", style="dim"))
+                if notify_url and changed:
                     await _notify(
                         notify_url,
-                        {"username": username, "level": scan_level, **delta},
+                        {
+                            "schema_version": 2, "observed_at": observed_at,
+                            "username": username, "level": scan_level,
+                            "new": delta["new"], "gone": delta["gone"],
+                            **({"profile_changes": delta["profile_changes"]} if profile_fields else {}),
+                        },
                         logger,
                     )
-            else:
-                console.print(f"[dim]No change for {username} ({len(current)} found).[/dim]")
 
-        await asyncio.sleep(interval)
+            await asyncio.sleep(interval)

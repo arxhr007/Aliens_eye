@@ -9,13 +9,14 @@ from urllib.parse import quote
 
 import aiohttp
 
-from aliens_eye.utils.console import ScanView, get_console
+from aliens_eye.utils.console import ScanView, get_console, render_explanations
 
 from .analyzer import FeatureExtractor
 from .browser import BrowserFallback
 from .config import DEFAULT_HEADERS, MAX_HEADER_SIZE, ScannerConfig
 from .control import PageShape, control_username, http_overrule, page_shape, same_page
 from .detector import Detector
+from .explain import build_explanation, detector_evidence
 from .fingerprints import FingerprintStore, build_fingerprint
 from .http import KEEPALIVE_SECONDS, describe_error, fetch_url
 from .rate_limit import DomainRateLimiter
@@ -265,6 +266,10 @@ class UsernameScanner:
         self.results_dir = config.output_dir
         self.results_dir.mkdir(parents=True, exist_ok=True)
 
+    def reset_cycle(self) -> None:
+        self._controls.clear()
+        self._fallback_warned = False
+
     async def scan_with_variations(
         self, base_username: str, level: str
     ) -> dict[str, list[dict[str, Any]]]:
@@ -311,6 +316,8 @@ class UsernameScanner:
                 f"{len(pending)} remaining.[/dim]"
             )
         if not pending:
+            if self.config.explain:
+                render_explanations(self.console, results)
             return results
 
         conn_limit = max(1, min(self.config.concurrent, len(pending)))
@@ -345,6 +352,8 @@ class UsernameScanner:
 
         total_time = time.monotonic() - start_time
         view.render_results(results)
+        if self.config.explain:
+            render_explanations(self.console, results)
         view.render_summary(results, total_time)
         return results
 
@@ -379,7 +388,10 @@ class UsernameScanner:
                     "code": 408,
                     "response_time": 0.0,
                     "confidence": 0,
-                    "ai_analysis": {"error": "no answer within the per-site deadline"},
+                    "ai_analysis": {
+                        "error": "no answer within the per-site deadline",
+                        "explanation": build_explanation("Timeout", 0, code=408, reason="site_deadline"),
+                    },
                 }
                 results.append(result)
             except Exception as exc:
@@ -393,7 +405,10 @@ class UsernameScanner:
                     "code": 0,
                     "response_time": 0.0,
                     "confidence": 0,
-                    "ai_analysis": {"error": str(exc)},
+                    "ai_analysis": {
+                        "error": str(exc),
+                        "explanation": build_explanation("Error", 0, reason="worker_error"),
+                    },
                 }
                 results.append(result)
             if self.checkpoint is not None:
@@ -436,6 +451,7 @@ class UsernameScanner:
         fetch,
         session: aiohttp.ClientSession,
         rate_limiter: DomainRateLimiter,
+        observation: dict[str, Any] | None = None,
     ) -> bool:
         """Whether this page is what the site shows for a user who doesn't exist.
 
@@ -443,7 +459,8 @@ class UsernameScanner:
         shell, a soft "not found", a redirect to search) cannot be read for
         existence from that page. See ``core.control``.
         """
-        if site_name not in self._controls:
+        cached = site_name in self._controls
+        if not cached:
             shape = None
             # A replayed corpus cannot be asked for a new username; it offers one
             # it recorded instead.
@@ -461,8 +478,13 @@ class UsernameScanner:
             self._controls[site_name] = shape
         control_shape = self._controls[site_name]
         if control_shape is None:
+            if observation is not None:
+                observation.update(outcome="unavailable", cached=cached, source="http")
             return False
-        return same_page(page_shape(fetch.content, fetch.final_url, username), control_shape)
+        same = same_page(page_shape(fetch.content, fetch.final_url, username), control_shape)
+        if observation is not None:
+            observation.update(outcome="same" if same else "different", cached=cached, source="http")
+        return same
 
     async def _scan_site(
         self,
@@ -484,6 +506,14 @@ class UsernameScanner:
 
         ai_analysis: dict[str, Any] = {}
         confidence = 0
+        details = initial = None
+        reason = "fetch_error" if fetch.error else None
+        checks = {
+            "http": {"outcome": "unavailable" if fetch.error else "received", "code": fetch.status, "source": "http"},
+            "bot_wall": {"outcome": "not_run", "source": "http"},
+            "control": {"outcome": "not_run" if self.config.control_check else "disabled"},
+            "browser": {"outcome": "not_run" if self.config.use_playwright else "disabled"},
+        }
         if not fetch.error:
             try:
                 bundle = self.extractor.extract(
@@ -506,7 +536,12 @@ class UsernameScanner:
                     "code": 0,
                     "response_time": round(fetch.response_time, 2),
                     "confidence": 0,
-                    "ai_analysis": {"error": str(exc)},
+                    "ai_analysis": {
+                        "error": str(exc),
+                        "explanation": build_explanation(
+                            "Error", 0, checks=checks, reason="extraction_error",
+                        ),
+                    },
                 }
 
             fingerprint = build_fingerprint(bundle.fingerprint)
@@ -519,6 +554,8 @@ class UsernameScanner:
             )
 
             detection = self.detector.predict(bundle.features)
+            initial = details = detector_evidence(detection)
+            checks["bot_wall"]["outcome"] = "detected" if _looks_like_bot_wall(bundle.signals) else "clear"
             status_text = detection.status
             confidence = detection.confidence
 
@@ -543,7 +580,10 @@ class UsernameScanner:
                     ai_analysis,
                     status_text,
                     confidence,
+                    checks["browser"],
                 )
+                if checks["browser"]["outcome"] == "selected":
+                    details = checks["browser"]["detector"]
 
             # "Found" claims an account exists, and the score alone cannot carry
             # that: a page is scored on how profile-like it looks, and error
@@ -551,7 +591,8 @@ class UsernameScanner:
             if status_text == "Found":
                 async def same_as_missing_user() -> bool:
                     return await self._same_as_missing_user(
-                        site_name, url_template, username, fetch, session, rate_limiter
+                        site_name, url_template, username, fetch, session, rate_limiter,
+                        checks["control"],
                     )
 
                 overruled = await overrule_found(
@@ -562,11 +603,19 @@ class UsernameScanner:
                     status_text, reason = overruled
                     confidence = 90 if status_text == "Not Found" else min(confidence, 55)
                     ai_analysis["method"] = f"{ai_analysis['method']}-{reason}"
+                    reason = {
+                        "http-gone": "http_gone", "http-error": "http_error",
+                        "botwall-capped": "bot_wall", "same-as-missing-user": "same_as_control",
+                    }[reason]
 
             if status_text in {"Found", "Not Found"} and confidence >= 85:
                 label = "found" if status_text == "Found" else "not_found"
                 self.fingerprints.add(site_name, label, fingerprint)
 
+        ai_analysis["explanation"] = build_explanation(
+            status_text, confidence, code=fetch.status, detector=details, initial=initial,
+            checks=checks, features=ai_analysis.get("features"), reason=reason,
+        )
         return {
             "site": site_name,
             "url": url,
@@ -587,10 +636,15 @@ class UsernameScanner:
         ai_analysis: dict[str, Any],
         status_text: str,
         confidence: int,
+        observation: dict[str, Any] | None = None,
     ) -> tuple[str, int, dict[str, Any]]:
+        if observation is None:
+            observation = {}
+        observation.update(outcome="attempted", source="rendered")
         try:
             content, final_url = await self.browser_fallback.fetch(url)
         except Exception as exc:
+            observation["outcome"] = "unavailable"
             if not self._fallback_warned:
                 self._fallback_warned = True
                 self.logger.warning(
@@ -626,7 +680,10 @@ class UsernameScanner:
         )
 
         detection = self.detector.predict(bundle.features)
+        observation["detector"] = detector_evidence(detection, "rendered")
+        observation["outcome"] = "retained_http"
         if detection.confidence > confidence or detection.status != "Maybe":
+            observation["outcome"] = "selected"
             return detection.status, detection.confidence, {
                 "method": f"playwright-{detection.method}",
                 "score": detection.score,
