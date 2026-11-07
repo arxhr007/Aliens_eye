@@ -14,6 +14,14 @@ _REASONS = {
     "site_deadline": "The per-site deadline expired; account existence is unknown.",
     "worker_error": "The site check failed; account existence is unknown.",
     "browser_unavailable": "Browser fallback failed; the HTTP detector verdict was retained.",
+    "invalid_site_username": "The username does not match this site's supported format; no request was made.",
+    "rule_model_conflict": "The site-specific evidence and the HTML model disagree; manual verification is needed.",
+    "rule_absence": "The site's configured absence evidence matched the response.",
+    "username_not_confirmed": "The public API response did not explicitly identify the requested username.",
+    "conflicting_markers": "Both presence and absence markers matched; account existence is inconclusive.",
+    "http_unavailable": "The response cannot establish account existence.",
+    "site_error": "The response matched a site-specific error marker.",
+    "no_rule_evidence": "The expected site-specific evidence was not observed.",
 }
 
 _SIGNALS = {

@@ -137,6 +137,9 @@ def scope_key(scanner, username: str, level: str, confirmations: int, fields: tu
         "version": __version__, "username": username, "level": level,
         "variations": generate_username_variations(username, level),
         "sites": sorted(scanner.sites_data.items()), "model": model_hash,
+        "site_definitions": {
+            name: site.fingerprint for name, site in getattr(scanner.sites_data, "definitions", {}).items()
+        },
         "settings": {
             key: getattr(config, key) for key in (
                 "use_ml", "use_playwright", "control_check", "max_content_bytes",

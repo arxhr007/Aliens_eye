@@ -62,6 +62,12 @@ class MLModel:
             raise ModelError("Model vector lengths do not match the feature schema.")
         if any(s == 0 for s in model.scale):
             raise ModelError("Model scale vector contains zeros.")
+        values = [*model.mean, *model.scale, *model.coef, model.intercept,
+                  model.ml_weight, model.found_threshold, model.not_found_threshold]
+        if not all(math.isfinite(value) for value in values) or any(s < 0 for s in model.scale):
+            raise ModelError("Model parameters must be finite with positive scales.")
+        if not 0 <= model.ml_weight <= 1 or not 0 < model.not_found_threshold < model.found_threshold < 1:
+            raise ModelError("Invalid model blend weight or thresholds.")
         return model
 
     @classmethod

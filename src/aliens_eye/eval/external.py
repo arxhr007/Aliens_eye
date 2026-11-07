@@ -27,10 +27,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 #: Verdicts an external rule can return. ``None`` means the tool has no rule for
 #: that site and the row must be excluded from its score rather than counted
@@ -199,9 +200,75 @@ class WhatsMyNameEngine(RuleEngine):
         return UNKNOWN
 
 
+class MaigretEngine(RuleEngine):
+    name = "maigret"
+
+    def __init__(self, catalog, source: dict) -> None:
+        from aliens_eye.core.sites import canonical_template
+
+        rules, self.patterns = {}, []
+        for name in catalog:
+            site = catalog.definitions[name]
+            rule = ExternalRule(name, _netloc(site.url), {"definition": site})
+            rules[name] = rule
+
+            def pattern(template):
+                text = re.escape(canonical_template(template)).replace(r"\{\}", r"([^/?#&]+)")
+                return re.compile("^" + text + "$")
+
+            self.patterns.append((pattern(site.url), pattern(site.probe_url or site.url), rule))
+        super().__init__(rules, source)
+
+    @classmethod
+    def load(cls, path: Path) -> MaigretEngine:
+        from aliens_eye.catalog import import_catalog
+
+        catalog = import_catalog({"maigret": path})
+        return cls(catalog, {
+            **catalog.sources["maigret"],
+            "engine": "maigret", "path": str(path), "usable_rules": len(catalog),
+            "excluded_definitions": len(catalog.issues),
+            "comparison_scope": "GET responses with compatible probe URL and default request policy",
+        })
+
+    @property
+    def covered_netlocs(self) -> set[str]:
+        return {rule.netloc for rule in self.rules.values()}
+
+    def rule_for(self, url: str) -> ExternalRule | None:
+        from aliens_eye.core.sites import canonical_template
+
+        url = canonical_template(url)
+        return next((rule for profile, probe, rule in self.patterns if profile.fullmatch(url) or probe.fullmatch(url)), None)
+
+    def decide(self, url: str, final_url: str, status: int, body: str) -> str | None:
+        from aliens_eye.core.sites import canonical_template
+
+        normalized = canonical_template(url)
+        for _profile, probe, rule in self.patterns:
+            match = probe.fullmatch(normalized)
+            if match is None:
+                continue
+            site = rule.raw["definition"]
+            username = unquote(match.group(1))
+            if not site.follow_redirects or site.headers or site.encoding or not site.accepts(username):
+                return UNKNOWN
+            if status in (0, 401, 403, 408, 429) or status >= 500 or any(s in body for s in site.error_markers):
+                return UNKNOWN
+            if site.check_type == "status_code":
+                return FOUND if 200 <= status < 300 else NOT_FOUND
+            if site.check_type == "message":
+                presence = bool(body) and (not site.presence or any(s in body for s in site.presence))
+                if not site.presence and not username.isascii() and username not in body:
+                    presence = False
+                return FOUND if presence and not any(s in body for s in site.absence) else NOT_FOUND
+            return UNKNOWN
+        return UNKNOWN
+
+
 ENGINES = {
     "sherlock": SherlockEngine,
-    "maigret": SherlockEngine,
+    "maigret": MaigretEngine,
     "whatsmyname": WhatsMyNameEngine,
 }
 

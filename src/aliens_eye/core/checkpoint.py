@@ -50,7 +50,7 @@ class Checkpoint:
     async def record(self, variation: str, site: str, result: dict[str, Any]) -> None:
         key = (variation, site)
         async with self._lock:
-            if key in self._done:
+            if self._done.get(key) == result:
                 return
             self._done[key] = result
             self.path.parent.mkdir(parents=True, exist_ok=True)

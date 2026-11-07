@@ -156,8 +156,9 @@ class ResultsExporter:
                     "errors": sum(
                         1
                         for r in results
-                        if r["status"] not in {"Found", "Not Found", "Maybe"}
+                        if r["status"] not in {"Found", "Not Found", "Maybe", "Skipped"}
                     ),
+                    "skipped": sum(1 for r in results if r["status"] == "Skipped"),
                     "high_confidence_matches": high_confidence_matches[username],
                 },
                 "sites": {

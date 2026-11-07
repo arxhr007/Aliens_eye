@@ -55,6 +55,10 @@ def _quiet_console():
 def load_sites(
     exclude_nsfw: bool = False,
     path: Path | None = None,
+    *,
+    catalog: str = "standard",
+    tags: list[str] | None = None,
+    sources: list[str] | None = None,
 ) -> dict[str, str]:
     """The site catalogue as ``{site_name: url_template}``.
 
@@ -63,10 +67,11 @@ def load_sites(
     """
     from aliens_eye.core.scanner import filter_sites, load_nsfw_sites, load_sites_data
 
-    sites = load_sites_data(Path(path) if path else None)
-    if exclude_nsfw:
-        sites = filter_sites(sites, None, load_nsfw_sites())
-    return sites
+    sites = load_sites_data(Path(path) if path else None, catalog=catalog)
+    return filter_sites(
+        sites, None, load_nsfw_sites() if exclude_nsfw else None,
+        tags=tags, sources=sources, exclude_nsfw=exclude_nsfw,
+    )
 
 
 async def scan(
@@ -78,6 +83,7 @@ async def scan(
     proxy: str | None = None,
     on_result: ResultHook | None = None,
     quiet: bool = True,
+    catalog: str = "standard",
 ) -> dict[str, Any]:
     """Scan ``username`` across ``sites`` and return the structured report.
 
@@ -107,7 +113,7 @@ async def scan(
         output_dir=cache / "api",
         fingerprints_path=cache / "fingerprints.json",
     )
-    sites_data = dict(sites) if sites is not None else load_sites()
+    sites_data = sites.copy() if sites is not None else load_sites(catalog=catalog)
 
     detector = Detector()
     if use_ml:

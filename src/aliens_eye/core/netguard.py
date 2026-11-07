@@ -153,6 +153,8 @@ async def guarded_get(
     max_bytes: int = 2_000_000,
     allow_private: bool = False,
     proxy: str | None = None,
+    headers: dict[str, str] | None = None,
+    follow_redirects: bool = True,
 ) -> GuardedResponse:
     """GET ``url``, validating it and every redirect hop. Raises :class:`GuardError`."""
     from .http import read_capped
@@ -161,17 +163,23 @@ async def guarded_get(
     for hop in range(MAX_REDIRECTS + 1):
         if not await is_public_url(current, allow_private):
             raise GuardError(f"{await refusal_reason(current)}: {current}")
+        options = {"headers": headers} if headers else {}
         async with session.get(
             current,
             timeout=aiohttp.ClientTimeout(total=timeout),
             allow_redirects=False,
             proxy=proxy,
+            **options,
         ) as response:
-            if response.status in _REDIRECT_STATUSES:
+            if follow_redirects and response.status in _REDIRECT_STATUSES:
                 location = response.headers.get("Location")
                 if not location:
                     raise GuardError(f"redirect without a Location from {current!r}")
-                current = urljoin(current, location)
+                destination = urljoin(current, location)
+                previous, following = urlparse(current), urlparse(destination)
+                if (following.scheme, following.netloc) != (previous.scheme, previous.netloc):
+                    headers = None
+                current = destination
                 continue
             body = await read_capped(response, max_bytes)
             return GuardedResponse(

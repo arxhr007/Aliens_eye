@@ -5,6 +5,8 @@ from pathlib import Path
 
 from platformdirs import user_cache_dir
 
+from .sites import SiteRequest
+
 DEFAULT_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 Chrome/115.0.0.0 Safari/537.36"
@@ -207,3 +209,7 @@ class ScannerConfig:
     only_found: bool = False
     json_stdout: bool = False
     explain: bool = False
+    catalog: str = "standard"
+    include_tags: list[str] | None = None
+    include_sources: list[str] | None = None
+    request: SiteRequest | None = None

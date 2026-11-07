@@ -134,6 +134,11 @@ class ReplayFetcher:
         logger,
     ) -> FetchResult:
         record = self.records.get(url)
+        if record is not None and config.request is not None:
+            identity = (record.notes or {}).get("request_identity")
+            if identity != config.request.identity:
+                if identity is not None or config.request.headers or not config.request.follow_redirects or config.request.encoding:
+                    raise CorpusError(f"Request policy for {url} is not in the corpus")
         if record is None:
             self.misses.append(url)
             if self.strict:

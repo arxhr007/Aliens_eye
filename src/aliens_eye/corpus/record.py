@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import random
 import string
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -127,7 +128,10 @@ class RecordingFetcher:
                     error=result.error,
                     captured_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
                     tool_version=self.tool_version,
-                    notes=dict(context.get("notes") or {}),
+                    notes={
+                        **dict(context.get("notes") or {}),
+                        **({"request_identity": config.request.identity} if config.request is not None else {}),
+                    },
                 )
             )
         return result
@@ -186,6 +190,24 @@ def build_jobs(
                 (site, format_site_url(site, template, username), username, 0,
                  {"negative_kind": kind})
             )
+    from aliens_eye.core.site_rules import negative_username
+    from aliens_eye.core.sites import SiteCatalog
+
+    if isinstance(sites_data, SiteCatalog):
+        structured = []
+        for site, _url, username, label, notes in jobs:
+            definition = sites_data.definitions[site]
+            if not label and not definition.accepts(username):
+                username = negative_username(definition, ground_truth[site][0], rng)
+                notes = {"negative_kind": "random"}
+            if username is None or not definition.accepts(username):
+                continue
+            notes.update(
+                site_fingerprint=definition.fingerprint,
+                request_role="probe" if definition.probe_url else "profile",
+            )
+            structured.append((site, definition.request(username).url, username, label, notes))
+        return structured
     return jobs
 
 
@@ -212,8 +234,11 @@ async def record_corpus(
     recorder = RecordingFetcher(store)
 
     jobs = build_jobs(sites_data, ground_truth, negatives_per_site, rng, plausible_ratio)
+    definitions = getattr(sites_data, "definitions", {})
     skipped = sorted(set(ground_truth) - set(sites_data))
     if skip_urls:
+        if definitions:
+            raise ValueError("Structured capture cannot resume by URL alone; use a fresh corpus directory")
         # Resume: negatives are seed-derived, so regenerating the job list
         # reproduces the same URLs and already-captured ones can be dropped.
         jobs = [job for job in jobs if job[1] not in skip_urls]
@@ -223,12 +248,20 @@ async def record_corpus(
     conn_limit = max(1, min(concurrency, len(jobs) or 1))
     semaphore = asyncio.Semaphore(conn_limit)
 
-    async with build_session(config, conn_limit) as session:
+    from aliens_eye.core.netguard import PublicOnlyResolver
+
+    resolver = PublicOnlyResolver() if definitions and not config.proxy else None
+    requests = {
+        url: definitions[site].request(username)
+        for site, url, username, _label, _notes in jobs if site in definitions
+    }
+    async with build_session(config, conn_limit, resolver=resolver) as session:
 
         async def run(url: str) -> None:
             async with semaphore:
                 try:
-                    await recorder(session, url, config, rate_limiter, logger)
+                    request_config = replace(config, request=requests[url]) if url in requests else config
+                    await recorder(session, url, request_config, rate_limiter, logger)
                 except Exception as exc:  # noqa: BLE001 - one bad host must not abort a capture
                     logger.debug("Capture failed for %s: %s", url, exc)
             written = await recorder.maybe_flush(flush_every)

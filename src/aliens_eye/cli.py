@@ -163,6 +163,9 @@ def build_parser() -> ArgumentParser:
     parser.add_argument("--no-ml", action="store_true", help="Disable ML detection, heuristics only")
     parser.add_argument("--model", type=str, help="Path to a custom ML model JSON")
     parser.add_argument("--sites", type=str, help="Path to a custom sites JSON")
+    parser.add_argument("--catalog", choices=["standard", "extended"], help="Standard or expanded community catalog")
+    parser.add_argument("--tag", help="Filter structured sites by tags (comma-separated)")
+    parser.add_argument("--source", help="Filter structured sites by source (maigret,sherlock)")
     parser.add_argument("--plain", action="store_true", help="Plain output (no colors/progress)")
     parser.add_argument("--explain", action="store_true", help="Explain recorded verdict evidence (also with --read)")
     parser.add_argument(
@@ -270,6 +273,7 @@ def build_train_parser() -> ArgumentParser:
     collect.add_argument("--negatives", type=int, default=2, help="Negative samples per site")
     collect.add_argument("--seed", type=int, default=None, help="Random seed")
     collect.add_argument("--sites", type=str, help="Path to a custom sites JSON")
+    collect.add_argument("--corpus", type=str, help="Build grouped training rows from a frozen corpus, without network")
     collect.add_argument(
         "--split", choices=["train", "holdout", "all"], default="train",
         help="Ground-truth split to collect from. Defaults to train; anything "
@@ -284,6 +288,7 @@ def build_train_parser() -> ArgumentParser:
     fit = sub.add_parser("fit", help="Train the model from a labeled dataset CSV")
     fit.add_argument("--data", type=str, required=True, help="Labeled dataset CSV")
     fit.add_argument("--out", type=str, default="model.json", help="Output model JSON path")
+    fit.add_argument("--max-fpr", type=float, default=0.02, help="Maximum false-positive rate on OOF calibration rows")
     fit.add_argument("-v", "--verbose", action="store_true")
     return parser
 
@@ -623,6 +628,9 @@ def apply_config(config: ScannerConfig, data: dict) -> dict:
         "use_ml": "use_ml",
         "exclude_nsfw": "exclude_nsfw",
         "explain": "explain",
+        "catalog": "catalog",
+        "include_tags": "include_tags",
+        "include_sources": "include_sources",
     }
     path_fields = {"fingerprints_path", "output_dir"}
 
@@ -687,10 +695,18 @@ def apply_cli_overrides(config: ScannerConfig, args) -> None:
         config.plain_output = True
     if getattr(args, "explain", False):
         config.explain = True
+    if getattr(args, "catalog", None):
+        config.catalog = args.catalog
+    if getattr(args, "tag", None):
+        config.include_tags = parse_site_list(args.tag)
+    if getattr(args, "source", None):
+        config.include_sources = parse_site_list(args.source)
 
 
 def prepare_sites(config: ScannerConfig, logger, sites_dir: str | None = None) -> dict:
-    sites_data = load_sites_data(config.sites_path)
+    from aliens_eye.core.scanner import merge_site_maps
+
+    sites_data = load_sites_data(config.sites_path, catalog=config.catalog)
     if not sites_data:
         logger.error("Could not load sites.json.")
         return {}
@@ -699,12 +715,15 @@ def prepare_sites(config: ScannerConfig, logger, sites_dir: str | None = None) -
     plugins = load_site_plugins(extra_dirs)
     if plugins:
         logger.info("Merged %d plugin site(s) from sites.d directories", len(plugins))
-        sites_data = {**sites_data, **plugins}
+        sites_data = merge_site_maps(sites_data, plugins)
 
     exclude = list(config.exclude_sites or [])
     if config.exclude_nsfw:
         exclude.extend(load_nsfw_sites())
-    sites_data = filter_sites(sites_data, config.include_sites, exclude or None)
+    sites_data = filter_sites(
+        sites_data, config.include_sites, exclude or None,
+        tags=config.include_tags, sources=config.include_sources, exclude_nsfw=config.exclude_nsfw,
+    )
     if not sites_data:
         logger.error("Site filters matched no sites.")
     return sites_data
@@ -1074,6 +1093,12 @@ async def run_train_command(args) -> None:
             )
             return
         sites_data = load_sites_data(Path(args.sites) if args.sites else None)
+        if getattr(args, "corpus", None):
+            from aliens_eye.ml.collect import collect_from_corpus
+
+            count = collect_from_corpus(Path(args.corpus), sites_data, Path(args.out), logger, args.split)
+            console.print(f"[green]Replayed {count} grouped training samples -> {args.out}[/green]")
+            return
         count = await collect_dataset(
             sites_data,
             Path(args.out),
@@ -1086,11 +1111,11 @@ async def run_train_command(args) -> None:
     elif args.train_command == "fit":
         from aliens_eye.ml.train import train_model
 
-        model = train_model(Path(args.data), Path(args.out), logger)
-        cv = model["training"].get("cv_accuracy")
+        model = train_model(Path(args.data), Path(args.out), logger, max_fpr=getattr(args, "max_fpr", 0.02))
+        cv = model["training"].get("cv_f1")
         console.print(
             f"[green]Model trained on {model['training']['samples']} samples"
-            + (f" (cv accuracy {cv:.1%})" if cv is not None else "")
+            + (f" (selection CV F1 {cv:.1%}; {model['training'].get('validation')})" if cv is not None else "")
             + f" -> {args.out}[/green]"
         )
 
@@ -1466,7 +1491,11 @@ def main() -> None:
     raise_fd_limit()    # macOS hands out 256; one scan can pass that (#26)
     argv = sys.argv[1:]
     try:
-        if argv and argv[0] == "selfcheck":
+        if argv and argv[0] == "sites":
+            from aliens_eye.catalog import run_catalog_command
+
+            run_catalog_command(argv[1:])
+        elif argv and argv[0] == "selfcheck":
             args = build_selfcheck_parser().parse_args(argv[1:])
             asyncio.run(run_selfcheck_command(args))
         elif argv and argv[0] == "train":

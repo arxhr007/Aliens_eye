@@ -118,6 +118,35 @@ async def fetch_url(
                 http_proxy = config.proxy
 
             start_time = time.monotonic()
+            if config.request is not None:
+                from .netguard import guarded_get
+
+                request = config.request
+                response = await guarded_get(
+                    session, url, timeout=config.timeout, max_bytes=config.max_content_bytes,
+                    proxy=http_proxy, headers=request.headers, follow_redirects=request.follow_redirects,
+                )
+                encoding = request.encoding or response.charset or "utf-8"
+                try:
+                    content = response.body.decode(encoding, errors="replace")
+                except LookupError:
+                    content = response.body.decode("utf-8", errors="replace")
+                last_status, last_headers = response.status, response.headers
+                final_url, redirect_count = response.final_url, response.redirects
+                if _should_retry(last_status) and attempt < config.retries:
+                    retry_after = _parse_retry_after(last_headers)
+                    error_message = f"HTTP {last_status}"
+                else:
+                    return FetchResult(
+                        url, final_url, last_status, content, time.monotonic() - start_time,
+                        last_headers, None, redirect_count,
+                    )
+                if retry_after and retry_after > config.backoff_cap:
+                    break
+                backoff = min(config.backoff_base * (2 ** attempt), config.backoff_cap)
+                await asyncio.sleep(max(backoff + random.uniform(0.0, config.jitter), retry_after or 0.0))
+                retry_after = None
+                continue
             async with session.get(
                 url, timeout=config.timeout, allow_redirects=True, proxy=http_proxy
             ) as response:

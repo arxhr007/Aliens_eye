@@ -151,6 +151,7 @@ def assign_splits(
     existing_train: set[str],
     existing_holdout: set[str],
     holdout_fraction: float = 0.3,
+    site_templates: dict[str, str] | None = None,
 ) -> dict[str, str]:
     """Site-disjoint train/holdout assignment, preserving existing placements.
 
@@ -169,6 +170,17 @@ def assign_splits(
     unassigned = sorted(set(entries) - set(splits))
     for position, site in enumerate(unassigned):
         splits[site] = "holdout" if step and position % step == 0 else "train"
+    from aliens_eye.core.scanner import load_sites_data
+    from aliens_eye.core.sites import training_group
+
+    templates = site_templates if site_templates is not None else load_sites_data()
+    grouped: dict[str, list[str]] = {}
+    for site in entries:
+        grouped.setdefault(training_group(site, templates.get(site)), []).append(site)
+    for names in grouped.values():
+        chosen = "holdout" if any(splits[site] == "holdout" for site in names) else "train"
+        for site in names:
+            splits[site] = chosen
     return splits
 
 

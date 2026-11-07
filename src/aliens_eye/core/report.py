@@ -133,9 +133,9 @@ def diff_reports(old: dict[str, Any], new: dict[str, Any]) -> dict[str, list[dic
 
 PROFILE_FIELDS = ("name", "bio", "avatar")
 _PROFILE_SOURCES = {
-    "name": {"opengraph", "json_ld", "site_selector"},
-    "bio": {"opengraph", "meta_description", "site_selector"},
-    "avatar": {"opengraph", "json_ld", "site_selector"},
+    "name": {"opengraph", "json_ld", "site_selector", "site_api"},
+    "bio": {"opengraph", "meta_description", "site_selector", "site_api"},
+    "avatar": {"opengraph", "json_ld", "site_selector", "site_api"},
 }
 
 
@@ -169,10 +169,15 @@ def observation(info: dict[str, Any]) -> dict[str, Any]:
         or type(code) is not int
     )
     kind = "unavailable"
+    rule = analysis.get("rule") or {}
+    explicit_absence = (
+        rule.get("verdict") == "Not Found" and rule.get("strength") == "explicit"
+        and bool(rule.get("absence_matches")) and not rule.get("presence_matches")
+    )
     if not unavailable:
         if status == "Found" and 200 <= code < 400:
             kind = "found"
-        elif status == "Not Found" and code in (404, 410):
+        elif status == "Not Found" and (code in (404, 410) or 200 <= code < 300 and explicit_absence):
             kind = "absent"
     return {"kind": kind, "profile": profile_snapshot(info) if kind == "found" else {}}
 

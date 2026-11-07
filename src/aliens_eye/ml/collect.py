@@ -34,6 +34,7 @@ from aliens_eye.core.features import FEATURE_SCHEMA, vectorize_features
 from aliens_eye.core.http import fetch_url
 from aliens_eye.core.rate_limit import DomainRateLimiter
 from aliens_eye.core.scanner import build_session, format_site_url
+from aliens_eye.core.sites import training_group
 
 TRAIN_SPLIT_RESOURCE = "selfcheck.json"
 HOLDOUT_SPLIT_RESOURCE = "eval_holdout.json"
@@ -110,17 +111,29 @@ def load_ground_truth_sources(
     }
 
 
-def write_rows(output_path: Path, rows: list[list[float]], append: bool = False) -> None:
+def write_rows(
+    output_path: Path, rows: list[list[float]], append: bool = False,
+    metadata: list[dict[str, str]] | None = None,
+) -> None:
     """Write labeled rows to a CSV. Writes the header only for a new/overwritten file."""
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     write_header = not (append and output_path.exists())
+    metadata_fields = ["site", "site_group", "label_source", "split"] if metadata is not None else []
+    fields = FEATURE_SCHEMA + ["label"] + metadata_fields
+    if metadata is not None and len(metadata) != len(rows):
+        raise ValueError("Training metadata must align with every feature row")
+    if not write_header:
+        with output_path.open(encoding="utf-8", newline="") as handle:
+            if next(csv.reader(handle), None) != fields:
+                raise ValueError("Training CSV schemas differ; use a new output file")
     mode = "a" if append else "w"
     with output_path.open(mode, encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
         if write_header:
-            writer.writerow(FEATURE_SCHEMA + ["label"])
-        writer.writerows(rows)
+            writer.writerow(fields)
+        for index, row in enumerate(rows):
+            writer.writerow(row + ([metadata[index].get(key, "") for key in metadata_fields] if metadata is not None else []))
 
 
 def random_username(rng: random.Random) -> str:
@@ -142,7 +155,15 @@ async def _collect_row(
 ) -> list[float] | None:
     url = format_site_url(site, url_template, username)
     fetch = await fetch(session, url, config, rate_limiter, logger)
-    if fetch.error:
+    return _labeled_features(fetch, extractor, site, username, label)
+
+
+def _labeled_features(fetch, extractor, site, username, label):
+    from aliens_eye.core.scanner import _looks_like_bot_wall
+
+    if fetch.error or fetch.status not in {200, 203, 204, 404, 410} or label == 1 and fetch.status in (404, 410):
+        return None
+    if fetch.content.lstrip().startswith(("{", "[")):
         return None
     try:
         bundle = extractor.extract(
@@ -157,8 +178,60 @@ async def _collect_row(
         )
     except Exception:
         return None
+    if _looks_like_bot_wall(bundle.signals):
+        return None
     bundle.features["heuristic_score"] = Detector()._heuristic_score(bundle.features)
     return vectorize_features(bundle.features) + [float(label)]
+
+
+def training_sites(sites_data: dict[str, str], split: str, ground_truth_path=None) -> dict[str, list[str]]:
+    from aliens_eye.core.scanner import load_sites_data
+
+    sites = load_selfcheck_data(split, ground_truth_path)
+    if split == "train" and ground_truth_path is None:
+        templates = {**load_sites_data(), **sites_data}
+        holdout_groups = {
+            training_group(site, templates.get(site)) for site in load_selfcheck_data("holdout")
+        }
+        sites = {
+            site: names for site, names in sites.items()
+            if training_group(site, templates.get(site)) not in holdout_groups
+        }
+    return sites
+
+
+def collect_from_corpus(
+    corpus_path: Path, sites_data: dict[str, str], output_path: Path, logger, split: str = "train",
+) -> int:
+    from aliens_eye.corpus.replay import ReplayFetcher
+
+    replay = ReplayFetcher(Path(corpus_path))
+    allowed = training_sites(sites_data, split)
+    sources = load_ground_truth_sources(split)
+    extractor = FeatureExtractor()
+    rows, metadata = [], []
+    for site, url, username, label in replay.eval_jobs(set(allowed)):
+        record = replay.records[url]
+        template = sites_data.get(site)
+        if not template or record.error:
+            continue
+        from aliens_eye.core.http import FetchResult
+
+        response = FetchResult(
+            record.url, record.final_url, record.status, replay.store.read_body(record.body_sha256),
+            record.response_time, record.headers, record.error, record.redirect_count,
+        )
+        row = _labeled_features(response, extractor, site, username, label)
+        if row is not None:
+            rows.append(row)
+            metadata.append({
+                "site": site, "site_group": training_group(site, template),
+                "label_source": sources.get(site, "curated") if label else "generated-negative",
+                "split": split,
+            })
+    write_rows(output_path, rows, metadata=metadata)
+    logger.info("Replayed %d HTML training samples from the corpus (no network)", len(rows))
+    return len(rows)
 
 
 async def collect_dataset(
@@ -177,7 +250,12 @@ async def collect_dataset(
     Reads the train split by default. Training must never read the holdout:
     doing so reintroduces the train/eval leak the split exists to remove.
     """
-    selfcheck = load_selfcheck_data(split, ground_truth_path)
+    from aliens_eye.core.sites import SiteCatalog
+
+    if isinstance(sites_data, SiteCatalog):
+        raise ValueError("HTML model collection requires a legacy URL map; JSON/probe models need a separate labeled corpus")
+    selfcheck = training_sites(sites_data, split, ground_truth_path)
+    sources = load_ground_truth_sources(split, ground_truth_path)
     rng = random.Random(seed)
     config = ScannerConfig(retries=1, timeout=10.0)
     extractor = FeatureExtractor()
@@ -196,6 +274,7 @@ async def collect_dataset(
     rng.shuffle(jobs)
     semaphore = asyncio.Semaphore(concurrency)
     rows: list[list[float]] = []
+    metadata: list[dict[str, str]] = []
 
     async with build_session(config, concurrency) as session:
 
@@ -208,10 +287,15 @@ async def collect_dataset(
                 )
             if row is not None:
                 rows.append(row)
+                metadata.append({
+                    "site": site, "site_group": training_group(site, template),
+                    "label_source": sources.get(site, "curated") if label else "generated-negative",
+                    "split": split,
+                })
                 logger.debug("Collected %s sample for %s", "positive" if label else "negative", site)
 
         await asyncio.gather(*(run_job(job) for job in jobs))
 
-    write_rows(output_path, rows, append=False)
+    write_rows(output_path, rows, append=False, metadata=metadata)
     logger.info("Wrote %d labeled samples to %s", len(rows), output_path)
     return len(rows)

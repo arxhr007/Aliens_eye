@@ -20,6 +20,7 @@ from .explain import build_explanation, detector_evidence
 from .fingerprints import FingerprintStore, build_fingerprint
 from .http import KEEPALIVE_SECONDS, describe_error, fetch_url
 from .rate_limit import DomainRateLimiter
+from .sites import SiteCatalog, catalog_from_dict, read_json
 from .variations import generate_username_variations, scan_cost
 
 
@@ -35,13 +36,21 @@ class ScanResult:
     ai_analysis: dict[str, Any]
 
 
-def load_sites_data(path: Path | None = None) -> dict[str, str]:
+def load_sites_data(path: Path | None = None, *, catalog: str = "standard") -> dict[str, str]:
     """Load site definitions from a custom path or the packaged sites.json."""
     if path is not None:
-        with Path(path).open("r", encoding="utf-8") as handle:
-            return json.load(handle)
-    text = (resources.files("aliens_eye.data") / "sites.json").read_text("utf-8")
-    return json.loads(text)
+        data = read_json(Path(path))
+    else:
+        if catalog not in {"standard", "extended"}:
+            raise ValueError("catalog must be 'standard' or 'extended'")
+        resource = "extended_sites.json" if catalog == "extended" else "sites.json"
+        text = (resources.files("aliens_eye.data") / resource).read_text("utf-8")
+        data = json.loads(text)
+    if isinstance(data, dict) and "schema_version" in data:
+        return catalog_from_dict(data)
+    if not isinstance(data, dict) or any(not isinstance(v, str) for v in data.values()):
+        raise ValueError("Sites must be a URL map or a versioned site catalog")
+    return data
 
 
 def load_site_plugins(extra_dirs: list[Path] | None = None) -> dict[str, str]:
@@ -61,12 +70,42 @@ def load_site_plugins(extra_dirs: list[Path] | None = None) -> dict[str, str]:
             continue
         for path in sorted(directory.glob("*.json")):
             try:
-                data = json.loads(path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
+                data = load_sites_data(path)
+            except (OSError, ValueError):
                 continue
             if isinstance(data, dict):
-                merged.update({str(k): str(v) for k, v in data.items()})
+                merged = merge_site_maps(merged, data)
     return merged
+
+
+def merge_site_maps(base: dict[str, str], extra: dict[str, str]) -> dict[str, str]:
+    from .sites import CatalogError, SiteDefinition
+
+    if not isinstance(base, SiteCatalog) and not isinstance(extra, SiteCatalog):
+        return {**base, **extra}
+    definitions = dict(base.definitions) if isinstance(base, SiteCatalog) else {}
+    sources = dict(base.sources) if isinstance(base, SiteCatalog) else {}
+    issues = list(getattr(base, "issues", [])) + list(getattr(extra, "issues", []))
+    for name, url in base.items():
+        if name not in definitions:
+            try:
+                definitions[name] = SiteDefinition.from_dict(name, {"url": url})
+            except CatalogError as exc:
+                issues.append({"source": "legacy", "site": name, "reason": str(exc)})
+                continue
+    extra_items = ((name, site.url) for name, site in extra.definitions.items()) if isinstance(extra, SiteCatalog) else extra.items()
+    for name, url in extra_items:
+        if isinstance(extra, SiteCatalog):
+            definitions[name] = extra.definitions[name]
+        else:
+            definitions[name] = SiteDefinition.from_dict(name, {"url": url})
+    if isinstance(extra, SiteCatalog):
+        sources.update(extra.sources)
+    return SiteCatalog(
+        definitions, sources,
+        issues,
+        getattr(base, "deduplicated", 0) + getattr(extra, "deduplicated", 0),
+    )
 
 
 def load_nsfw_sites() -> list[str]:
@@ -82,23 +121,45 @@ def filter_sites(
     sites: dict[str, str],
     include: list[str] | None = None,
     exclude: list[str] | None = None,
+    *,
+    tags: list[str] | None = None,
+    sources: list[str] | None = None,
+    exclude_nsfw: bool = False,
 ) -> dict[str, str]:
     """Filter sites by case-insensitive substring match on the site name."""
     result = sites
+    def names_for(name):
+        definition = getattr(sites, "definitions", {}).get(name)
+        return (name, *definition.aliases) if definition else (name,)
+
     if include:
         terms = [t.lower() for t in include if t]
         result = {
             name: tmpl
             for name, tmpl in result.items()
-            if any(term in name.lower() for term in terms)
+            if any(term in alias.lower() for term in terms for alias in names_for(name))
         }
     if exclude:
         terms = [t.lower() for t in exclude if t]
         result = {
             name: tmpl
             for name, tmpl in result.items()
-            if not any(term in name.lower() for term in terms)
+            if not any(term in alias.lower() for term in terms for alias in names_for(name))
         }
+    if isinstance(sites, SiteCatalog):
+        wanted_tags = {t.casefold() for t in tags or []}
+        wanted_sources = {s.casefold() for s in sources or []}
+        result = {
+            name: url for name, url in result.items()
+            if (not exclude_nsfw or not sites.definitions[name].nsfw)
+            and (not wanted_tags or wanted_tags.intersection(t.casefold() for t in sites.definitions[name].tags))
+            and (not wanted_sources or wanted_sources.intersection(
+                (sites.definitions[name].source, *sites.definitions[name].also_in)
+            ))
+        }
+        return sites.subset(result)
+    if tags or sources:
+        return {}
     return result
 
 
@@ -257,6 +318,7 @@ class UsernameScanner:
         # What each site shows for a username that does not exist, fetched the
         # first time that site reports Found. None: it could not be fetched.
         self._controls: dict[str, PageShape | None] = {}
+        self._defined_controls: dict[str, tuple] = {}
 
         # One warning per scan for a browser fallback that will not start.
         # Hundreds of Maybes each fail the same way, and at debug level the
@@ -268,6 +330,7 @@ class UsernameScanner:
 
     def reset_cycle(self) -> None:
         self._controls.clear()
+        self._defined_controls.clear()
         self._fallback_warned = False
 
     async def scan_with_variations(
@@ -308,6 +371,13 @@ class UsernameScanner:
         done: dict[str, dict[str, Any]] = (
             self.checkpoint.results_for(username) if self.checkpoint else {}
         )
+        if isinstance(self.sites_data, SiteCatalog):
+            done = {
+                name: result for name, result in done.items()
+                if name in self.sites_data
+                and (result.get("ai_analysis") or {}).get("site_definition", {}).get("fingerprint")
+                == self.sites_data.definitions[name].fingerprint
+            }
         pending = {site: tmpl for site, tmpl in self.sites_data.items() if site not in done}
         results.extend(done.values())
         if done:
@@ -331,7 +401,12 @@ class UsernameScanner:
 
         start_time = time.monotonic()
         try:
-            async with build_session(self.config, conn_limit) as session:
+            resolver = None
+            if isinstance(self.sites_data, SiteCatalog) and not self.config.proxy:
+                from .netguard import PublicOnlyResolver
+
+                resolver = PublicOnlyResolver()
+            async with build_session(self.config, conn_limit, resolver=resolver) as session:
                 workers = [
                     asyncio.create_task(
                         self._worker(queue, username, session, rate_limiter, results, view)
@@ -494,6 +569,11 @@ class UsernameScanner:
         session: aiohttp.ClientSession,
         rate_limiter: DomainRateLimiter,
     ) -> dict[str, Any]:
+        definition = getattr(self.sites_data, "definitions", {}).get(site_name)
+        if definition is not None:
+            from .site_rules import scan_defined_site
+
+            return await scan_defined_site(self, definition, username, session, rate_limiter)
         url = self._format_url(site_name, url_template, username)
         fetch = await self.fetch(session, url, self.config, rate_limiter, self.logger)
 

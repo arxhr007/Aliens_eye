@@ -128,7 +128,21 @@ async def run_selfcheck(
     rows: list[dict] = []
     semaphore = asyncio.Semaphore(min(10, len(jobs)))
     controls: dict[str, asyncio.Task] = {}
-    async with build_session(config, 10) as session:
+    from aliens_eye.core.fingerprints import FingerprintStore
+    from aliens_eye.core.netguard import PublicOnlyResolver
+    from aliens_eye.core.scanner import UsernameScanner
+    from aliens_eye.core.sites import SiteCatalog
+
+    structured = isinstance(sites_data, SiteCatalog)
+    if structured and detector_only:
+        raise ValueError("Detector-only evaluation requires a legacy HTML catalog, not API/probe definitions")
+    scanner = UsernameScanner(
+        sites_data, config, extractor, detector,
+        FingerprintStore(config.fingerprints_path, read_only=True), logger, fetch=fetch,
+    ) if structured else None
+    site_locks: dict[str, asyncio.Lock] = {}
+    resolver = PublicOnlyResolver() if structured and not config.proxy else None
+    async with build_session(config, 10, resolver=resolver) as session:
 
         fetch_result = fetch
 
@@ -150,6 +164,19 @@ async def run_selfcheck(
             return None if page.error else page_shape(page.content, page.final_url, name)
 
         async def check(site: str, url: str, username: str, label: int) -> None:
+            if scanner is not None:
+                lock = site_locks.setdefault(site, asyncio.Lock())
+                async with semaphore, lock:
+                    result = await scanner._scan_site(site, sites_data[site], username, session, rate_limiter)
+                status = result["status"]
+                available = status in {"Found", "Not Found", "Maybe"}
+                rows.append({
+                    "site": site, "username": username, "label": label,
+                    "status": status if available else "Error", "confidence": result["confidence"],
+                    "predicted": int(status == "Found") if available else None,
+                    "note": (result.get("ai_analysis") or {}).get("method", status),
+                })
+                return
             async with semaphore:
                 fetch = await fetch_result(session, url, config, rate_limiter, logger)
             if fetch.error:
