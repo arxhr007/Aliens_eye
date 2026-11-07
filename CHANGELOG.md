@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.8.0 (2026-11-07)
+
+### Added
+- **`--explain`** shows the evidence behind each verdict: the HTTP response, each detector's
+  verdict and threshold, the control check and any browser fallback. HTML and Markdown reports
+  carry the same evidence, and JSON, library API and MCP results gain a structured
+  `explanation` object.
+- **`--catalog extended`** scans an expanded community catalog (9,268 entries, 8,587 enabled)
+  built from MIT-licensed sources with recorded provenance, guarded probes and explicit control
+  evidence. The default catalog and model are unchanged. `aliens_eye sites import|stats|list|validate`
+  inspect and convert local site databases offline.
+- **`--watch-profile name,bio,avatar`** adds opt-in alerts when extracted profile fields change,
+  comparing only fields with matching provenance.
+- CONTRIBUTING.md and CODE_OF_CONDUCT.md.
+
+### Fixed
+- Watch mode no longer reports a profile as gone after a timeout, block, error or filter. Absence
+  now needs consecutive HTTP 404/410 responses (`--watch-confirmations`, default 2), the count
+  survives restarts through scoped state files, and control checks refresh every cycle.
+- Diff reports label removals "no longer found" and show profile field changes; malformed nested
+  reports are rejected cleanly.
+- `--watch` with `--resume` is rejected, `--watch --json-stdout` emits one report line per
+  username per cycle, and webhooks check the response status and refuse redirects.
+- ML validation keeps site aliases and preprocessing from leaking between training and
+  validation folds.
+
 ## 2.7.5 (2026-10-25)
 
 ### Changed
