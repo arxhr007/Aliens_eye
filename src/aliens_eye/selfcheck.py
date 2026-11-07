@@ -25,7 +25,7 @@ from rich.text import Text
 
 from aliens_eye.core.analyzer import FeatureExtractor
 from aliens_eye.core.config import ScannerConfig
-from aliens_eye.core.control import PageShape, control_username, page_shape, same_page
+from aliens_eye.core.control import PageShape, control_username, http_unavailable, page_shape, same_page
 from aliens_eye.core.detector import Detector
 from aliens_eye.core.http import fetch_url
 from aliens_eye.core.rate_limit import DomainRateLimiter
@@ -192,6 +192,8 @@ async def run_selfcheck(
             bundle.features["fingerprint_match_not_found"] = 0.0
             detection = detector.predict(bundle.features)
             status, note = detection.status, detection.method
+            if status == "Not Found" and not detector_only and http_unavailable(fetch.status):
+                status, note = "Maybe", f"{note}-http-unavailable"
             if status == "Found" and not detector_only:
                 async def same_as_missing_user() -> bool:
                     if site not in controls:     # one fetch per site, shared by its rows

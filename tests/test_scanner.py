@@ -316,3 +316,49 @@ async def test_one_site_that_never_answers_cannot_hold_up_the_scan(site_server, 
     by_site = {r["site"]: r for r in results}
     assert by_site["alpha"]["status"] == "Found"
     assert by_site["beta"]["status"] == "Timeout" and by_site["beta"]["code"] == 408
+
+
+@pytest.mark.parametrize("code", [401, 403, 419, 429, 503])
+async def test_an_error_page_cannot_report_an_account_missing(code, not_found_html, tmp_path, logger):
+    """A rate-limit or block page is not the site's "no such user" page.
+
+    Seen live: Hacker News answered HTTP 419 for every username, and a real
+    account was reported as Not Found.
+    """
+    from aliens_eye.core.sites import SiteCatalog, SiteDefinition
+
+    app = web.Application()
+
+    async def page(request):
+        return web.Response(text=not_found_html, status=code, content_type="text/html")
+
+    app.router.add_get("/u/{username}", page)
+    server = TestServer(app)
+    await server.start_server()
+    template = f"http://{server.host}:{server.port}/u/{{}}"
+    try:
+        [legacy] = await make_scanner({"limited": template}, tmp_path, logger).scan_all_sites("torvalds")
+    finally:
+        await server.close()
+
+    # Site definitions refuse private addresses, so the rule path gets a fake fetch.
+    from aliens_eye.core.http import FetchResult
+    from aliens_eye.core.site_rules import scan_defined_site
+
+    async def fetch(session, url, config, limiter, log):
+        return FetchResult(url, url, code, not_found_html, 0.1, {"Content-Type": "text/html"}, None, 0)
+
+    site = SiteDefinition.from_dict("limited", {"url": "https://limited.example/u/{}"})
+    scanner = make_scanner(SiteCatalog({"limited": site}), tmp_path, logger)
+    scanner.fetch = fetch
+    structured = await scan_defined_site(scanner, site, "torvalds", None, None)
+
+    for result in (legacy, structured):
+        assert result["status"] == "Maybe", result["ai_analysis"].get("method")
+        assert result["code"] == code
+        assert "http_unavailable" in result["ai_analysis"]["explanation"]["reason_codes"]
+
+
+async def test_a_404_is_still_the_sites_own_answer(site_server, tmp_path, logger):
+    [result] = await make_scanner({"beta": server_sites(site_server)["beta"]}, tmp_path, logger).scan_all_sites("x")
+    assert result["status"] == "Not Found"

@@ -33,6 +33,17 @@ SAME_LENGTH = 0.85
 # The server saying outright that there is no such page.
 GONE_CODES = (404, 410)
 
+# The server declining to answer: authentication walls, blocks, rate limits
+# (419/420/429 and the like) and server failures. The body is an error page, so
+# it can no more show that an account is missing than that it exists. Other 4xx
+# codes stay out: a 400 or 422 is often a site's answer to an impossible name.
+UNAVAILABLE_CODES = frozenset({401, 403, 407, 408, 419, 420, 425, 429, 451, 499, 999})
+
+
+def http_unavailable(status_code: int) -> bool:
+    """True when ``status_code`` means the site did not answer the question."""
+    return status_code in UNAVAILABLE_CODES or 500 <= status_code < 600
+
 _PLACEHOLDER = "\x00user\x00"
 _TOKEN_RE = re.compile(r"\w+", re.UNICODE)
 _META_NAMES = ("description", "og:title", "og:description", "og:image", "og:url",

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.9.1 (2026-11-07)
+
+### Fixed
+- **A rate-limit or block page no longer reports an account as missing.** A site answering
+  401, 403, 407, 408, 419, 420, 425, 429, 451, 499, 999 or 5xx serves an error page, not its
+  "no such user" page, yet the detector could still score it Not Found: Hacker News answered
+  HTTP 419 for every username and a real account was reported missing. Those responses are
+  now Maybe (`http_unavailable`) in scans, site-rule checks and the self-check; 404/410 still
+  mean Not Found. Such pages are also no longer stored as "not found" fingerprints.
+
 ## 2.9.0 (2026-11-07)
 
 ### Changed

@@ -6,7 +6,7 @@ import string
 from dataclasses import replace
 from urllib.parse import urljoin
 
-from .control import page_shape, same_page
+from .control import http_unavailable, page_shape, same_page
 from .explain import build_explanation, detector_evidence
 from .sites import SiteDefinition
 
@@ -15,7 +15,7 @@ def rule_evidence(site: SiteDefinition, response) -> dict:
     verdict, reason, strength = None, "no_rule_evidence", "none"
     presence = [s for s in site.presence if s in response.content]
     absence = [s for s in site.absence if s in response.content]
-    if response.error or response.status in (401, 403, 408, 429) or response.status >= 500:
+    if response.error or http_unavailable(response.status):
         reason = "http_unavailable"
     elif response.status in (404, 410):
         verdict, reason, strength = "Not Found", "http_gone", "explicit"
@@ -160,6 +160,8 @@ async def scan_defined_site(scanner, site: SiteDefinition, username, session, ra
                 reason = "http_gone" if response.status in (404, 410) else "rule_absence"
             elif evidence["verdict"] is None and site.check_type is not None:
                 status, confidence, reason = "Maybe", 50, evidence["reason"]
+            elif status == "Not Found" and http_unavailable(response.status):
+                status, confidence, reason = "Maybe", min(confidence, 50), "http_unavailable"
 
             if status == "Found" and scanner.config.control_check:
                 key = site.fingerprint

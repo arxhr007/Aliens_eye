@@ -14,7 +14,7 @@ from aliens_eye.utils.console import ScanView, get_console, render_explanations
 from .analyzer import FeatureExtractor
 from .browser import BrowserFallback
 from .config import DEFAULT_HEADERS, MAX_HEADER_SIZE, ScannerConfig
-from .control import PageShape, control_username, http_overrule, page_shape, same_page
+from .control import PageShape, control_username, http_overrule, http_unavailable, page_shape, same_page
 from .detector import Detector
 from .explain import build_explanation, detector_evidence
 from .fingerprints import FingerprintStore, build_fingerprint
@@ -670,6 +670,12 @@ class UsernameScanner:
                 )
                 if checks["browser"]["outcome"] == "selected":
                     details = checks["browser"]["detector"]
+
+            # The mirror image: a block, rate limit or server error page is not
+            # the site's "no such user" page, so it cannot carry "Not Found".
+            if status_text == "Not Found" and http_unavailable(fetch.status):
+                status_text, confidence, reason = "Maybe", min(confidence, 50), "http_unavailable"
+                ai_analysis["method"] = f"{ai_analysis['method']}-http-unavailable"
 
             # "Found" claims an account exists, and the score alone cannot carry
             # that: a page is scored on how profile-like it looks, and error
