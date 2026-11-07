@@ -16,9 +16,10 @@ _URL_RE = re.compile(r"https?://[^\s\"'<>)]+", re.IGNORECASE)
 
 @lru_cache(maxsize=1)
 def _catalogue() -> tuple[tuple[str, str], ...]:
+    from .config import DEFAULT_CATALOG
     from .scanner import load_sites_data
 
-    return tuple(sorted(load_sites_data().items()))
+    return tuple(sorted(load_sites_data(catalog=DEFAULT_CATALOG).items()))
 
 
 def _username_from_url(url: str) -> str | None:

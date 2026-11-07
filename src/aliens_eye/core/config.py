@@ -176,6 +176,9 @@ PROFILE_CLASS_HINTS = ["profile", "user", "account"]
 ERROR_CLASS_HINTS = ["error", "not-found", "missing", "unavailable"]
 
 
+DEFAULT_CATALOG = "extended"
+
+
 def default_fingerprints_path() -> Path:
     return Path(user_cache_dir("aliens_eye")) / "fingerprints.json"
 
@@ -209,7 +212,9 @@ class ScannerConfig:
     only_found: bool = False
     json_stdout: bool = False
     explain: bool = False
-    catalog: str = "standard"
+    # Scans use the full verified catalog unless told otherwise; "standard"
+    # is the smaller original list (also what evaluation and training read).
+    catalog: str = DEFAULT_CATALOG
     include_tags: list[str] | None = None
     include_sources: list[str] | None = None
     request: SiteRequest | None = None

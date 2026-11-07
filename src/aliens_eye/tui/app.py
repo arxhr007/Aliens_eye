@@ -51,7 +51,7 @@ async def _scan(args) -> dict[str, list[dict[str, Any]]]:
     set_plain(True)
     logger = setup_logger(False)
     config = ScannerConfig()
-    sites_data = load_sites_data(Path(args.sites) if args.sites else None)
+    sites_data = load_sites_data(Path(args.sites) if args.sites else None, catalog=config.catalog)
     detector = Detector()
     if not args.no_ml:
         detector.load_model(logger)

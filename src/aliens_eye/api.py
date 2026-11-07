@@ -56,7 +56,7 @@ def load_sites(
     exclude_nsfw: bool = False,
     path: Path | None = None,
     *,
-    catalog: str = "standard",
+    catalog: str | None = None,
     tags: list[str] | None = None,
     sources: list[str] | None = None,
 ) -> dict[str, str]:
@@ -65,9 +65,10 @@ def load_sites(
     Load it once and pass it to :func:`scan` to know the total up front (for a
     progress bar) or to filter it before scanning.
     """
+    from aliens_eye.core.config import DEFAULT_CATALOG
     from aliens_eye.core.scanner import filter_sites, load_nsfw_sites, load_sites_data
 
-    sites = load_sites_data(Path(path) if path else None, catalog=catalog)
+    sites = load_sites_data(Path(path) if path else None, catalog=catalog or DEFAULT_CATALOG)
     return filter_sites(
         sites, None, load_nsfw_sites() if exclude_nsfw else None,
         tags=tags, sources=sources, exclude_nsfw=exclude_nsfw,
@@ -83,7 +84,7 @@ async def scan(
     proxy: str | None = None,
     on_result: ResultHook | None = None,
     quiet: bool = True,
-    catalog: str = "standard",
+    catalog: str | None = None,
 ) -> dict[str, Any]:
     """Scan ``username`` across ``sites`` and return the structured report.
 
@@ -178,14 +179,22 @@ def match_profile_url(url: str, sites: dict[str, str] | None = None) -> list[Pro
     """
     from aliens_eye.core.urlmatch import matcher_for
 
-    return matcher_for(sites if sites is not None else load_sites()).match(url)
+    if sites is not None:
+        return matcher_for(sites).match(url)
+    # Standard names first, so a familiar site keeps its familiar name; the
+    # extended catalog only answers for URLs the standard one does not know.
+    return matcher_for(load_sites(catalog="standard")).match(url) or matcher_for(load_sites()).match(url)
 
 
 def profile_url(site: str, username: str, sites: dict[str, str] | None = None) -> str:
     """The profile URL for ``username`` on ``site``. Raises KeyError for an unknown site."""
     from aliens_eye.core.scanner import format_site_url
 
-    catalogue = sites if sites is not None else load_sites()
+    # Names from the standard catalog keep their established URLs; names that
+    # exist only in the extended catalog (as scan reports may contain) resolve there.
+    catalogue = sites if sites is not None else load_sites(catalog="standard")
+    if sites is None and site not in catalogue:
+        catalogue = load_sites()
     return format_site_url(site, catalogue[site], username)
 
 

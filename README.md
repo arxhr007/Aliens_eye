@@ -62,7 +62,7 @@ Power your web scraping and data collection with **[Swiftproxy](https://www.swif
 
 ## Highlights
 
-- **7,700+ platforms** with `--catalog extended`, **780+** in the default catalog, scanned asynchronously
+- **7,700+ platforms** scanned asynchronously by default (`--catalog standard` for the quicker 780+ original list)
 - **ML + heuristic detection** — a trained model blended with 30 structural signals (HTTP status, DOM shape, keywords, fingerprints) instead of naive status-code checks
 - **Profile extraction** — display name, bio, and avatar pulled from each hit (OpenGraph / JSON-LD / per-site CSS)
 - **Cross-site correlation** — cluster profiles that look like the same person by avatar hash, bio, shared links, and name (`--correlate`)
@@ -216,13 +216,14 @@ Custom platforms: drop a `{ "site_name": "https://site/{}" }` JSON file into
 `./sites.d/` (or the user config dir's `sites.d/`) and it is merged automatically;
 `--sites-dir DIR` adds another location.
 
-### Expanded community catalog
+### Site catalogs
 
-The default catalog has **788 sites**. The opt-in expanded catalog contains
-**7,710 enabled definitions**, combining pinned community site databases with
+Scans use the **extended catalog** by default: **7,710 enabled definitions**, combining pinned community site databases with
 unique, valid standard-catalog templates. Entries for the same profile URL merge
 into one, keeping the other names as aliases, and an active rule replaces one a
-source marks disabled.
+source marks disabled. `--catalog standard` scans the smaller original list of
+**788 sites** instead, which is much quicker; a `config.json` can set
+`"catalog": "standard"` to make that the default.
 
 Every entry was checked live on 2026-11-07 (see below). Sites that reported a
 made-up username as existing, and sites that failed twice (unreachable, or a
@@ -236,7 +237,8 @@ pages from the checking network. A check is a snapshot, not a guarantee.
 aliens_eye sites stats --catalog extended
 aliens_eye sites validate --catalog extended
 aliens_eye sites list --catalog extended --tag coding
-aliens_eye your_handle --catalog extended --tag coding --no-nsfw --explain
+aliens_eye your_handle --tag coding --no-nsfw --explain
+aliens_eye your_handle --catalog standard
 ```
 
 The expanded catalog preserves engine rules, separate public-profile/API-probe
@@ -245,8 +247,8 @@ file hashes, and MIT notices. Its manifest records 1,575 disabled definitions,
 121 excluded entries and 898 duplicate-template merges. Disabled and excluded
 definitions are not scanned. Filters can match aliases; `--source maigret`,
 `--source sherlock`, or `--source aliens-eye` selects a source when present.
-Use filters before starting a broad scan: the extended catalog makes many more
-requests than the standard catalog.
+A full scan makes roughly ten times the requests of a standard-catalog scan;
+`--tag`, `--site` and `--no-nsfw` narrow it.
 
 To check which entries still work, `scripts/verify_catalog.py` requests one
 username an upstream project or the curated ground truth says exists and one

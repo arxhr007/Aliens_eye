@@ -300,7 +300,7 @@ def test_removed_sites_do_not_reappear_when_copying(operation):
 def test_packaged_extended_catalog_has_provenance_and_unique_templates():
     from aliens_eye import api
 
-    standard = api.load_sites()
+    standard = api.load_sites(catalog="standard")
     extended = api.load_sites(catalog="extended")
     assert len(standard) == 788
     assert len(extended) > 7500
@@ -347,3 +347,13 @@ async def test_library_scan_preserves_loaded_rule_metadata(tmp_path, monkeypatch
     monkeypatch.setattr(UsernameScanner, "_scan_site", scan)
     report = await api.scan("alice", sites=api.load_sites(path=path), use_ml=False)
     assert report["variations"]["alice"]["sites"]["example"]["status"] == "Maybe"
+
+
+def test_scans_use_the_extended_catalog_unless_told_otherwise():
+    from aliens_eye import api
+    from aliens_eye.core.config import ScannerConfig
+
+    assert ScannerConfig().catalog == "extended"
+    default, extended = api.load_sites(), api.load_sites(catalog="extended")
+    assert isinstance(default, SiteCatalog) and len(default) == len(extended) > 7500
+    assert len(api.load_sites(catalog="standard")) < len(default)

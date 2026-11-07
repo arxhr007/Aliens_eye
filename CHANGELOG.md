@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.10.0 (2026-11-07)
+
+### Changed
+- **Scans use the full 7,700+ site catalog by default.** `aliens_eye <username>`, the
+  library's `scan()`/`load_sites()`, the MCP server, the TUI and `--expand` now read the
+  extended catalog; `--catalog standard` (or `"catalog": "standard"` in `config.json`)
+  scans the original 788-site list. `profile_url()` and `match_profile_url()` still answer
+  with standard-catalog names first, so existing site names keep their URLs. Evaluation
+  and training keep reading the standard catalog, which the ground-truth splits are
+  keyed to.
+
 ## 2.9.1 (2026-11-07)
 
 ### Fixed

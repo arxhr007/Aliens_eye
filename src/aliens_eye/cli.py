@@ -163,7 +163,10 @@ def build_parser() -> ArgumentParser:
     parser.add_argument("--no-ml", action="store_true", help="Disable ML detection, heuristics only")
     parser.add_argument("--model", type=str, help="Path to a custom ML model JSON")
     parser.add_argument("--sites", type=str, help="Path to a custom sites JSON")
-    parser.add_argument("--catalog", choices=["standard", "extended"], help="Standard or expanded community catalog")
+    parser.add_argument(
+        "--catalog", choices=["standard", "extended"],
+        help="Site catalog: extended (default, 7,700+ sites) or standard (the smaller original list)",
+    )
     parser.add_argument("--tag", help="Filter structured sites by tags (comma-separated)")
     parser.add_argument("--source", help="Filter structured sites by source (maigret,sherlock)")
     parser.add_argument("--plain", action="store_true", help="Plain output (no colors/progress)")
