@@ -47,7 +47,13 @@ def load_sites_data(path: Path | None = None, *, catalog: str = "standard") -> d
         text = (resources.files("aliens_eye.data") / resource).read_text("utf-8")
         data = json.loads(text)
     if isinstance(data, dict) and "schema_version" in data:
-        return catalog_from_dict(data)
+        result = catalog_from_dict(data)
+        if path is None and catalog == "extended":
+            from aliens_eye.catalog import merge_catalogs
+
+            community = json.loads((resources.files("aliens_eye.data") / "community_sites.json").read_text("utf-8"))
+            result = merge_catalogs(result, catalog_from_dict(community))
+        return result
     if not isinstance(data, dict) or any(not isinstance(v, str) for v in data.values()):
         raise ValueError("Sites must be a URL map or a versioned site catalog")
     return data

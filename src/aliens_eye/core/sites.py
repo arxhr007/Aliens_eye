@@ -353,7 +353,13 @@ class SiteCatalog(dict[str, str]):
             "excluded": len(self.issues),
             "deduplicated": self.deduplicated,
             "live_verified": False,
-            "sources": self.sources,
+            "sources": {
+                name: {
+                    **{key: value for key, value in metadata.items() if key != "training_examples"},
+                    **({"training_example_count": len(metadata["training_examples"])} if "training_examples" in metadata else {}),
+                }
+                for name, metadata in self.sources.items()
+            },
             "tags": dict(sorted(Counter(t for s in self.definitions.values() for t in s.tags).items())),
         }
 

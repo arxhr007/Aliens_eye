@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from aliens_eye.catalog import import_catalog, merge_maigret_entry, write_catalog
+from aliens_eye.catalog import SOURCES, import_catalog, merge_catalogs, merge_maigret_entry, write_catalog
 from aliens_eye.core.sites import (
     CatalogError,
     SiteCatalog,
@@ -115,6 +115,41 @@ def test_import_deduplicates_templates_not_hosts(tmp_path):
     assert len(catalog) == 2
     assert any(site.aliases for site in catalog.definitions.values())
     assert catalog.stats()["deduplicated"] == 1
+
+
+PRIMARY, SECONDARY = list(SOURCES)
+
+
+def test_opt_in_examples_keep_provenance_and_stay_unverified(tmp_path, request):
+    data = request.getfixturevalue(f"{PRIMARY}_data")
+    catalog = import_catalog({PRIMARY: source_file(tmp_path, data)}, include_examples=True)
+    samples = catalog.sources[PRIMARY]["training_examples"]
+    assert samples == [{
+        "site": "Community", "url": "https://community.example/u/{}", "username": "alice",
+        "label": 1, "verified": False, "label_source": PRIMARY,
+    }]
+    assert "training_examples" not in catalog.stats()["sources"][PRIMARY]
+    assert catalog.stats()["sources"][PRIMARY]["training_example_count"] == 1
+
+
+def test_merging_catalogs_upgrades_native_rules_and_retains_aliases(tmp_path):
+    native = SiteDefinition.from_dict("original", {"url": "https://example.org/u/{}", "source": "aliens-eye"})
+    upstream = import_catalog({SECONDARY: source_file(tmp_path, {
+        "Upstream Name": {"url": "https://www.example.org/u/{}/", "errorType": "message", "errorMsg": "no user"},
+        "Unique": {"url": "https://unique.example/{}", "errorType": "status_code"},
+    }, "upstream.json")})
+    merged = merge_catalogs(SiteCatalog({"original": native}), upstream)
+    assert len(merged) == 2
+    assert merged.definitions["original"].source == SECONDARY
+    assert merged.definitions["original"].check_type == "message"
+    assert "upstream name" in merged.definitions["original"].aliases
+    assert "aliens-eye" in merged.definitions["original"].also_in
+    assert merged.sources[SECONDARY]["license"] == "MIT"
+
+
+def test_merging_different_revisions_requires_an_explicit_source_choice():
+    with pytest.raises(CatalogError, match="different snapshots"):
+        merge_catalogs(SiteCatalog({}, {SECONDARY: {"sha256": "one"}}), SiteCatalog({}, {SECONDARY: {"sha256": "two"}}))
 
 
 @pytest.mark.parametrize("url", [
@@ -267,8 +302,8 @@ def test_packaged_extended_catalog_has_provenance_and_unique_templates():
 
     standard = api.load_sites()
     extended = api.load_sites(catalog="extended")
-    assert len(standard) == 854
-    assert len(extended) > 8000
+    assert len(standard) == 788
+    assert len(extended) > 7500
     assert isinstance(extended, SiteCatalog)
     identities = [canonical_template(site.url) for site in extended.definitions.values()]
     assert len(identities) == len(set(identities))

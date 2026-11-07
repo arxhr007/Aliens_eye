@@ -1,5 +1,35 @@
 # Changelog
 
+## 2.9.0 (2026-11-07)
+
+### Changed
+- **Every catalog site was checked live**, with a known account and a made-up one. 945 sites
+  were found broken and are no longer scanned: 68 reported a made-up username as existing
+  (false positives), and 877 failed twice, once on a second pass with longer timeouts
+  (605 unreachable, 272 no longer finding a known account). They are disabled in
+  `--catalog extended`, now **7,710 enabled sites**, and removed from the default catalog,
+  now **788 sites**. 56 broken default sites stay because the ground-truth splits use them.
+- The detection model is unchanged. Candidates trained on the newly captured pages either
+  raised false positives (7 to 20 on today's holdout pages) or lost recall (0.48 to 0.37),
+  so none beat the shipped model on the holdout.
+
+### Added
+- **A second pinned community site database** (469 valid entries, MIT) is merged into
+  `--catalog extended`. Same-URL entries merge with the other name kept as an alias, and an
+  active rule replaces an entry its source marks disabled. `sites import --include-examples`
+  keeps upstream usernames as unverified training examples.
+- **`scripts/train_expanded.py`** trains a candidate model on expanded-catalog sites:
+  `prepare` (offline ground truth from upstream and curated usernames), `record` (live
+  corpus capture), `collect`, `fit` and `compare` (offline, against the holdout). API-probe,
+  disabled, NSFW and holdout-overlapping sites are excluded, and the shipped model is never
+  replaced automatically.
+- **`scripts/verify_catalog.py`** checks every enabled catalog site live with one known and
+  one made-up username, then judges the frozen responses offline with the scanner's own
+  per-site check, writing a verdict per site to `sites.csv`. Interrupted captures resume, and
+  `apply` disables the broken sites (false positives at once, failures only after a recheck).
+- `train collect --corpus` accepts a custom ground-truth file from library callers, and
+  custom ground truth now also excludes holdout host groups.
+
 ## 2.8.0 (2026-11-07)
 
 ### Added

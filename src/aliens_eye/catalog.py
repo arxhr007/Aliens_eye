@@ -120,7 +120,9 @@ def definition_from_upstream(name: str, entry: dict, source: str) -> SiteDefinit
     return SiteDefinition.from_dict(name.casefold(), data)
 
 
-def import_catalog(paths: dict[str, Path], *, revisions: dict[str, str] | None = None) -> SiteCatalog:
+def import_catalog(
+    paths: dict[str, Path], *, revisions: dict[str, str] | None = None, include_examples: bool = False,
+) -> SiteCatalog:
     definitions: dict[str, SiteDefinition] = {}
     sources, issues, identities = {}, [], {}
     duplicates = 0
@@ -144,6 +146,8 @@ def import_catalog(paths: dict[str, Path], *, revisions: dict[str, str] | None =
             "revision": (revisions or {}).get(source),
             "entries": sum(isinstance(v, dict) for v in entries.values()),
         }
+        if include_examples:
+            sources[source]["training_examples"] = []
         for original_name, raw in sorted(entries.items()):
             if original_name.startswith("$"):
                 continue
@@ -155,6 +159,15 @@ def import_catalog(paths: dict[str, Path], *, revisions: dict[str, str] | None =
             except (CatalogError, TypeError, ValueError, AttributeError) as exc:
                 issues.append({"source": source, "site": original_name, "reason": str(exc)})
                 continue
+            if include_examples and not site.disabled:
+                claimed = raw.get("usernameClaimed", raw.get("username_claimed", []))
+                claimed = [claimed] if isinstance(claimed, str) else claimed
+                for username in claimed if isinstance(claimed, list) else []:
+                    if isinstance(username, str) and username and site.accepts(username):
+                        sources[source]["training_examples"].append({
+                            "site": original_name, "url": site.url, "username": username,
+                            "label": 1, "verified": False, "label_source": source,
+                        })
             identity = canonical_template(site.url)
             previous = identities.get(identity)
             if previous is not None:
@@ -175,6 +188,41 @@ def import_catalog(paths: dict[str, Path], *, revisions: dict[str, str] | None =
                 site = replace(site, name=key)
             identities[identity] = key
             definitions[key] = site
+    return SiteCatalog(definitions, sources, issues, duplicates)
+
+
+def merge_catalogs(*catalogs: SiteCatalog) -> SiteCatalog:
+    definitions, sources, identities, issues = {}, {}, {}, []
+    duplicates = 0
+    for catalog in catalogs:
+        for name, metadata in catalog.sources.items():
+            if name in sources and sources[name].get("sha256") != metadata.get("sha256"):
+                raise CatalogError(f"Cannot merge different snapshots of source {name}")
+            sources[name] = {**sources.get(name, {}), **metadata}
+        issues.extend(catalog.issues)
+        duplicates += catalog.deduplicated
+        for name, site in sorted(catalog.definitions.items()):
+            identity = canonical_template(site.url)
+            if identity in identities:
+                key = identities[identity]
+                old = definitions[key]
+                use_incoming = not site.disabled and (
+                    old.disabled or old.source == "aliens-eye" and old.check_type is None and site.check_type is not None
+                )
+                winner, other = (site, old) if use_incoming else (old, site)
+                definitions[key] = replace(
+                    winner, name=key,
+                    aliases=tuple(sorted(set(old.aliases + site.aliases + (old.name, site.name)) - {key})),
+                    also_in=tuple(sorted(set(old.also_in + site.also_in + (other.source,)) - {winner.source})),
+                    tags=tuple(sorted(set(old.tags + site.tags))), nsfw=old.nsfw or site.nsfw,
+                )
+                duplicates += 1
+                continue
+            key = name if name not in definitions else f"{site.source}:{name}:{hashlib.sha256(identity.encode()).hexdigest()[:8]}"
+            definitions[key] = replace(site, name=key)
+            identities[identity] = key
+    if len(definitions) > MAX_SITES:
+        raise CatalogError("Merged catalog exceeds the site limit")
     return SiteCatalog(definitions, sources, issues, duplicates)
 
 
@@ -238,6 +286,7 @@ def run_catalog_command(argv: list[str]) -> None:
         importer.add_argument(f"--{source}-revision")
     importer.add_argument("--out", type=Path, help="Write a new catalog; existing files are never overwritten")
     importer.add_argument("--with-standard", action="store_true", help="Include unique validated entries from the standard catalog")
+    importer.add_argument("--include-examples", action="store_true", help="Retain upstream-asserted training usernames with their provenance")
     for command in ("stats", "list", "validate"):
         child = commands.add_parser(command)
         child.add_argument("--sites", type=Path)
@@ -250,7 +299,10 @@ def run_catalog_command(argv: list[str]) -> None:
         paths = {source: getattr(args, source) for source in SOURCES if getattr(args, source)}
         if not paths:
             parser.error("provide --maigret and/or --sherlock with a local JSON path")
-        catalog = import_catalog(paths, revisions={s: getattr(args, f"{s}_revision") for s in paths})
+        catalog = import_catalog(
+            paths, revisions={s: getattr(args, f"{s}_revision") for s in paths},
+            include_examples=args.include_examples,
+        )
         if args.with_standard:
             catalog = with_standard_catalog(catalog)
         if args.out:

@@ -37,7 +37,7 @@ def test_no_filters_returns_all():
 
 def test_packaged_sites_load_and_valid():
     sites = load_sites_data()
-    assert len(sites) > 800
+    assert len(sites) > 750
     for name, template in sites.items():
         assert isinstance(template, str)
         assert template.startswith("http"), f"{name} has invalid template"

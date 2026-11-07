@@ -188,7 +188,7 @@ def training_sites(sites_data: dict[str, str], split: str, ground_truth_path=Non
     from aliens_eye.core.scanner import load_sites_data
 
     sites = load_selfcheck_data(split, ground_truth_path)
-    if split == "train" and ground_truth_path is None:
+    if split == "train":
         templates = {**load_sites_data(), **sites_data}
         holdout_groups = {
             training_group(site, templates.get(site)) for site in load_selfcheck_data("holdout")
@@ -202,12 +202,13 @@ def training_sites(sites_data: dict[str, str], split: str, ground_truth_path=Non
 
 def collect_from_corpus(
     corpus_path: Path, sites_data: dict[str, str], output_path: Path, logger, split: str = "train",
+    ground_truth_path: Path | None = None,
 ) -> int:
     from aliens_eye.corpus.replay import ReplayFetcher
 
     replay = ReplayFetcher(Path(corpus_path))
-    allowed = training_sites(sites_data, split)
-    sources = load_ground_truth_sources(split)
+    allowed = training_sites(sites_data, split, ground_truth_path)
+    sources = load_ground_truth_sources(split, ground_truth_path)
     extractor = FeatureExtractor()
     rows, metadata = [], []
     for site, url, username, label in replay.eval_jobs(set(allowed)):
