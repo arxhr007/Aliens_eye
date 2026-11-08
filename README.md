@@ -24,11 +24,12 @@
 
 ---
 
-## 🐧 New from the author: lxask
+## 🖐️ New from the author: Margin
 
-**[lxask](https://github.com/arxhr007/lxask)** is a Linux command assistant that runs entirely on your own machine:
-describe what you want in plain English and it suggests the command. No API key, no cloud, about 1 GB on disk, no GPU.
-If you find Aliens Eye useful, a ⭐ on [lxask](https://github.com/arxhr007/lxask) helps a lot.
+**[Margin](https://github.com/arxhr007/margin)** turns the edges and corners of your touchpad into controls:
+slide along an edge for volume, brightness, seeking or Alt+Tab, and press a corner to run any shortcut or command.
+A tiny native Rust app for Windows and Linux, about 0.6 MB, no runtime, no telemetry.
+If you find Aliens Eye useful, a ⭐ on [Margin](https://github.com/arxhr007/margin) helps a lot.
 
 To hide the gold box about it under the Aliens Eye banner, set `ALIENS_EYE_NO_PROMO=1`.
 

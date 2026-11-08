@@ -42,7 +42,7 @@ def _promo_enabled() -> bool:
 
 
 PROMO_GOLD = "bold #FFD700"
-PROMO_URL = "https://github.com/arxhr007/lxask"
+PROMO_URL = "https://github.com/arxhr007/margin"
 
 
 def _promo_panel(console) -> Panel:
@@ -57,7 +57,7 @@ def _promo_panel(console) -> Panel:
     # but have no emoji glyphs, so they get an asterisk.
     star = "⭐" if unicode_ok and not getattr(console, "legacy_windows", False) else "*"
     text = Text(no_wrap=True)
-    text.append(f"{star} New from the author: lxask, a Linux command assistant that runs offline\n", PROMO_GOLD)
+    text.append(f"{star} New from the author: Margin, touchpad edges and corners as controls\n", PROMO_GOLD)
     text.append(f"   -> {PROMO_URL}", PROMO_GOLD)
     return Panel.fit(
         text,

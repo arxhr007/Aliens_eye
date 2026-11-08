@@ -306,8 +306,8 @@ def banner_text(monkeypatch, env=None):
 
 def test_the_banner_mentions_the_authors_new_project(monkeypatch):
     text = banner_text(monkeypatch)
-    assert "New from the author: lxask, a Linux command assistant that runs offline" in text
-    assert "https://github.com/arxhr007/lxask" in text
+    assert "New from the author: Margin, touchpad edges and corners as controls" in text
+    assert "https://github.com/arxhr007/margin" in text
 
 
 def promo_lines(text):
@@ -320,8 +320,8 @@ def promo_lines(text):
 def test_the_mention_is_in_a_box_with_a_star(monkeypatch):
     box = promo_lines(banner_text(monkeypatch))
     assert len(box) == 4                                   # top, the text, the link, bottom
-    assert "⭐" in box[1] and "lxask" in box[1]
-    assert "https://github.com/arxhr007/lxask" in box[2]
+    assert "⭐" in box[1] and "Margin" in box[1]
+    assert "https://github.com/arxhr007/margin" in box[2]
     assert box[1].rstrip().endswith("│") and box[2].rstrip().endswith("│")
 
 
@@ -338,7 +338,7 @@ def test_the_link_is_never_split_across_lines(monkeypatch):
         monkeypatch.setattr(cli, "get_console", lambda b=buffer, w=width: Console(file=b, width=w, force_terminal=False, legacy_windows=False))
         monkeypatch.delenv("ALIENS_EYE_NO_PROMO", raising=False)
         cli.display_banner(854)
-        assert any("https://github.com/arxhr007/lxask" in line for line in buffer.getvalue().splitlines()), width
+        assert any("https://github.com/arxhr007/margin" in line for line in buffer.getvalue().splitlines()), width
 
 
 def test_the_box_is_bright_gold(monkeypatch):
@@ -354,7 +354,7 @@ def test_the_box_is_bright_gold(monkeypatch):
     monkeypatch.delenv("ALIENS_EYE_NO_PROMO", raising=False)
     cli.display_banner(854)
     gold = "38;2;255;215;0"                                # #FFD700
-    lines = [line for line in buffer.getvalue().splitlines() if "lxask" in line]
+    lines = [line for line in buffer.getvalue().splitlines() if "margin" in line.lower()]
     assert len(lines) == 2
     for line in lines:
         assert gold in line and "[1;" in line          # gold, and bold for brightness
@@ -375,17 +375,17 @@ def test_a_console_that_cannot_show_emoji_gets_a_plain_box():
     console.print(cli._promo_panel(console))
     console.file.flush()
     text = raw.getvalue().decode("ascii")                  # would raise if anything non-ASCII were written
-    assert "lxask" in text and "*" in text
+    assert "Margin" in text and "*" in text
 
 
 def test_the_mention_can_be_turned_off(monkeypatch):
     for value in ("1", "true", "yes"):
-        assert "lxask" not in banner_text(monkeypatch, {"ALIENS_EYE_NO_PROMO": value})
+        assert "Margin" not in banner_text(monkeypatch, {"ALIENS_EYE_NO_PROMO": value})
 
 
 def test_an_empty_or_zero_setting_does_not_turn_it_off(monkeypatch):
     for value in ("", "0", "false"):
-        assert "lxask" in banner_text(monkeypatch, {"ALIENS_EYE_NO_PROMO": value})
+        assert "Margin" in banner_text(monkeypatch, {"ALIENS_EYE_NO_PROMO": value})
 
 
 def test_json_stdout_stays_clean():
@@ -403,7 +403,7 @@ def test_the_library_api_and_mcp_server_never_print_it():
 
     root = pathlib.Path(__file__).resolve().parents[1] / "src" / "aliens_eye"
     for name in ("api.py", "mcp_server.py"):
-        assert "lxask" not in (root / name).read_text("utf-8")
+        assert "Margin" not in (root / name).read_text("utf-8")
 
 
 def test_a_legacy_windows_console_gets_a_plain_star_but_still_a_box():
@@ -418,5 +418,5 @@ def test_a_legacy_windows_console_gets_a_plain_star_but_still_a_box():
     console.print(cli._promo_panel(console))
     text = buffer.getvalue()
     assert "⭐" not in text and "* New from the author" in text
-    assert "https://github.com/arxhr007/lxask" in text
+    assert "https://github.com/arxhr007/margin" in text
     assert text.splitlines()[0].strip() and text.splitlines()[-1].strip()      # a top and a bottom edge

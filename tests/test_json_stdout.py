@@ -70,7 +70,7 @@ async def test_stdout_carries_nothing_but_the_json(fake_sites, tmp_path, capsys)
     await run(fake_sites, tmp_path / "out", "--json-stdout", "torvalds")
     lines, err = stdout_lines(capsys)
     assert len(lines) == 1 and lines[0].startswith("{") and lines[0].endswith("}")
-    assert "Scan Summary" in err and "lxask" not in lines[0]
+    assert "Scan Summary" in err and "Margin" not in lines[0]
 
 
 async def test_each_username_is_its_own_line(fake_sites, tmp_path, capsys):
