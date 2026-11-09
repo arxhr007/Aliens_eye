@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aliens-eye"
-version = "2.10.0"
+version = "2.10.1"
 description = "AI-powered OSINT username scanner across 7,700+ social media and web platforms"
 readme = "README.md"
 requires-python = ">=3.10"
