@@ -41,11 +41,25 @@ def rule_evidence(site: SiteDefinition, response) -> dict:
     }
 
 
-def json_profile(content: str, username: str, url: str) -> dict | None:
+# Keys that hold an account's handle and nothing else: a different value under
+# one of them means the answer is about another account.
+HANDLE_KEYS = ("login", "username", "acct", "screen_name", "handle", "uniqueId", "user_name", "userName")
+# Keys that often hold the handle but may hold a display name instead: a match
+# confirms the account, a mismatch says nothing.
+LOOSE_HANDLE_KEYS = ("name", "slug")
+
+
+def _handle(value: str) -> str:
+    """A handle as sites compare them: no ``@``, case folded, ``_`` and space alike."""
+    return value.strip().lstrip("@").replace("_", " ").casefold()
+
+
+def _json_records(content: str):
+    """Every object in a JSON answer, down to a bounded depth and count."""
     try:
         data = json.loads(content)
     except (ValueError, RecursionError):
-        return None
+        return
     pending, visited = [(data, 0)], 0
     while pending and visited < 200:
         item, depth = pending.pop()
@@ -55,23 +69,49 @@ def json_profile(content: str, username: str, url: str) -> dict | None:
         if isinstance(item, list):
             pending.extend((value, depth + 1) for value in item[:50])
         elif isinstance(item, dict):
-            identifiers = (item.get(k) for k in ("login", "username", "acct", "screen_name", "handle", "uniqueId"))
-            if any(isinstance(v, str) and v.lstrip("@").casefold() == username.lstrip("@").casefold() for v in identifiers):
-                def text(*keys, record=item):
-                    return next((record[k].strip() for k in keys if isinstance(record.get(k), str) and record[k].strip()), "")
-
-                name = text("display_name", "displayName", "name")
-                bio = text("bio", "description", "note")
-                avatar = text("avatar_url", "avatar", "profile_image_url_https", "profile_image_url")
-                return {
-                    "name": name[:200], "bio": bio[:500], "avatar": urljoin(url, avatar) if avatar else "",
-                    "name_from_profile": bool(name),
-                    "field_sources": {
-                        key: "site_api" if value else "missing"
-                        for key, value in (("name", name), ("bio", bio), ("avatar", avatar))
-                    },
-                }
+            yield item
             pending.extend((value, depth + 1) for value in item.values() if isinstance(value, (dict, list)))
+
+
+def json_names_another_user(content: str, username: str) -> bool:
+    """True when a JSON answer carries handles and none of them is ``username``.
+
+    A search or lookup endpoint can answer with the closest account instead of
+    the requested one; such an answer matches the site's presence marker while
+    describing somebody else.
+    """
+    wanted, seen = _handle(username), False
+    for record in _json_records(content):
+        for key in HANDLE_KEYS:
+            value = record.get(key)
+            if isinstance(value, str) and value.strip():
+                if _handle(value) == wanted:
+                    return False
+                seen = True
+    return seen
+
+
+def json_profile(content: str, username: str, url: str) -> dict | None:
+    wanted = _handle(username)
+    for item in _json_records(content):
+        identifiers = (item.get(k) for k in (*HANDLE_KEYS, *LOOSE_HANDLE_KEYS))
+        if not any(isinstance(v, str) and _handle(v) == wanted for v in identifiers):
+            continue
+
+        def text(*keys, record=item):
+            return next((record[k].strip() for k in keys if isinstance(record.get(k), str) and record[k].strip()), "")
+
+        name = text("display_name", "displayName", "name")
+        bio = text("bio", "description", "note")
+        avatar = text("avatar_url", "avatar", "profile_image_url_https", "profile_image_url")
+        return {
+            "name": name[:200], "bio": bio[:500], "avatar": urljoin(url, avatar) if avatar else "",
+            "name_from_profile": bool(name),
+            "field_sources": {
+                key: "site_api" if value else "missing"
+                for key, value in (("name", name), ("bio", bio), ("avatar", avatar))
+            },
+        }
     return None
 
 
@@ -84,6 +124,20 @@ def negative_username(site: SiteDefinition, username: str, rng=None) -> str | No
             if candidate.casefold() != username.casefold() and site.accepts(candidate):
                 return candidate
     return None
+
+
+def _control_is_wall(scanner, control, name: str, site: SiteDefinition) -> bool:
+    """Whether the control answer is a challenge or error page rather than the site's own."""
+    from .scanner import _looks_like_bot_wall
+
+    try:
+        bundle = scanner.extractor.extract(
+            control.content, control.final_url, name, site.name, control.status,
+            control.response_time, control.headers, control.redirect_count,
+        )
+    except Exception:  # noqa: BLE001 - an unreadable control verifies nothing
+        return True
+    return _looks_like_bot_wall(bundle.signals)
 
 
 async def scan_defined_site(scanner, site: SiteDefinition, username, session, rate_limiter) -> dict:
@@ -108,6 +162,9 @@ async def scan_defined_site(scanner, site: SiteDefinition, username, session, ra
     }
     details, initial, reason = None, None, None
     response = None
+    # A Found that rests on thin evidence is only kept when the site itself
+    # says the control username does not exist; a merely different page is not enough.
+    strict_control = False
     status, confidence = "Skipped", 0
     if not site.accepts(username):
         reason = "invalid_site_username"
@@ -129,9 +186,17 @@ async def scan_defined_site(scanner, site: SiteDefinition, username, session, ra
             if is_json:
                 profile = json_profile(response.content, username, profile_url)
                 signals["profile"] = profile or {}
-                status, confidence = ("Found", 75) if profile and evidence["verdict"] == "Found" else ("Maybe", 50)
+                status, confidence = "Maybe", 50
+                if evidence["verdict"] == "Found" and (profile or not json_names_another_user(response.content, username)):
+                    # The answer names the username, or the site's own marker for
+                    # an existing account matched: either is the site saying yes.
+                    # A bare status code is thinner, and needs the control's "no".
+                    if profile or evidence["strength"] == "explicit":
+                        status, confidence = "Found", 75
+                    elif scanner.config.control_check:
+                        status, confidence, strict_control = "Found", 65, True
                 analysis.update(method="site-rule-json", probability=None, features={}, signals=signals)
-                if not profile:
+                if status != "Found" and not profile:
                     reason = "username_not_confirmed"
             else:
                 bundle = scanner.extractor.extract(
@@ -159,7 +224,16 @@ async def scan_defined_site(scanner, site: SiteDefinition, username, session, ra
                 status, confidence = "Not Found", 90
                 reason = "http_gone" if response.status in (404, 410) else "rule_absence"
             elif evidence["verdict"] is None and site.check_type is not None:
-                status, confidence, reason = "Maybe", 50, evidence["reason"]
+                if (
+                    status == "Found" and not is_json and evidence["reason"] == "no_rule_evidence"
+                    and scanner.config.control_check
+                ):
+                    # The rule's markers matched nothing (sites change their
+                    # markup), but the page itself reads as a profile.
+                    confidence, strict_control = min(confidence, 65), True
+                    analysis["method"] = f"{analysis['method']}-stale-rule"
+                else:
+                    status, confidence, reason = "Maybe", 50, evidence["reason"]
             elif status == "Not Found" and http_unavailable(response.status):
                 status, confidence, reason = "Maybe", min(confidence, 50), "http_unavailable"
 
@@ -184,14 +258,29 @@ async def scan_defined_site(scanner, site: SiteDefinition, username, session, ra
                 outcome = "unavailable"
                 if control is not None:
                     control_evidence = rule_evidence(site, control)
-                    if control_evidence["verdict"] == "Not Found":
+
+                    def compared() -> str:
                         equal = same_page(
                             page_shape(response.content, response.final_url, username),
                             page_shape(control.content, control.final_url, name),
                         )
-                        outcome = "same" if equal else "different"
+                        return "same" if equal else "different"
+
+                    if control_evidence["verdict"] == "Not Found":
+                        outcome = compared()
                     elif control_evidence["verdict"] == "Found":
                         outcome = "same"
+                    elif (
+                        not strict_control
+                        and control_evidence["reason"] in {"no_rule_evidence", "conflicting_markers"}
+                        and (site.check_type is None or (evidence["verdict"] == "Found" and evidence["strength"] == "explicit"))
+                        and not _control_is_wall(scanner, control, name, site)
+                    ):
+                        # The site answered the control with an ordinary page that
+                        # carries none of its markers (a sign-in or search page).
+                        # With an explicit marker on the real page, or no rule at
+                        # all, the two pages are told apart by what they show.
+                        outcome = compared()
                 checks["control"].update(outcome=outcome, cached=cached, source="http")
                 if outcome != "different":
                     status, confidence = "Maybe", min(confidence, 55)

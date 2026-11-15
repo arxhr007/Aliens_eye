@@ -70,6 +70,7 @@ def build_explanation(
         reasons.append(f"control_{control}")
     if checks.get("browser", {}).get("outcome") == "unavailable":
         reasons.append("browser_unavailable")
+    reasons = list(dict.fromkeys(reasons))
     summary = _REASONS.get(reason, f"The detector reported {status}; this is not proof of identity.")
     if reasons:
         summary = " ".join(dict.fromkeys([summary, *(_REASONS[r] for r in reasons if r in _REASONS)]))

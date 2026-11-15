@@ -853,6 +853,15 @@ async def run_scan(args) -> None:
     browser_fallback = None
     if config.use_playwright:
         browser_fallback = BrowserFallback(config.timeout, DEFAULT_USER_AGENT)
+        # Sites with a catalog rule are judged by that rule and are not rendered
+        # in a browser; saying so beats a flag that silently does nothing.
+        ruled = len(getattr(sites_data, "definitions", {}))
+        if ruled:
+            logger.warning(
+                "Browser re-checks apply to %d of %d sites: the %d with a catalog "
+                "rule are judged by that rule (a custom --sites map is re-checked in full)",
+                len(sites_data) - ruled, len(sites_data), ruled,
+            )
 
     checkpoint = None
     if args.resume:

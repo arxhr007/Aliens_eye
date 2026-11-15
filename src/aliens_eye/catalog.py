@@ -6,6 +6,7 @@ import json
 from dataclasses import replace
 from pathlib import Path
 
+from aliens_eye.core.config import DEFAULT_CATALOG
 from aliens_eye.core.sites import (
     MAX_SITES,
     CatalogError,
@@ -290,7 +291,7 @@ def run_catalog_command(argv: list[str]) -> None:
     for command in ("stats", "list", "validate"):
         child = commands.add_parser(command)
         child.add_argument("--sites", type=Path)
-        child.add_argument("--catalog", choices=("standard", "extended"), default="standard")
+        child.add_argument("--catalog", choices=("standard", "extended"), default=DEFAULT_CATALOG)
         child.add_argument("--tag")
         child.add_argument("--source")
         child.add_argument("--json", action="store_true")

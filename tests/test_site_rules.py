@@ -226,3 +226,201 @@ async def test_structured_fetch_does_not_bypass_a_guard_refusal(monkeypatch, log
     result = await fetch_url(None, url, ScannerConfig(request=SiteRequest(url), retries=0), DomainRateLimiter(), logger)
     assert result.error
     assert "refused destination" in result.error
+
+
+# --- verdicts the site's own evidence should settle ------------------------------
+
+def scanner_for(site, tmp_path, logger, pages):
+    """A scanner whose network is ``pages(url) -> FetchResult``."""
+    scanner = make_scanner(SiteCatalog({site.name: site}), tmp_path, logger)
+
+    async def fetch(session, url, config, limiter, log):
+        return pages(url)
+
+    scanner.fetch = fetch
+    return scanner
+
+
+async def verdict(site, tmp_path, logger, pages, username="alice"):
+    result = await scanner_for(site, tmp_path, logger, pages)._scan_site(site.name, site.url, username, None, None)
+    return result, result["ai_analysis"]["explanation"]
+
+
+WIKI = {"presence": ['"userid":'], "absence": ['"missing":', '"invalid":']}
+
+
+async def test_wiki_style_json_confirms_the_user_by_name(tmp_path, logger):
+    site = definition(**WIKI)
+
+    def pages(url):
+        if url.endswith("/alice"):
+            return fetched(url, json.dumps({"query": {"users": [{"userid": 7, "name": "Alice", "editcount": 12}]}}))
+        return fetched(url, json.dumps({"query": {"users": [{"name": url.rsplit("/", 1)[-1], "missing": ""}]}}))
+
+    result, explanation = await verdict(site, tmp_path, logger, pages)
+    assert result["status"] == "Found" and result["confidence"] == 75
+    assert explanation["checks"]["control"]["outcome"] == "different"
+    assert "username_not_confirmed" not in explanation["reason_codes"]
+
+
+async def test_wiki_style_json_for_a_missing_user_is_not_found(tmp_path, logger):
+    site = definition(**WIKI)
+
+    def pages(url):
+        return fetched(url, json.dumps({"query": {"users": [{"name": url.rsplit("/", 1)[-1], "missing": ""}]}}))
+
+    result, _ = await verdict(site, tmp_path, logger, pages)
+    assert result["status"] == "Not Found"
+
+
+async def test_an_explicit_marker_is_enough_when_the_json_carries_no_handle(tmp_path, logger):
+    site = definition(**WIKI)
+
+    def pages(url):
+        if url.endswith("/alice"):
+            return fetched(url, '{"userid": 7, "editcount": 12, "registered": "2019"}')
+        return fetched(url, '{"missing": ""}')
+
+    result, _ = await verdict(site, tmp_path, logger, pages)
+    assert result["status"] == "Found"
+
+
+async def test_json_naming_a_different_handle_stays_unconfirmed(tmp_path, logger):
+    """A lookup that answers with the closest account is not a hit for the one asked about."""
+    site = definition(**WIKI)
+
+    def pages(url):
+        if url.endswith("/alice"):
+            return fetched(url, '{"userid": 7, "username": "alice_2009"}')
+        return fetched(url, '{"missing": ""}')
+
+    result, explanation = await verdict(site, tmp_path, logger, pages)
+    assert result["status"] == "Maybe"
+    assert "username_not_confirmed" in explanation["reason_codes"]
+
+
+STATUS_RULE = {"check_type": "status_code", "presence": [], "absence": []}
+
+
+async def test_status_only_json_needs_the_control_to_be_refused(tmp_path, logger):
+    site = definition(**STATUS_RULE)
+
+    def refused(url):
+        return fetched(url, '{"id": 1, "posts": 3}') if url.endswith("/alice") else fetched(url, '{"error":"no"}', 404)
+
+    result, explanation = await verdict(site, tmp_path, logger, refused)
+    assert result["status"] == "Found" and result["confidence"] == 65
+    assert explanation["checks"]["control"]["outcome"] == "different"
+
+    def answers_everyone(url):
+        return fetched(url, '{"id": 1, "posts": 3}' if url.endswith("/alice") else '{"id": 2, "posts": 9, "extra": [1, 2, 3]}')
+
+    result, _ = await verdict(site, tmp_path / "second", logger, answers_everyone)
+    assert result["status"] == "Maybe"
+
+
+async def test_status_only_json_is_not_found_without_a_control(tmp_path, logger):
+    site = definition(**STATUS_RULE)
+    scanner = scanner_for(site, tmp_path, logger, lambda url: fetched(url, '{"id": 1}'))
+    scanner.config.control_check = False
+    result = await scanner._scan_site(site.name, site.url, "alice", None, None)
+    assert result["status"] == "Maybe"
+
+
+def html(body, title="Community"):
+    return f"<html><head><title>{title}</title></head><body>{body}</body></html>"
+
+
+PROFILE = html(
+    '<div class="profile-card"><h1>alice</h1><p>Member since 2019. 240 posts, 12 followers.</p>'
+    "<p>Photography, long walks and bread.</p></div>",
+    "alice - profile",
+)
+SIGN_IN = html("<form><h1>Sign in</h1><p>You need to sign in or sign up before continuing.</p></form>", "Sign in")
+HTML_RULE = {"probe_url": None, "presence": ["profile-card"], "absence": ["no-such-member"]}
+
+
+async def test_a_marker_less_control_page_is_compared_by_what_it_shows(tmp_path, logger):
+    """Self-hosted software answers an unknown name with its sign-in page: no marker either way."""
+    site = definition(**HTML_RULE)
+
+    def pages(url):
+        return fetched(url, PROFILE if url.endswith("/alice") else SIGN_IN, content_type="text/html")
+
+    result, explanation = await verdict(site, tmp_path, logger, pages)
+    assert result["status"] == "Found"
+    assert explanation["checks"]["control"]["outcome"] == "different"
+    assert len(explanation["reason_codes"]) == len(set(explanation["reason_codes"]))
+
+
+async def test_a_site_showing_everyone_the_same_marked_page_is_not_a_hit(tmp_path, logger):
+    site = definition(**HTML_RULE)
+
+    def pages(url):
+        return fetched(url, PROFILE.replace("alice", url.rsplit("/", 1)[-1]), content_type="text/html")
+
+    result, _ = await verdict(site, tmp_path, logger, pages)
+    assert result["status"] == "Maybe"
+
+
+async def test_a_challenge_page_as_control_verifies_nothing(tmp_path, logger):
+    site = definition(**HTML_RULE)
+    wall = html("<p>Checking your browser before accessing the site.</p>", "Just a moment...")
+
+    def pages(url):
+        return fetched(url, PROFILE if url.endswith("/alice") else wall, content_type="text/html")
+
+    result, explanation = await verdict(site, tmp_path, logger, pages)
+    assert result["status"] == "Maybe"
+    assert explanation["checks"]["control"]["outcome"] == "unavailable"
+    assert explanation["reason_codes"].count("control_unavailable") == 1
+
+
+RICH_PROFILE = (
+    '<html><head><title>alice (@alice)</title><meta property="og:type" content="profile">'
+    '<meta property="og:title" content="alice"><meta name="description" content="alice on Community">'
+    '<link rel="canonical" href="https://profiles.example/alice"></head>'
+    '<body><main class="user-page"><h1>alice</h1><p>Joined 2019. 240 posts and 12 followers.</p></main></body></html>'
+)
+STALE_RULE = {"probe_url": None, "presence": ["old-profile-marker"], "absence": ["no-such-member"]}
+
+
+async def test_a_stale_marker_defers_to_the_page_when_the_site_refuses_the_control(tmp_path, logger):
+    site = definition(**STALE_RULE)
+
+    def pages(url):
+        if url.endswith("/alice"):
+            return fetched(url, RICH_PROFILE, content_type="text/html")
+        return fetched(url, html("<p>Nothing here.</p>", "Not found"), 404, content_type="text/html")
+
+    result, explanation = await verdict(site, tmp_path, logger, pages)
+    assert result["status"] == "Found" and result["confidence"] <= 65
+    assert explanation["checks"]["control"]["outcome"] == "different"
+
+
+async def test_a_stale_marker_is_not_a_hit_when_the_control_is_only_different(tmp_path, logger):
+    site = definition(**STALE_RULE)
+
+    def pages(url):
+        return fetched(url, RICH_PROFILE if url.endswith("/alice") else SIGN_IN, content_type="text/html")
+
+    result, _ = await verdict(site, tmp_path, logger, pages)
+    assert result["status"] == "Maybe"
+
+
+async def test_a_made_up_name_is_never_found(tmp_path, logger):
+    """Every site shape above, asked about a name it does not have."""
+    name = "zq0f3a9c1d7e5b2a"
+    cases = [
+        (WIKI, lambda url: fetched(url, '{"query": {"users": [{"name": "X", "missing": ""}]}}')),
+        (STATUS_RULE, lambda url: fetched(url, '{"error":"no"}', 404)),
+        (HTML_RULE, lambda url: fetched(url, SIGN_IN, content_type="text/html")),
+        (STALE_RULE, lambda url: fetched(url, SIGN_IN, content_type="text/html")),
+    ]
+    for index, (rule, pages) in enumerate(cases):
+        site = definition(**rule)
+        for control_check in (True, False):
+            scanner = scanner_for(site, tmp_path / f"{index}{control_check}", logger, pages)
+            scanner.config.control_check = control_check
+            result = await scanner._scan_site(site.name, site.url, name, None, None)
+            assert result["status"] != "Found", (rule, control_check)

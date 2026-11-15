@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.11.0 (2026-11-16)
+
+### Fixed
+- **About 1,080 more sites now report a real account as Found instead of Maybe.** Measured
+  on the recorded verification run of the 7,710 enabled sites, known accounts reported
+  Found went from 4,845 to 5,926, and no made-up username was reported Found.
+  - JSON lookups (wiki, federated and similar APIs) are confirmed by the site's own
+    marker or by the `name` field; before, only a few handle fields counted. An answer
+    that names a different handle still stays Maybe.
+  - A site that answers an unknown name with an ordinary page carrying none of its
+    markers (a sign-in or search page) no longer cancels a Found that rests on an
+    explicit marker; the two pages are compared by what they show. A challenge or error
+    page as the control still verifies nothing.
+  - A rule whose markers no longer match the site's markup defers to the page itself,
+    at reduced confidence, and only when the site refuses the control username.
+- Explanations no longer list the same reason code twice.
+
+### Changed
+- `sites stats`, `sites list` and `sites validate` read the same catalog a scan does
+  (the full one) unless `--catalog standard` is given.
+- `--playwright` now says how many sites it applies to: sites with a catalog rule are
+  judged by that rule and are not re-checked in a browser.
+
 ## 2.10.1 (2026-11-10)
 
 ### Changed
