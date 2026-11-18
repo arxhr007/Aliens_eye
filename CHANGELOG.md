@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.1 (2026-11-19)
+
+### Removed
+- The note about another project under the startup banner, its README section and the
+  `ALIENS_EYE_NO_PROMO` setting.
+
 ## 2.11.0 (2026-11-16)
 
 ### Fixed
@@ -26,9 +32,7 @@
 ## 2.10.1 (2026-11-10)
 
 ### Changed
-- The note under the startup banner now points to the author's new project,
-  [Margin](https://github.com/arxhr007/margin): touchpad edges and corners as controls.
-  `ALIENS_EYE_NO_PROMO=1` still hides it.
+- The note under the startup banner points to a different project.
 
 ## 2.10.0 (2026-11-07)
 

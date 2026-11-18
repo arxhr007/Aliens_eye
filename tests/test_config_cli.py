@@ -285,10 +285,10 @@ def test_accepting_an_expensive_level_keeps_it(monkeypatch):
     assert cli.choose_scan_level("someone", 854, console=None) == "advanced"
 
 
-# --- the author's other project, shown under the banner ---------------------------------
+# --- the startup banner carries no promotion ---------------------------------------------
 
 
-def banner_text(monkeypatch, env=None):
+def test_the_banner_is_only_the_banner(monkeypatch):
     import io
 
     from rich.console import Console
@@ -297,126 +297,8 @@ def banner_text(monkeypatch, env=None):
 
     buffer = io.StringIO()
     monkeypatch.setattr(cli, "get_console", lambda: Console(file=buffer, width=120, force_terminal=False, legacy_windows=False))
-    monkeypatch.delenv("ALIENS_EYE_NO_PROMO", raising=False)
-    for key, value in (env or {}).items():
-        monkeypatch.setenv(key, value)
     cli.display_banner(854)
-    return buffer.getvalue()
-
-
-def test_the_banner_mentions_the_authors_new_project(monkeypatch):
-    text = banner_text(monkeypatch)
-    assert "New from the author: Margin, touchpad edges and corners as controls" in text
-    assert "https://github.com/arxhr007/margin" in text
-
-
-def promo_lines(text):
-    lines = text.splitlines()
-    top = max(i for i, line in enumerate(lines) if line.lstrip().startswith("╭"))   # rounded box corner
-    bottom = next(i for i in range(top, len(lines)) if lines[i].lstrip().startswith("╰"))
-    return lines[top:bottom + 1]
-
-
-def test_the_mention_is_in_a_box_with_a_star(monkeypatch):
-    box = promo_lines(banner_text(monkeypatch))
-    assert len(box) == 4                                   # top, the text, the link, bottom
-    assert "⭐" in box[1] and "Margin" in box[1]
-    assert "https://github.com/arxhr007/margin" in box[2]
-    assert box[1].rstrip().endswith("│") and box[2].rstrip().endswith("│")
-
-
-def test_the_link_is_never_split_across_lines(monkeypatch):
-    """Copying or clicking a URL that wrapped mid-way does not work, so it has its own line."""
-    for width in (80, 100, 160):
-        import io
-
-        from rich.console import Console
-
-        from aliens_eye import cli
-
-        buffer = io.StringIO()
-        monkeypatch.setattr(cli, "get_console", lambda b=buffer, w=width: Console(file=b, width=w, force_terminal=False, legacy_windows=False))
-        monkeypatch.delenv("ALIENS_EYE_NO_PROMO", raising=False)
-        cli.display_banner(854)
-        assert any("https://github.com/arxhr007/margin" in line for line in buffer.getvalue().splitlines()), width
-
-
-def test_the_box_is_bright_gold(monkeypatch):
-    import io
-
-    from rich.console import Console
-
-    from aliens_eye import cli
-
-    buffer = io.StringIO()
-    monkeypatch.setattr(cli, "get_console", lambda: Console(
-        file=buffer, width=100, force_terminal=True, color_system="truecolor", legacy_windows=False))
-    monkeypatch.delenv("ALIENS_EYE_NO_PROMO", raising=False)
-    cli.display_banner(854)
-    gold = "38;2;255;215;0"                                # #FFD700
-    lines = [line for line in buffer.getvalue().splitlines() if "margin" in line.lower()]
-    assert len(lines) == 2
-    for line in lines:
-        assert gold in line and "[1;" in line          # gold, and bold for brightness
-    border = [line for line in buffer.getvalue().splitlines() if "╭" in line][-1]
-    assert gold in border
-
-
-def test_a_console_that_cannot_show_emoji_gets_a_plain_box():
-    import io
-
-    from rich.console import Console
-
-    from aliens_eye import cli
-
-    raw = io.BytesIO()
-    console = Console(file=io.TextIOWrapper(raw, encoding="ascii", errors="strict"), width=100,
-                      force_terminal=False, legacy_windows=False)
-    console.print(cli._promo_panel(console))
-    console.file.flush()
-    text = raw.getvalue().decode("ascii")                  # would raise if anything non-ASCII were written
-    assert "Margin" in text and "*" in text
-
-
-def test_the_mention_can_be_turned_off(monkeypatch):
-    for value in ("1", "true", "yes"):
-        assert "Margin" not in banner_text(monkeypatch, {"ALIENS_EYE_NO_PROMO": value})
-
-
-def test_an_empty_or_zero_setting_does_not_turn_it_off(monkeypatch):
-    for value in ("", "0", "false"):
-        assert "Margin" in banner_text(monkeypatch, {"ALIENS_EYE_NO_PROMO": value})
-
-
-def test_json_stdout_stays_clean():
-    """The banner is skipped for --json-stdout, so nothing but JSON reaches stdout."""
-    import inspect
-
-    from aliens_eye import cli
-
-    source = inspect.getsource(cli)
-    assert "if not config.json_stdout:\n        display_banner(" in source
-
-
-def test_the_library_api_and_mcp_server_never_print_it():
-    import pathlib
-
-    root = pathlib.Path(__file__).resolve().parents[1] / "src" / "aliens_eye"
-    for name in ("api.py", "mcp_server.py"):
-        assert "Margin" not in (root / name).read_text("utf-8")
-
-
-def test_a_legacy_windows_console_gets_a_plain_star_but_still_a_box():
-    import io
-
-    from rich.console import Console
-
-    from aliens_eye import cli
-
-    buffer = io.StringIO()
-    console = Console(file=buffer, width=100, force_terminal=False, legacy_windows=True)
-    console.print(cli._promo_panel(console))
     text = buffer.getvalue()
-    assert "⭐" not in text and "* New from the author" in text
-    assert "https://github.com/arxhr007/margin" in text
-    assert text.splitlines()[0].strip() and text.splitlines()[-1].strip()      # a top and a bottom edge
+    assert "AI-OSINT USERNAME SCANNER" in text and "arxhr007" in text
+    assert "New from the author" not in text and "github.com" not in text
+    assert not hasattr(cli, "_promo_panel")
