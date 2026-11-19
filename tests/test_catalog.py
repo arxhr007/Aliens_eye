@@ -315,15 +315,17 @@ def test_packaged_extended_catalog_has_provenance_and_unique_templates():
 def test_catalog_commands_keep_stdout_machine_readable(tmp_path, maigret_data, capsys):
     from aliens_eye.catalog import run_catalog_command
 
-    source = source_file(tmp_path, maigret_data)
     output = tmp_path / "converted.json"
-    run_catalog_command(["import", "--maigret", str(source)])
-    assert json.loads(capsys.readouterr().out)["enabled"] == 1
-    assert not output.exists()
-    run_catalog_command(["import", "--maigret", str(source), "--out", str(output)])
-    capsys.readouterr()
+    write_catalog(output, import_catalog({"maigret": source_file(tmp_path, maigret_data)}))
     run_catalog_command(["list", "--sites", str(output), "--tag", "forum", "--json"])
     assert json.loads(capsys.readouterr().out) == {"community": "https://community.example/u/{}"}
+
+
+def test_there_is_no_import_command(tmp_path):
+    from aliens_eye.catalog import run_catalog_command
+
+    with pytest.raises(SystemExit):
+        run_catalog_command(["import", "--out", str(tmp_path / "x.json")])
 
 
 async def test_library_scan_preserves_loaded_rule_metadata(tmp_path, monkeypatch):

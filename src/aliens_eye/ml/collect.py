@@ -79,8 +79,8 @@ def _usernames_of(value: Any) -> list[str]:
     """Accept all three ground-truth shapes.
 
     Historically a site mapped to a username string or a list of them. Entries
-    imported from an external project also carry provenance, so a site may map
-    to {"usernames": [...], "source": ...} instead; see eval/groundtruth.py.
+    from other sources also carry provenance, so a site may map
+    to {"usernames": [...], "source": ...} instead.
     """
     if isinstance(value, str):
         return [value]

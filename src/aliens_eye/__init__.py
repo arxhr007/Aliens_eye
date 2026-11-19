@@ -1,3 +1,3 @@
 """Aliens Eye - AI-powered OSINT username scanner."""
 
-__version__ = "2.11.1"
+__version__ = "2.12.0"

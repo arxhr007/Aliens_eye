@@ -161,7 +161,7 @@ precision without the abstention rate beside it would be misleading.
 What this measured, on a site-disjoint holdout of 142 platforms: **no
 configuration is distinguishable from `if status == 200` on F1.** Every judge --
 ML alone, heuristics alone, the shipped blend -- lands in the same band with
-overlapping confidence intervals, and so do Sherlock's hand-curated per-site
+overlapping confidence intervals, and so do hand-curated per-site
 rules.
 
 What *does* differ is the error profile. The 2.5.0 model, trained on full pages
@@ -181,19 +181,6 @@ run on a 43-site corpus showed ML alone beating the shipped blend by a
 statistically significant +0.126 F1. That corpus included sites the model had
 trained on. On a properly site-disjoint holdout the effect vanished (+0.013,
 not significant).
-
-### External baselines
-
-`aliens_eye eval external --corpus DIR --sherlock PATH --whatsmyname PATH` runs
-those projects' own per-site rules over the stored responses, so the comparison
-isolates detection logic from HTTP behaviour. Rule data is **not vendored** —
-fetch it from upstream and mind the licence (Sherlock MIT; WhatsMyName CC BY-SA
-4.0). Each run records the rule file's sha256.
-
-Rows a tool has no rule for, or that its rules leave undecided, are **excluded
-from its score** rather than counted against it; the covered-row count is reported
-alongside. Charging a tool for sites it never claimed to support would understate
-it — and WhatsMyName in particular decides only a small fraction of rows.
 
 ### Ground-truth splits
 

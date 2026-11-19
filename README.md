@@ -66,7 +66,7 @@ Power your web scraping and data collection with **[Swiftproxy](https://www.swif
 - **A second opinion on every Found** — the site is also asked for a username that cannot exist; if it shows the same page, the hit is downgraded to Maybe
 - **Calibrated self-check** — `aliens_eye selfcheck` reports precision / recall / F1 / FPR per site
 - **Reproducible evaluation** — record a frozen response corpus once, then replay it for identical metrics run to run (`aliens_eye corpus record` / `selfcheck --corpus`)
-- **Ablations and baselines** — `aliens_eye eval ablate` scores detector configurations with bootstrap confidence intervals; `eval external` compares against Sherlock / Maigret / WhatsMyName rules on the same stored responses
+- **Ablations** — `aliens_eye eval ablate` scores detector configurations with bootstrap confidence intervals
 - **Retrainable + active learning** — retrain with `aliens_eye train`, or hand-label uncertain hits with `aliens_eye label`
 - **Reports** in JSON, CSV, HTML, Markdown, PDF, and graph formats (GEXF, Mermaid, Maltego CSV)
 - **Playwright fallback** for JavaScript-heavy pages (optional extra)
@@ -185,12 +185,6 @@ aliens_eye selfcheck --split holdout --corpus corpus/v1 --report json
 # Compare detector configurations over that corpus, with confidence intervals
 aliens_eye eval ablate --corpus corpus/v1 --split holdout
 
-# Compare against Sherlock / Maigret / WhatsMyName rules (fetch their data yourself)
-aliens_eye eval external --corpus corpus/v1 --sherlock data.json --whatsmyname wmn-data.json
-
-# Rebuild the ground-truth splits from those projects account lists
-aliens_eye eval groundtruth --sherlock data.json --whatsmyname wmn-data.json
-
 # Interactively label uncertain hits into a training set
 aliens_eye label results/username_basic_20260611_120000.json --out labeled.csv
 
@@ -204,97 +198,6 @@ aliens_eye serve
 Custom platforms: drop a `{ "site_name": "https://site/{}" }` JSON file into
 `./sites.d/` (or the user config dir's `sites.d/`) and it is merged automatically;
 `--sites-dir DIR` adds another location.
-
-### Site catalogs
-
-Scans use the **extended catalog** by default: **7,710 enabled definitions**, combining pinned community site databases with
-unique, valid standard-catalog templates. Entries for the same profile URL merge
-into one, keeping the other names as aliases, and an active rule replaces one a
-source marks disabled. `--catalog standard` scans the smaller original list of
-**788 sites** instead, which is much quicker; a `config.json` can set
-`"catalog": "standard"` to make that the default.
-
-Every entry was checked live on 2026-11-07 (see below). Sites that reported a
-made-up username as existing, and sites that failed twice (unreachable, or a
-known account no longer found), were disabled in the expanded catalog and
-removed from the default one, except 56 default sites the ground-truth splits
-depend on. Of the remaining entries, about 4,900 confirmed a known account and
-rejected a made-up one; the rest answered with blocks, challenges or uncertain
-pages from the checking network. A check is a snapshot, not a guarantee.
-
-```bash
-aliens_eye sites stats --catalog extended
-aliens_eye sites validate --catalog extended
-aliens_eye sites list --catalog extended --tag coding
-aliens_eye your_handle --tag coding --no-nsfw --explain
-aliens_eye your_handle --catalog standard
-```
-
-The expanded catalog preserves engine rules, separate public-profile/API-probe
-URLs, username constraints, tags, aliases, disabled entries, upstream revision,
-file hashes, and MIT notices. Its manifest records 1,575 disabled definitions,
-121 excluded entries and 898 duplicate-template merges. Disabled and excluded
-definitions are not scanned. Filters can match aliases; `--source maigret`,
-`--source sherlock`, or `--source aliens-eye` selects a source when present.
-A full scan makes roughly ten times the requests of a standard-catalog scan;
-`--tag`, `--site` and `--no-nsfw` narrow it.
-
-To check which entries still work, `scripts/verify_catalog.py` requests one
-username an upstream project or the curated ground truth says exists and one
-generated username per site, then replays the captured responses through the
-scanner's own per-site check:
-
-```bash
-# live: about two requests per enabled site; rerun the same command to resume
-python scripts/verify_catalog.py record --corpus runs/verify \
-    --upstream-data path/to/data.json
-# offline: summary.json + sites.csv with a verdict per site
-python scripts/verify_catalog.py report --corpus runs/verify --out runs/verify-report
-```
-
-Verdicts are `working`, `alive_no_test_user`, `misses_known_user`,
-`accepts_anything` (a made-up username was reported Found), `uncertain`,
-`blocked` and `unreachable`. A result describes one moment from one network;
-upstream "known" accounts can be deleted, so `misses_known_user` is not proof
-that a rule is broken.
-
-Local imports do not download data or execute upstream code. They inspect by
-default; `--out` writes a new file and refuses to overwrite an existing one:
-
-```bash
-aliens_eye sites import --maigret path/to/maigret/resources/data.json --with-standard --out imported-sites.json
-aliens_eye sites import --sherlock path/to/sherlock_project/resources/data.json --out sherlock-sites.json
-aliens_eye your_handle --sites imported-sites.json --explain
-```
-
-Use `--maigret-revision` / `--sherlock-revision` to record the reviewed source
-revision. The recorded SHA-256 identifies the supplied file; it does not prove
-that an arbitrary file came from the named project. Review upstream terms and
-import exclusions before distributing a new snapshot.
-
-The initial adapter supports public GET requests. Authentication/activation,
-credential-bearing headers, POST payloads, unsupported identifier types,
-ambiguous username searches, unsupported regexes and malformed templates are excluded
-rather than silently treated as supported. Probe requests validate public
-destinations and redirects; custom headers are not forwarded across origins.
-Imported definitions do not use browser fallback. Proxy-side DNS remains a
-trust boundary, as with other proxy-enabled fetches.
-
-For HTML, site evidence complements the existing ML/heuristic detector.
-Conflicting markers or rule/model disagreement remain uncertain. Public JSON
-probes require an explicit matching username and rule evidence; the HTML model
-is not presented as a calibrated JSON classifier. An unavailable or positive
-negative-control response cannot confirm an imported hit. `--no-control-check`
-explicitly disables that safeguard. Results retain the public profile URL and
-record probe/rule/provenance details under `ai_analysis`.
-
-Maigret and Sherlock data use their respective MIT notices, included in catalog
-source metadata. No new WhatsMyName data is bundled by this importer. Existing
-ground-truth records marked `source: whatsmyname` originate from the
-[WhatsMyName project](https://github.com/WebBreacher/WhatsMyName), copyright
-2015–2026 Micah Hoffman, licensed [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/).
-Those records are adapted account lists and must not be relabeled as MIT. The project code's MIT
-license does not replace third-party data terms.
 
 ## How detection works
 
@@ -384,7 +287,7 @@ shipped model is never replaced automatically. Record the holdout corpus with
 
 This trainer remains an HTML model trainer: JSON/API feature-model training
 requires a separately labeled corpus and is not simulated by feeding JSON to the
-HTML classifier. Maigret external evaluation now expands its nested engines and
+HTML classifier. External evaluation expands nested engines and
 matches endpoint templates. Missing API-probe captures or incompatible request
 policies are reported as unsupported/undecided, not borrowed from profile pages
 or fetched live.

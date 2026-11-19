@@ -78,8 +78,7 @@ class Observation:
     features: dict[str, float]
     fingerprint: dict[str, str]
     error: str | None = None
-    #: Raw response body. Kept so external rule engines (aliens_eye.eval.external)
-    #: can be scored on exactly the same responses, rather than on a second fetch.
+    #: Raw response body, so a rule can be scored on exactly the same response.
     body: str = ""
     final_url: str = ""
 

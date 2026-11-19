@@ -281,13 +281,6 @@ def run_catalog_command(argv: list[str]) -> None:
 
     parser = argparse.ArgumentParser(prog="aliens_eye sites")
     commands = parser.add_subparsers(dest="command", required=True)
-    importer = commands.add_parser("import", help="Inspect or convert local MIT-licensed site databases")
-    for source in SOURCES:
-        importer.add_argument(f"--{source}", type=Path)
-        importer.add_argument(f"--{source}-revision")
-    importer.add_argument("--out", type=Path, help="Write a new catalog; existing files are never overwritten")
-    importer.add_argument("--with-standard", action="store_true", help="Include unique validated entries from the standard catalog")
-    importer.add_argument("--include-examples", action="store_true", help="Retain upstream-asserted training usernames with their provenance")
     for command in ("stats", "list", "validate"):
         child = commands.add_parser(command)
         child.add_argument("--sites", type=Path)
@@ -296,20 +289,6 @@ def run_catalog_command(argv: list[str]) -> None:
         child.add_argument("--source")
         child.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
-    if args.command == "import":
-        paths = {source: getattr(args, source) for source in SOURCES if getattr(args, source)}
-        if not paths:
-            parser.error("provide --maigret and/or --sherlock with a local JSON path")
-        catalog = import_catalog(
-            paths, revisions={s: getattr(args, f"{s}_revision") for s in paths},
-            include_examples=args.include_examples,
-        )
-        if args.with_standard:
-            catalog = with_standard_catalog(catalog)
-        if args.out:
-            write_catalog(args.out, catalog)
-        print(json.dumps(catalog.stats(), ensure_ascii=False, indent=2))
-        return
     sites = load_sites_data(args.sites, catalog=args.catalog)
     if isinstance(sites, SiteCatalog):
         selected = [

@@ -132,7 +132,7 @@ def build_parser() -> ArgumentParser:
         help="Site catalog: extended (default, 7,700+ sites) or standard (the smaller original list)",
     )
     parser.add_argument("--tag", help="Filter structured sites by tags (comma-separated)")
-    parser.add_argument("--source", help="Filter structured sites by source (maigret,sherlock)")
+    parser.add_argument("--source", help="Filter structured sites by source")
     parser.add_argument("--plain", action="store_true", help="Plain output (no colors/progress)")
     parser.add_argument("--explain", action="store_true", help="Explain recorded verdict evidence (also with --read)")
     parser.add_argument(
@@ -321,49 +321,6 @@ def build_eval_parser() -> ArgumentParser:
     ablate.add_argument("--json", action="store_true", dest="json_out", help="Print JSON to stdout")
     ablate.add_argument("-v", "--verbose", action="store_true")
 
-    external = sub.add_parser(
-        "external",
-        help="Compare against external tool rule sets (Sherlock / Maigret / WhatsMyName) over the corpus",
-    )
-    external.add_argument("--corpus", type=str, required=True, help="Corpus directory")
-    external.add_argument(
-        "--split", choices=["train", "holdout", "all"], default="all",
-        help="Ground-truth split to score (default: all)",
-    )
-    external.add_argument("--ground-truth", type=str, help="Custom ground-truth JSON")
-    external.add_argument("--model", type=str, help="Path to a custom ML model JSON")
-    external.add_argument(
-        "--sherlock", type=str,
-        help="Path to Sherlock's data.json (MIT; fetch it yourself, it is not vendored)",
-    )
-    external.add_argument(
-        "--maigret", type=str,
-        help="Path to Maigret's data.json (MIT); read with the Sherlock rule semantics",
-    )
-    external.add_argument(
-        "--whatsmyname", type=str,
-        help="Path to wmn-data.json (CC BY-SA 4.0, (C) Micah Hoffman et al.)",
-    )
-    external.add_argument("--out", type=str, help="Write the result bundle as JSON here")
-    external.add_argument("--json", action="store_true", dest="json_out", help="Print JSON to stdout")
-    external.add_argument("-v", "--verbose", action="store_true")
-
-    gt = sub.add_parser(
-        "groundtruth",
-        help="Rebuild the ground-truth splits from external projects' account lists",
-    )
-    gt.add_argument("--sherlock", type=str, help="Sherlock data.json (MIT)")
-    gt.add_argument("--whatsmyname", type=str, help="wmn-data.json (CC BY-SA 4.0)")
-    gt.add_argument("--sites", type=str, help="Path to a custom sites JSON")
-    gt.add_argument(
-        "--holdout-fraction", type=float, default=0.3,
-        help="Share of newly imported sites placed in the holdout split",
-    )
-    gt.add_argument(
-        "--dry-run", action="store_true",
-        help="Report what would change without writing the split files",
-    )
-    gt.add_argument("-v", "--verbose", action="store_true")
     return parser
 
 
@@ -1157,13 +1114,6 @@ async def run_eval_command(args) -> None:
 
     from aliens_eye.eval.ablate import run_ablations
 
-    if args.eval_command == "external":
-        await run_eval_external_command(args)
-        return
-    if args.eval_command == "groundtruth":
-        run_eval_groundtruth_command(args)
-        return
-
     if args.json_out:
         set_plain(True, stderr=True)
     logger = setup_logger(args.verbose)
@@ -1236,160 +1186,6 @@ async def run_eval_command(args) -> None:
     console.print(
         "[dim]ns = 95% paired-bootstrap CI on the F1 difference spans zero: "
         "this corpus cannot distinguish that configuration from the shipped blend.[/dim]"
-    )
-    if args.out:
-        console.print(f"[dim]Full bundle written to {args.out}[/dim]")
-
-
-def run_eval_groundtruth_command(args) -> None:
-    from importlib import resources
-
-    from aliens_eye.eval import groundtruth as gt
-    from aliens_eye.ml.collect import load_selfcheck_data
-
-    console = get_console()
-    if not (args.sherlock or args.whatsmyname):
-        console.print(
-            "[red]Pass --sherlock and/or --whatsmyname.[/red] Neither project's data is "
-            "vendored here; fetch it upstream and mind the licence "
-            "(Sherlock MIT, WhatsMyName CC BY-SA 4.0)."
-        )
-        return
-
-    catalogue = gt._index_catalogue(load_sites_data(Path(args.sites) if args.sites else None))
-    sherlock = gt.read_sherlock_accounts(Path(args.sherlock), catalogue) if args.sherlock else {}
-    whatsmyname = (
-        gt.read_whatsmyname_accounts(Path(args.whatsmyname), catalogue)
-        if args.whatsmyname else {}
-    )
-
-    existing = load_selfcheck_data("all")
-    entries = gt.cross_source(existing, sherlock, whatsmyname)
-    splits = gt.assign_splits(
-        entries,
-        set(load_selfcheck_data("train")),
-        set(load_selfcheck_data("holdout")),
-        holdout_fraction=args.holdout_fraction,
-    )
-
-    console.print(
-        f"[blue]Catalogue[/blue] {len(catalogue)} hosts  "
-        f"[blue]Sherlock[/blue] {len(sherlock)} sites  "
-        f"[blue]WhatsMyName[/blue] {len(whatsmyname)} sites  "
-        f"[blue]existing[/blue] {len(existing)} -> [green]{len(entries)}[/green]"
-    )
-    if args.dry_run:
-        console.print("[yellow]Dry run: no files written.[/yellow]")
-        return
-
-    data_dir = Path(str(resources.files("aliens_eye.data")))
-    summary = gt.write_splits(
-        entries, splits, data_dir / "selfcheck.json", data_dir / "eval_holdout.json"
-    )
-    console.print(json.dumps(summary, indent=2))
-    console.print(
-        "[dim]Imported accounts are asserted by their source project, not verified. "
-        "Run a capture and the verification pass before treating them as labels.[/dim]"
-    )
-
-
-async def run_eval_external_command(args) -> None:
-    from rich.table import Table
-
-    from aliens_eye.eval.external import compare_external
-
-    if args.json_out:
-        set_plain(True, stderr=True)
-    logger = setup_logger(args.verbose)
-    console = get_console()
-
-    rule_paths = {
-        name: Path(value)
-        for name, value in (
-            ("sherlock", args.sherlock),
-            ("maigret", args.maigret),
-            ("whatsmyname", args.whatsmyname),
-        )
-        if value
-    }
-    if not rule_paths:
-        console.print(
-            "[red]No rule sets given.[/red] Pass at least one of --sherlock / --maigret / "
-            "--whatsmyname. The rule data is not vendored; fetch it from the upstream "
-            "project and mind its licence."
-        )
-        return
-    missing = [str(p) for p in rule_paths.values() if not p.exists()]
-    if missing:
-        console.print(f"[red]Rule file(s) not found:[/red] {', '.join(missing)}")
-        return
-
-    detector = Detector()
-    detector.load_model(logger, Path(args.model) if args.model else None)
-
-    sites = None
-    if args.split != "all":
-        from aliens_eye.ml.collect import load_selfcheck_data
-
-        sites = set(
-            load_selfcheck_data(
-                args.split, Path(args.ground_truth) if args.ground_truth else None
-            )
-        )
-
-    from aliens_eye.ml.collect import load_ground_truth_sources
-
-    provenance = load_ground_truth_sources(
-        args.split, Path(args.ground_truth) if args.ground_truth else None
-    )
-    bundle = await compare_external(
-        Path(args.corpus), detector, logger, rule_paths, sites=sites,
-        provenance=provenance,
-    )
-
-    if args.out:
-        out = Path(args.out)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(bundle, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    if args.json_out:
-        print(json.dumps(bundle, indent=2, sort_keys=True))
-        return
-
-    console.print(
-        f"[blue]Corpus[/blue] {bundle['corpus']}  "
-        f"[blue]usable rows[/blue] {bundle['usable_rows']}"
-    )
-    for entry in bundle["external"]:
-        m = entry["overall"]
-        console.print(
-            f"\n[bold]{entry['name']}[/bold]  "
-            f"rules {entry['source']['usable_rules']}  "
-            f"covered {entry['samples']} rows ({entry['site_coverage']:.0%})  "
-            f"no rule {entry['rows_without_rule']}  undecided {entry['rows_rule_undecided']}  "
-            f"self-sourced excluded {entry.get('rows_excluded_self_sourced', 0)}"
-        )
-        table = Table(header_style="bold blue")
-        table.add_column("Detector", style="yellow")
-        for col in ("P", "R", "F1", "FPR", "vs this tool", "95% CI"):
-            table.add_column(col, justify="right")
-        table.add_row(
-            entry["name"],
-            f"{m['precision']:.3f}", f"{m['recall']:.3f}", f"{m['f1']:.3f}",
-            f"{m['false_positive_rate']:.3f}", "[dim]reference[/dim]", "",
-        )
-        for our_name, cmp in entry["vs_ours"].items():
-            verdict = "[bold]separable[/bold]" if cmp["separable"] else "[dim]ns[/dim]"
-            table.add_row(
-                f"ours: {our_name}", "", "",
-                f"{cmp['our_f1_on_covered_rows']:.3f}", "",
-                f"{cmp['delta']:+.3f} {verdict}",
-                f"[{cmp['ci_low']:+.3f}, {cmp['ci_high']:+.3f}]",
-            )
-        console.print(table)
-    console.print(
-        "\n[dim]External verdicts come from reimplemented rule semantics applied to the "
-        "same stored responses, not from running the upstream tools. Rows a tool has no "
-        "rule for are excluded from its score rather than counted against it.[/dim]"
     )
     if args.out:
         console.print(f"[dim]Full bundle written to {args.out}[/dim]")

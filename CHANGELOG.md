@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.12.0 (2026-11-19)
+
+### Removed
+- `aliens_eye sites import` (and its `--maigret`, `--sherlock`, `--*-revision`, `--out`,
+  `--with-standard` and `--include-examples` flags).
+- `aliens_eye eval external` and `aliens_eye eval groundtruth`, with the rule-comparison
+  and ground-truth-rebuilding modules behind them.
+
+The bundled catalogs, scanning, `sites stats|list|validate`, `eval ablate` and training are unchanged.
+
 ## 2.11.1 (2026-11-19)
 
 ### Removed

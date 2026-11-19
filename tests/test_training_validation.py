@@ -24,16 +24,6 @@ def test_canonical_aliases_are_excluded_from_new_training():
     }
 
 
-def test_new_split_assignment_keeps_aliases_together():
-    from aliens_eye.eval.groundtruth import GroundTruthEntry, assign_splits
-
-    entries = {s: GroundTruthEntry(s, ["alice"], "curated") for s in ("first", "alias")}
-    templates = {"first": "https://example.org/{}", "alias": "http://www.example.org/{}/"}
-    assert assign_splits(entries, {"first"}, {"alias"}, site_templates=templates) == {
-        "first": "holdout", "alias": "holdout",
-    }
-
-
 def test_training_rows_keep_group_metadata(tmp_path):
     from aliens_eye.ml.collect import write_rows
 
