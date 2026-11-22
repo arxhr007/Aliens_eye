@@ -375,6 +375,10 @@ The package lives under `src/aliens_eye/`: `core/` (scanner, detector, analyzer,
 
 Issues and PRs welcome — adding sites to `src/aliens_eye/data/sites.json`, expanding the ground-truth set in `selfcheck.json`, or improving the model all directly improve detection. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks, and how detection changes are measured, and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community standards.
 
+## Data sources
+
+Site definitions are adapted from community OSINT projects released under the MIT licence, plus public sources. Licence notices ship with the data files. Some test accounts are adapted from WhatsMyName (CC BY-SA 4.0, © Micah Hoffman et al.).
+
 ## Disclaimer
 
 This tool is for educational purposes and legitimate OSINT research only. You are responsible for complying with laws and site terms of service.
