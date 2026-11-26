@@ -1,0 +1,299 @@
+# Aliens Eye — complete documentation
+
+This file concatenates everything an LLM needs to understand, use, or develop
+Aliens Eye. The concise index is `llms.txt`.
+
+---
+
+## What it is
+
+Aliens Eye is an AI-OSINT username scanner (PyPI `aliens-eye`, v2.12.0, MIT
+license, Python >= 3.10). It checks whether a username exists across 7,700+
+platforms asynchronously — 7,710 enabled sites in the default extended catalog,
+or the ~788-site original "standard" catalog via `--catalog standard`.
+
+Highlights:
+
+- ML + heuristic detection over a 30-dimensional feature vector instead of
+  naive status-code checks
+- Tri-state verdicts (Found / Maybe / Not Found) with confidence percentages
+- Profile extraction: display name, bio, avatar (OpenGraph / JSON-LD / per-site CSS)
+- Cross-site correlation (`--correlate`): clusters profiles that look like the
+  same person by avatar hash, bio, shared links, name
+- Recursive expansion (`--recurse-depth N`): follows linked usernames out of bios
+- Domain check (`--domains`): is `<username>.{com,io,net,...}` registered/live
+- Watch mode (`--watch 6h --notify <url>`): re-scan on an interval, webhook alerts
+- Resumable scans (`--resume file.jsonl`)
+- Rich terminal UI plus optional interactive browser (`aliens_eye tui`)
+- MCP server (`aliens_eye serve`) exposing scanning to LLM agents
+- Proxy and Tor support (`--proxy`, `--tor`)
+- Site filtering: `--site`, `--exclude-site`, `--no-nsfw`, drop-in `sites.d/` maps
+- Control check: every Found is verified by asking the same site for a username
+  that cannot exist; identical pages downgrade the hit to Maybe
+- Calibrated self-check: per-site precision / recall / F1 / FPR
+- Frozen response corpora for reproducible evaluation (`corpus record`,
+  `selfcheck --corpus`), ablations with bootstrap confidence intervals
+  (`eval ablate`)
+- Reports: JSON, CSV, HTML, Markdown, PDF, GEXF, Mermaid, Maltego CSV
+- Optional Playwright fallback for JavaScript-heavy pages
+
+> Treat Found/Maybe as leads to verify, not as findings or proof of identity.
+
+---
+
+## Install
+
+```bash
+pip install aliens-eye
+```
+
+Optional extras:
+
+```bash
+pip install "aliens-eye[browser]"   # Playwright fallback for hard pages
+python -m playwright install chromium
+
+pip install "aliens-eye[train]"     # scikit-learn, for retraining the ML model
+pip install "aliens-eye[correlate]" # Pillow, avatar matching in --correlate
+pip install "aliens-eye[pdf]"       # reportlab, for --format pdf
+pip install "aliens-eye[tui]"       # textual, interactive `tui` browser
+pip install "aliens-eye[serve]"     # mcp, the `serve` MCP server
+pip install "aliens-eye[laya]"      # laya + torch + transformers, page-text judge
+```
+
+Docker:
+
+```bash
+docker build -t aliens-eye .
+docker run --rm -it aliens-eye username
+```
+
+From source:
+
+```bash
+git clone https://github.com/arxhr007/Aliens_eye.git
+cd Aliens_eye
+pip install -e .
+```
+
+---
+
+## Usage
+
+```bash
+aliens_eye                                  # interactive prompts
+aliens_eye username                         # single username
+aliens_eye username1 username2              # multiple usernames
+aliens_eye username -l advanced             # scan-level variations
+aliens_eye username --site github,reddit    # specific sites only
+aliens_eye username --no-nsfw               # skip NSFW sites
+aliens_eye username --tor                   # route through Tor
+aliens_eye username --proxy socks5://127.0.0.1:1080
+aliens_eye username --format all --output results
+aliens_eye username --no-ml                 # heuristics only
+aliens_eye username --profile quick         # quick / full / aggressive presets
+aliens_eye username --plain                 # no colors/progress, for CI
+aliens_eye username --json-stdout | jq ...  # one JSON line per username
+aliens_eye username --json-stdout --only-found
+aliens_eye -r results/username_advanced_20260611_120000.json  # view a saved scan
+aliens_eye username --correlate --domains
+aliens_eye username --recurse-depth 1
+aliens_eye username --correlate --format gexf,mermaid,maltego
+aliens_eye username --format pdf
+aliens_eye username --watch 6h --notify https://hooks.example/aliens
+aliens_eye username --resume scan.jsonl
+aliens_eye diff results/old.json results/new.json
+aliens_eye selfcheck --negatives 2 --report json
+aliens_eye corpus record --out corpus/v1 --split all --negatives 4
+aliens_eye corpus stats corpus/v1
+aliens_eye selfcheck --split holdout --corpus corpus/v1 --report json
+aliens_eye eval ablate --corpus corpus/v1 --split holdout
+aliens_eye label results/username_basic_20260611_120000.json --out labeled.csv
+aliens_eye tui username
+aliens_eye serve
+```
+
+Custom platforms: drop `{ "site_name": "https://site/{}" }` JSON into
+`./sites.d/` (or the user config dir's `sites.d/`); `--sites-dir DIR` adds
+another location.
+
+---
+
+## How detection works
+
+HTML detection uses a 30-dimensional feature vector: HTTP status buckets,
+username placement (path/title/meta/canonical), error and profile keywords,
+DOM structure (images, forms, profile/error CSS classes), structured-data
+signals (og:type, JSON-LD Person), response timing, redirect counts, and — in
+the legacy scan path — per-site fingerprint matches learned from previous scans.
+
+Two judges vote:
+
+1. Heuristic engine — weighted scoring over the features
+2. ML model — logistic regression trained on labeled scans of real and fake
+   accounts, shipped with the package, running in pure Python (no sklearn at
+   runtime)
+
+The blended probability maps to Found / Maybe / Not Found with confidence. The
+loaded model supplies the blend weight and thresholds — the shipped model uses
+roughly `0.9 * ml + 0.1 * heuristic`, Found above ~0.62, Not Found below ~0.36.
+A missing or invalid model falls back silently to heuristics with the defaults
+in `core/detector.py` (0.4 weight, 0.6 / 0.35 thresholds).
+
+A Found must then survive three checks:
+
+- HTTP 404/410 reports as Not Found; other error codes cap at Maybe
+- bot-check/error pages cap at Maybe
+- the site is asked for a random control username; an identical response caps
+  the hit at Maybe (`--no-control-check` skips this, costing one extra request
+  per Found)
+
+Catalog sites (maigret/sherlock-derived rules) additionally verify by
+presence/absence markers, error codes, `check_type`, custom headers/encodings,
+probe URLs, and handle-key matching on JSON API answers.
+
+---
+
+## The laya page-text judge (optional)
+
+An optional third opinion on what a page *shows*, powered by the `laya`
+typed-decision engine (`pip install "aliens-eye[laya]"` — pulls torch,
+transformers, and a Hugging Face checkpoint; never a hard dependency).
+
+- `--laya` enables it; `--laya-model` picks the checkpoint
+  (default `convaiinnovations/laya-multilingual`)
+- `--laya-head path/to/head.json` replaces the zero-shot judge with a logistic
+  head trained over the encoder's embeddings
+- The judge runs on Found/Maybe candidates only: P(profile) at or below the
+  veto threshold (0.15) demotes a Found to Maybe; at or above the promote
+  threshold (0.90) lifts a Maybe to Found, which then faces the control check
+  like any other Found. It never runs on JSON answers or bot-walled pages.
+- Verdicts are recorded per-site under `checks["laya"]` and explanation reasons
+  `laya_veto` / `laya_promote`.
+
+Measured on the frozen holdout corpus (696 rows): the zero-shot judge does not
+beat the shipped detector. The trained head makes it a precision-biased second
+opinion — roughly break-even on F1, slightly better precision and false-positive
+rate — so it stays opt-in. Train and evaluate it offline:
+
+```bash
+pip install "aliens-eye[laya]" "aliens-eye[train]"
+python scripts/train_laya_head.py --corpus paper/corpus/v3 --out models/laya_head.json
+python scripts/eval_laya.py --corpus paper/corpus/v3 --split holdout --laya-head models/laya_head.json
+```
+
+`eval_laya.py` scores four configurations over the same frozen rows —
+status_only, shipped, laya_alone, shipped+laya — with bootstrap confidence
+intervals and paired delta tests, mirroring `eval ablate`.
+
+---
+
+## Retraining the shipped model
+
+```bash
+pip install "aliens-eye[train]"
+
+# 1. scan ground-truth accounts + random negatives (train split only)
+aliens_eye train collect --out dataset.csv --negatives 4
+
+# 2. fit and export
+aliens_eye train fit --data dataset.csv --out model.json
+
+# 3. score on platforms it never trained on
+aliens_eye selfcheck --split holdout --model model.json --report json
+
+# 4. use it
+aliens_eye username --model model.json
+```
+
+Ground truth: 286 train and 142 holdout site entries. New collection protects
+holdout host groups and records `site`, `site_group`, `label_source`, `split`
+alongside features. `--split train` scoring measures fit, not generalization.
+Training uses grouped folds, nested out-of-fold calibration, and `--max-fpr`
+constrained thresholds. Compare candidate precision AND recall on the holdout
+before replacing the shipped model — never promote on CV scores.
+
+Offline (no network), reusing a captured corpus:
+
+```bash
+aliens_eye train collect --corpus corpus --out grouped-dataset.csv
+aliens_eye train fit --data grouped-dataset.csv --out candidate-model.json --max-fpr 0.02
+```
+
+`scripts/train_expanded.py` builds labeled pages from expanded-catalog sites in
+prepare/record/collect/fit/compare stages under one `--work` directory.
+
+---
+
+## Library API
+
+The package root `aliens_eye` is the stable surface:
+
+```python
+import asyncio
+from aliens_eye import scan, correlate
+
+report = asyncio.run(scan("torvalds", level="basic"))
+# same shape as the CLI's JSON report; pass straight to correlate()
+```
+
+Exported names: `scan`, `correlate`, `load_sites`, `match_profile_url`,
+`fetch_page` (see `aliens_eye/api.py` docstrings for exact signatures).
+`scan(...)` accepts `use_laya` / `laya_model` / `laya_head` among other scan
+options. Everything outside the package root is internal.
+
+---
+
+## Repository layout
+
+```
+src/aliens_eye/
+  cli.py            CLI entry point, argument parsing, run_scan
+  api.py            stable library surface
+  core/
+    scanner.py      async scan orchestration (queue + workers)
+    http.py         fetch: retries, backoff, per-domain rate limits
+    analyzer.py     HTML feature extraction (selectolax)
+    features.py     the 30-dim FEATURE_SCHEMA
+    detector.py     heuristic judge + blend + tri-state mapping
+    control.py      control-username check
+    sites.py        SiteCatalog / SiteDefinition, training groups
+    site_rules.py   catalog-rule verification scan path
+    laya_judge.py   optional laya text judge + trained-head inference
+    netguard.py     SSRF protection
+    config.py       ScannerConfig dataclass
+    explain.py      per-result explanations
+  ml/
+    collect.py      dataset collection (train split only)
+    train.py        sklearn training, grouped CV, OOF calibration
+    inference.py    pure-python logistic regression (runtime)
+  corpus/           record/replay of frozen response corpora
+  eval/ablate.py    detector-config comparison with bootstrap CIs
+  data/             sites.json, extended_sites.json, model.json, ground truth
+scripts/
+  train_expanded.py   expanded-catalog training pipeline
+  train_laya_head.py  train the laya embedding head offline
+  eval_laya.py        evaluate laya configurations against a frozen corpus
+  verify_catalog.py   catalog verification pipeline
+tests/                pytest suite; fake fetchers/local aiohttp, no live scans
+paper/                captured evaluation corpora + ablation bundles
+```
+
+---
+
+## Development workflow
+
+```bash
+.venv/Scripts/python.exe -m ruff check src tests aliens_eye.py   # lint
+.venv/Scripts/python.exe -m pytest -q                            # tests
+uv build --offline --out-dir <tempdir>                           # package build
+python -m twine check <tempdir>/*                                # packaging verify
+python aliens_eye.py sites stats --catalog extended              # offline catalog inspect
+python aliens_eye.py sites validate --catalog extended
+```
+
+- Scanner/monitoring tests use fake fetchers or local aiohttp servers; no live
+  scans or real webhook delivery needed.
+- Validation build artifacts go in a fresh temporary directory, not `dist/`.
+- Evaluation rule: candidates must beat the shipped model on holdout precision
+  AND recall; training/CV scores alone are never evidence.

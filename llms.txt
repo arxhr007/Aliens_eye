@@ -1,0 +1,25 @@
+# Aliens Eye
+
+> AI-OSINT username scanner: checks whether a username exists across 7,700+ platforms, blending a trained logistic-regression model with a heuristic engine over a 30-dimensional feature vector. Verdicts are tri-state (Found / Maybe / Not Found) with confidence, per-site control checks, cross-site correlation, watch mode, and reproducible frozen-corpus evaluation.
+
+Python >= 3.10, MIT license, installable as `pip install aliens-eye`. The CLI entry point is `aliens_eye`; the stable library surface is the `aliens_eye` package root (`scan`, `correlate`, `load_sites`, `match_profile_url`, `fetch_page`). Detection claims are leads to verify, not proof of identity.
+
+## Documentation
+
+- [README](README.md): install, usage examples, how detection works
+- [WORKING.md](WORKING.md): the detection pipeline in detail — features, judges, thresholds, checks
+- [CHANGELOG](CHANGELOG.md): release history, current version 2.12.0
+- [CONTRIBUTING](CONTRIBUTING.md): how to contribute
+- [AGENTS.md](AGENTS.md): development workflow — lint, test, packaging, catalog and training validation
+- [llms-full.txt](llms-full.txt): the complete documentation in one file
+
+## Source and releases
+
+- [GitHub repository](https://github.com/arxhr007/Aliens_eye): source, issues
+- [PyPI](https://pypi.org/project/aliens-eye/): released versions and extras
+- [config.example.json](config.example.json): every configurable scan setting
+
+## Optional
+
+- [LICENSE](LICENSE): MIT
+- [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md)
